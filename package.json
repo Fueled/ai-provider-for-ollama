@@ -1,0 +1,51 @@
+{
+  "name": "wordpress-ai-client-provider-ollama",
+  "private": true,
+  "license": "GPL-2.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WordPress/wordpress-ai-client-provider-ollama.git"
+  },
+  "files": [
+    "build",
+    "includes",
+    "README.md",
+    "readme.txt",
+    "plugin.php"
+  ],
+  "scripts": {
+    "plugin-zip": "wp-scripts plugin-zip",
+    "build": "wp-scripts build",
+    "start": "wp-scripts start",
+    "format:js": "wp-scripts format ./src",
+    "lint:js": "wp-scripts lint-js",
+    "lint:js:fix": "wp-scripts lint-js --fix",
+    "lint:php": "wp-env run tests-cli --env-cwd=wp-content/plugins/wordpress-ai-client-provider-ollama composer run-script lint",
+    "lint:php:fix": "wp-env run tests-cli --env-cwd=wp-content/plugins/wordpress-ai-client-provider-ollama composer run-script format",
+    "lint:php:stan": "wp-env run tests-cli --env-cwd=wp-content/plugins/wordpress-ai-client-provider-ollama composer run-script phpstan",
+    "test:php": "wp-env run tests-cli --env-cwd=wp-content/plugins/wordpress-ai-client-provider-ollama vendor/bin/phpunit -c phpunit.xml.dist",
+    "typecheck": "tsc --noEmit",
+    "wp-env": "wp-env"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.27",
+    "@types/react-dom": "^18.3.7",
+    "@wordpress/env": "^10.37.0",
+    "@wordpress/scripts": "^31.2.0",
+    "filenamify": "^7.0.1",
+    "typescript": "^5.9.3",
+    "webpack-remove-empty-scripts": "^1.1.1"
+  },
+  "dependencies": {
+    "react": "^18.3.1"
+  },
+  "overrides": {
+    "webpack-dev-server@<=5.2.0": ">=5.2.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "engines": {
+    "node": ">=22.21.1",
+    "npm": ">=10.9.4"
+  }
+}

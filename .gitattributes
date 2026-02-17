@@ -1,0 +1,28 @@
+# Automatically normalize line endings.
+* text=auto
+
+# Directories
+/.git
+/.github
+/.wordpress-org
+/node_modules
+/tests
+/vendor
+
+# Files
+.*
+CHANGELOG.md
+CODE_OF_CONDUCT.md
+composer.json
+composer.lock
+CONTRIBUTING.md
+CREDITS.md
+LICENSE.md
+package-lock.json
+package.json
+phpcs.xml.dist
+phpstan.neon.dist
+phpunit.xml.dist
+README.md
+SECURITY.md
+webpack.config.js
