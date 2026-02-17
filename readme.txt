@@ -1,0 +1,78 @@
+=== WordPress AI Client Provider for Ollama ===
+Contributors: 10up
+Tags: ai, ollama, llm, local-ai, artificial-intelligence
+Requires at least: 6.9
+Tested up to: 6.9
+Stable tag: 1.0.0
+Requires PHP: 7.4
+License: GPL-2.0-or-later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+
+Ollama provider for the WordPress AI Client.
+
+== Description ==
+
+This plugin provides [Ollama](https://ollama.com/) integration for the WordPress AI Client. It lets WordPress sites use large language models running locally or on a remote Ollama instance for text generation and other AI capabilities.
+
+Ollama exposes an [OpenAI-compatible API](https://ollama.com/blog/openai-compatibility), and this provider uses that API to communicate with any model you have pulled into Ollama (Llama, Mistral, Gemma, Phi, and many more).
+
+**Features:**
+
+* Text generation with any Ollama model
+* Automatic model discovery from your Ollama instance
+* Function calling support
+* Structured output (JSON mode) support
+* Settings page for host URL and default model configuration
+* Works without an API key for local instances
+
+**Requirements:**
+
+* PHP 7.4 or higher
+* WordPress AI Client plugin must be installed and activated
+* Ollama running locally or on a remote server
+
+== Installation ==
+
+1. Ensure the WordPress AI Client plugin is installed and activated.
+2. Upload the plugin files to `/wp-content/plugins/wordpress-ai-client-provider-ollama/`.
+3. Activate the plugin through the 'Plugins' menu in WordPress.
+4. Go to **Settings > Ollama** to configure the host URL and default model.
+
+== Frequently Asked Questions ==
+
+= How do I install Ollama? =
+
+Visit [ollama.com](https://ollama.com/) to download and install Ollama for your platform. Once installed, pull a model with `ollama pull llama3.2` and the provider will automatically discover it.
+
+= Do I need an API key? =
+
+No. For local Ollama instances, no API key is needed. The plugin automatically handles authentication for local setups.
+
+For remote Ollama instances that require authentication, enter the API key in the WordPress AI Client **Settings > AI Credentials** screen.
+
+= How do I change the Ollama host URL? =
+
+By default, the provider connects to `http://localhost:11434`. You can change this in two ways:
+
+1. Set the `OLLAMA_HOST` environment variable (takes precedence).
+2. Go to **Settings > Ollama** in the WordPress admin and enter your host URL.
+
+= Does this plugin work without the WordPress AI Client? =
+
+No, this plugin requires the WordPress AI Client plugin to be installed and activated. It provides the Ollama-specific implementation that the WordPress AI Client uses.
+
+== Changelog ==
+
+= 1.0.0 =
+
+* Initial release
+* Text generation with Ollama models via the OpenAI-compatible API
+* Automatic model discovery from the Ollama instance
+* Settings page for host URL and default model
+* Function calling and structured output support
+
+== Upgrade Notice ==
+
+= 1.0.0 =
+
+Initial release.

@@ -1,14 +1,13 @@
 <?php
-
 /**
  * Plugin Name: WordPress AI Client Provider for Ollama
- * Plugin URI: https://github.com/WordPress/wordpress-ai-client-provider-ollama
+ * Plugin URI: https://github.com/10up/wordpress-ai-client-provider-ollama
  * Description: Ollama provider for the WordPress AI Client.
  * Requires at least: 6.9
  * Requires PHP: 7.4
  * Version: 1.0.0
- * Author: WordPress AI Team
- * Author URI: https://make.wordpress.org/ai/
+ * Author: 10up
+ * Author URI: https://10up.com
  * License: GPL-2.0-or-later
  * License URI: https://spdx.org/licenses/GPL-2.0-or-later.html
  * Text Domain: wordpress-ai-client-provider-ollama

@@ -73,3 +73,7 @@ $result = AiClient::prompt('Hello!')
     ->usingProvider('ollama')
     ->generateText();
 ```
+
+## Like what you see?
+
+[![Work with the 10up WordPress Practice at Fueled](https://github.com/10up/.github/blob/trunk/profile/10up-github-banner.jpg)](http://10up.com/contact/)
