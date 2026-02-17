@@ -4,6 +4,7 @@ declare( strict_types=1 );
 
 namespace WordPress\AiClientProviderOllama\Metadata;
 
+use WordPress\AiClient\Messages\Enums\ModalityEnum;
 use WordPress\AiClient\Providers\Http\DTO\Request;
 use WordPress\AiClient\Providers\Http\DTO\Response;
 use WordPress\AiClient\Providers\Http\Enums\HttpMethodEnum;
@@ -58,6 +59,7 @@ class OllamaModelMetadataDirectory extends AbstractOpenAiCompatibleModelMetadata
 		);
 		$options      = array(
 			new SupportedOption( OptionEnum::systemInstruction() ),
+			new SupportedOption(OptionEnum::candidateCount()),
 			new SupportedOption( OptionEnum::maxTokens() ),
 			new SupportedOption( OptionEnum::temperature() ),
 			new SupportedOption( OptionEnum::topP() ),
@@ -69,6 +71,8 @@ class OllamaModelMetadataDirectory extends AbstractOpenAiCompatibleModelMetadata
 			new SupportedOption( OptionEnum::outputSchema() ),
 			new SupportedOption( OptionEnum::functionDeclarations() ),
 			new SupportedOption( OptionEnum::customOptions() ),
+			new SupportedOption( OptionEnum::inputModalities(), array( array( ModalityEnum::text() ) ) ),
+			new SupportedOption( OptionEnum::outputModalities(), array( array( ModalityEnum::text() ) ) ),
 		);
 
 		$models_data = (array) $response_data['data'];
