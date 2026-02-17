@@ -6,7 +6,6 @@ import { __ } from '@wordpress/i18n';
 
 interface Config {
 	selectId: string;
-	ajaxUrl: string;
 	savedModel: string;
 }
 
@@ -16,9 +15,9 @@ declare global {
 	}
 }
 
-interface AjaxResponse {
-	success: boolean;
-	data: string[] | string;
+interface ModelMetadata {
+	id: string;
+	name: string;
 }
 
 const ERROR_COLOR = '#d63638';
@@ -44,33 +43,29 @@ async function populateModels( config: Config ): Promise< void > {
 		'wordpress-ai-client-provider-ollama'
 	);
 
-	let resp: AjaxResponse;
+	let models: string[];
 	try {
-		resp = await apiFetch< AjaxResponse >( { url: config.ajaxUrl } );
-	} catch {
-		status.textContent = __(
+		const response = await apiFetch< ModelMetadata[] >( {
+			path: '/wp-ai/v1/providers/ollama/models',
+		} );
+		models = response.map( ( m ) => m.id );
+	} catch ( error ) {
+		const fallback = __(
 			'Could not connect to load models.',
 			'wordpress-ai-client-provider-ollama'
 		);
+		status.textContent =
+			error !== null &&
+			typeof error === 'object' &&
+			'message' in error &&
+			typeof ( error as { message: unknown } ).message === 'string'
+				? ( error as { message: string } ).message
+				: fallback;
 		status.style.color = ERROR_COLOR;
 		return;
 	}
 
 	status.textContent = '';
-
-	if ( ! resp.success || ! resp.data ) {
-		status.textContent =
-			typeof resp.data === 'string'
-				? resp.data
-				: __(
-						'Failed to load models.',
-						'wordpress-ai-client-provider-ollama'
-				  );
-		status.style.color = ERROR_COLOR;
-		return;
-	}
-
-	const models = resp.data as string[];
 
 	select.innerHTML = '';
 
@@ -115,5 +110,3 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		populateModels( config );
 	}
 } );
-
-export {};

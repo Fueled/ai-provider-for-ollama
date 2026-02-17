@@ -18,19 +18,16 @@ class OllamaSettings {
 	private const OPTION_NAME  = 'wp_ai_client_ollama_settings';
 	private const PAGE_SLUG    = 'wp-ai-client-ollama';
 	private const SECTION_ID   = 'wp_ai_client_ollama_main';
-	private const AJAX_ACTION  = 'wp_ai_client_ollama_list_models';
-	private const NONCE_ACTION = 'wp_ai_client_ollama_nonce';
 
 	/**
-	 * Registers the settings page, setting, and AJAX handler.
+	 * Initializes the settings.
 	 *
 	 * @since 1.0.0
 	 */
-	public function register(): void {
+	public function init(): void {
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_menu', array( $this, 'register_settings_screen' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_settings_script' ) );
-		add_action( 'wp_ajax_' . self::AJAX_ACTION, array( $this, 'ajax_list_models' ) );
 	}
 
 	/**
@@ -93,7 +90,7 @@ class OllamaSettings {
 	/**
 	 * Sanitizes the settings array.
 	 *
-	 * @since n.e.x.t
+	 * @since 1.0.0
 	 *
 	 * @param mixed $value The input value.
 	 * @return array<string, string> The sanitized settings.
@@ -129,7 +126,20 @@ class OllamaSettings {
 			<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 			<p>
 				<?php
-				echo esc_html__( 'Configure the connection to your Ollama instance. Leave the host URL empty to use the default (http://localhost:11434). The OLLAMA_HOST environment variable takes precedence over this setting.', 'wordpress-ai-client-provider-ollama' );
+				echo sprintf(
+					esc_html__( 'Configure the connection to your Ollama instance. If you want to use Ollama Cloud, enter the API key on the %1$sSettings > AI Credentials%2$s screen.', 'wordpress-ai-client-provider-ollama' ),
+					'<a href="' . esc_url( admin_url( 'options-general.php?page=wp-ai-client' ) ) . '">',
+					'</a>'
+				);
+				?>
+			</p>
+			<p>
+				<?php
+				echo sprintf(
+					esc_html__( 'Leave the host URL empty to use the default (%1$shttp://localhost:11434%2$s). You can also set the %1$sOLLAMA_HOST%2$s environment variable to override this setting.', 'wordpress-ai-client-provider-ollama' ),
+					'<code>',
+					'</code>'
+				);
 				?>
 			</p>
 			<form action="options.php" method="post">
@@ -168,9 +178,10 @@ class OllamaSettings {
 		/>
 		<p class="description">
 			<?php
-			echo esc_html__(
-				'The base URL of your Ollama instance (without /v1). Example: http://localhost:11434',
-				'wordpress-ai-client-provider-ollama'
+			echo sprintf(
+				esc_html__( 'The base URL of your Ollama instance (without /v1). Example: %1$shttp://localhost:11434%2$s', 'wordpress-ai-client-provider-ollama' ),
+				'<code>',
+				'</code>'
 			);
 			?>
 		</p>
@@ -250,90 +261,8 @@ class OllamaSettings {
 			'wpAiClientOllamaSettings',
 			array(
 				'selectId'   => self::OPTION_NAME . '-model',
-				'ajaxUrl'    => admin_url( 'admin-ajax.php' )
-					. '?action=' . self::AJAX_ACTION
-					. '&_wpnonce=' . wp_create_nonce( self::NONCE_ACTION ),
 				'savedModel' => isset( $settings['model'] ) ? $settings['model'] : '',
 			)
 		);
-	}
-
-	/**
-	 * Handles the AJAX request to list available Ollama models.
-	 *
-	 * @since 1.0.0
-	 */
-	public function ajax_list_models(): void {
-		check_ajax_referer( self::NONCE_ACTION );
-
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error(
-				__( 'Insufficient permissions.', 'wordpress-ai-client-provider-ollama' ),
-				403
-			);
-		}
-
-		$host = $this->resolve_host();
-		$url  = $host . '/v1/models';
-
-		// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_remote_get_wp_remote_get -- Local Ollama instance, not a VIP environment.
-		$response = wp_remote_get( $url, array( 'timeout' => 3 ) );
-
-		if ( is_wp_error( $response ) ) {
-			wp_send_json_error( $response->get_error_message() );
-		}
-
-		$code = wp_remote_retrieve_response_code( $response );
-		if ( 200 !== $code ) {
-			wp_send_json_error(
-				sprintf(
-					/* translators: %d: HTTP status code */
-					__( 'Ollama returned HTTP %d.', 'wordpress-ai-client-provider-ollama' ),
-					$code
-				)
-			);
-		}
-
-		$body = wp_remote_retrieve_body( $response );
-		$data = json_decode( $body, true );
-
-		if ( ! is_array( $data ) || ! isset( $data['data'] ) || ! is_array( $data['data'] ) ) {
-			wp_send_json_error(
-				__( 'Unexpected response format.', 'wordpress-ai-client-provider-ollama' )
-			);
-		}
-
-		$models = array();
-		foreach ( $data['data'] as $model ) {
-			if ( ! is_array( $model ) || ! isset( $model['id'] ) || ! is_string( $model['id'] ) ) {
-				continue;
-			}
-
-			$models[] = $model['id'];
-		}
-		sort( $models );
-
-		wp_send_json_success( $models );
-	}
-
-	/**
-	 * Resolves the Ollama host URL from environment or settings.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @return string The Ollama host URL.
-	 */
-	private function resolve_host(): string {
-		$env_host = getenv( 'OLLAMA_HOST' );
-		if ( false !== $env_host && '' !== $env_host ) {
-			return rtrim( $env_host, '/' );
-		}
-
-		$settings = get_option( self::OPTION_NAME, array() );
-		if ( is_array( $settings ) && isset( $settings['host'] ) && '' !== $settings['host'] ) {
-			return rtrim( $settings['host'], '/' );
-		}
-
-		return 'http://localhost:11434';
 	}
 }

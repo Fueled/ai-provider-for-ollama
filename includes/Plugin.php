@@ -12,6 +12,7 @@ namespace WordPress\AiClientProviderOllama;
 
 use WordPress\AiClient\AiClient;
 use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
+use WordPress\AiClient\Providers\Http\HttpTransporterFactory;
 use WordPress\AiClientProviderOllama\Provider\OllamaProvider;
 use WordPress\AiClientProviderOllama\Settings\OllamaSettings;
 
@@ -29,8 +30,9 @@ class Plugin {
 	 */
 	public function init(): void {
 		add_action( 'init', array( $this, 'register_provider' ), 5 );
+		add_action( 'init', array( $this, 'ensure_http_transporter' ), 15 );
 		add_action( 'init', array( $this, 'register_fallback_auth' ), 20 );
-		add_action( 'init', array( $this, 'register_settings' ) );
+		add_action( 'init', array( $this, 'initialize_settings' ) );
 	}
 
 	/**
@@ -77,6 +79,33 @@ class Plugin {
 	}
 
 	/**
+	 * Ensures the HTTP transporter is set on the registry.
+	 *
+	 * Providers register at priority 5, before the WordPress PSR-18 HTTP
+	 * client discovery strategy is available (registered at priority 10 by
+	 * wp-ai-client). This method runs at priority 15 to trigger transporter
+	 * creation after the strategy is in place.
+	 *
+	 * @since 1.0.0
+	 */
+	public function ensure_http_transporter(): void {
+		if ( ! class_exists( AiClient::class ) ) {
+			return;
+		}
+
+		$registry = AiClient::defaultRegistry();
+
+		try {
+			$registry->getHttpTransporter();
+		} catch ( \Throwable $e ) {
+			try {
+				$registry->setHttpTransporter( HttpTransporterFactory::createTransporter() );
+			} catch ( \Throwable $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- Graceful degradation when no PSR-18 client is available.
+			}
+		}
+	}
+
+	/**
 	 * Registers fallback authentication for the Ollama provider.
 	 *
 	 * If no API key was provided via wp-ai-client (which passes credentials at priority 10),
@@ -109,12 +138,12 @@ class Plugin {
 	}
 
 	/**
-	 * Registers the Ollama settings in the WordPress admin.
+	 * Initializes the Ollama settings.
 	 *
 	 * @since 1.0.0
 	 */
-	public function register_settings(): void {
+	public function initialize_settings(): void {
 		$settings = new OllamaSettings();
-		$settings->register();
+		$settings->init();
 	}
 }
