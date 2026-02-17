@@ -59,7 +59,7 @@ class OllamaModelMetadataDirectory extends AbstractOpenAiCompatibleModelMetadata
 		);
 		$options      = array(
 			new SupportedOption( OptionEnum::systemInstruction() ),
-			new SupportedOption(OptionEnum::candidateCount()),
+			new SupportedOption( OptionEnum::candidateCount() ),
 			new SupportedOption( OptionEnum::maxTokens() ),
 			new SupportedOption( OptionEnum::temperature() ),
 			new SupportedOption( OptionEnum::topP() ),

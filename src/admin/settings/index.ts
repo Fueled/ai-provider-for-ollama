@@ -7,12 +7,18 @@ import { __ } from '@wordpress/i18n';
 interface Config {
 	selectId: string;
 	savedModel: string;
+	ajaxUrl: string;
 }
 
 declare global {
 	interface Window {
 		wpAiClientOllamaSettings: Config;
 	}
+}
+
+interface AjaxResponse {
+	success: boolean;
+	data: string[] | string;
 }
 
 interface ModelMetadata {
@@ -43,12 +49,14 @@ async function populateModels( config: Config ): Promise< void > {
 		'wordpress-ai-client-provider-ollama'
 	);
 
+	let resp: AjaxResponse;
 	let models: string[];
+
 	try {
-		const response = await apiFetch< ModelMetadata[] >( {
-			path: '/wp-ai/v1/providers/ollama/models',
-		} );
-		models = response.map( ( m ) => m.id );
+		resp = await apiFetch< AjaxResponse >( { url: config.ajaxUrl } );
+		models = ( resp.data as unknown as ModelMetadata[] ).map(
+			( m ) => m.id
+		);
 	} catch ( error ) {
 		const fallback = __(
 			'Could not connect to load models.',
@@ -66,8 +74,19 @@ async function populateModels( config: Config ): Promise< void > {
 	}
 
 	status.textContent = '';
-
 	select.innerHTML = '';
+
+	if ( ! resp.success || ! resp.data ) {
+		status.textContent =
+			typeof resp.data === 'string'
+				? resp.data
+				: __(
+						'Failed to load models.',
+						'wordpress-ai-client-provider-ollama'
+				  );
+		status.style.color = ERROR_COLOR;
+		return;
+	}
 
 	const defaultOption = document.createElement( 'option' );
 	defaultOption.value = '';

@@ -4,6 +4,8 @@ declare( strict_types=1 );
 
 namespace WordPress\AiClientProviderOllama\Settings;
 
+use WordPress\AiClient\AiClient;
+
 /**
  * Class for the Ollama settings in the WordPress admin.
  *
@@ -18,6 +20,8 @@ class OllamaSettings {
 	private const OPTION_NAME  = 'wp_ai_client_ollama_settings';
 	private const PAGE_SLUG    = 'wp-ai-client-ollama';
 	private const SECTION_ID   = 'wp_ai_client_ollama_main';
+	private const AJAX_ACTION  = 'wp_ai_client_ollama_list_models';
+	private const NONCE_ACTION = 'wp_ai_client_ollama_nonce';
 
 	/**
 	 * Initializes the settings.
@@ -28,6 +32,7 @@ class OllamaSettings {
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_menu', array( $this, 'register_settings_screen' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_settings_script' ) );
+		add_action( 'wp_ajax_' . self::AJAX_ACTION, array( $this, 'ajax_list_models' ) );
 	}
 
 	/**
@@ -80,7 +85,7 @@ class OllamaSettings {
 	public function register_settings_screen(): void {
 		add_options_page(
 			__( 'Ollama Settings', 'wordpress-ai-client-provider-ollama' ),
-			__( 'Ollama', 'wordpress-ai-client-provider-ollama' ),
+			__( 'Ollama Credentials', 'wordpress-ai-client-provider-ollama' ),
 			'manage_options',
 			self::PAGE_SLUG,
 			array( $this, 'render_screen' )
@@ -126,7 +131,8 @@ class OllamaSettings {
 			<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 			<p>
 				<?php
-				echo sprintf(
+				printf(
+					/* translators: 1: link to the AI Credentials screen, 2: closing link tag */
 					esc_html__( 'Configure the connection to your Ollama instance. If you want to use Ollama Cloud, enter the API key on the %1$sSettings > AI Credentials%2$s screen.', 'wordpress-ai-client-provider-ollama' ),
 					'<a href="' . esc_url( admin_url( 'options-general.php?page=wp-ai-client' ) ) . '">',
 					'</a>'
@@ -135,7 +141,8 @@ class OllamaSettings {
 			</p>
 			<p>
 				<?php
-				echo sprintf(
+				printf(
+					/* translators: 1: code tag, 2: closing code tag */
 					esc_html__( 'Leave the host URL empty to use the default (%1$shttp://localhost:11434%2$s). You can also set the %1$sOLLAMA_HOST%2$s environment variable to override this setting.', 'wordpress-ai-client-provider-ollama' ),
 					'<code>',
 					'</code>'
@@ -178,7 +185,8 @@ class OllamaSettings {
 		/>
 		<p class="description">
 			<?php
-			echo sprintf(
+			printf(
+				/* translators: 1: code tag, 2: closing code tag */
 				esc_html__( 'The base URL of your Ollama instance (without /v1). Example: %1$shttp://localhost:11434%2$s', 'wordpress-ai-client-provider-ollama' ),
 				'<code>',
 				'</code>'
@@ -262,7 +270,47 @@ class OllamaSettings {
 			array(
 				'selectId'   => self::OPTION_NAME . '-model',
 				'savedModel' => isset( $settings['model'] ) ? $settings['model'] : '',
+				'ajaxUrl'    => esc_url( admin_url( 'admin-ajax.php' ) . '?action=' . self::AJAX_ACTION . '&_wpnonce=' . wp_create_nonce( self::NONCE_ACTION ) ),
 			)
 		);
+	}
+
+	/**
+	 * Handles the AJAX request to list available Ollama models.
+	 *
+	 * @since 1.0.0
+	 */
+	public function ajax_list_models(): void {
+		check_ajax_referer( self::NONCE_ACTION );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Insufficient permissions.', 'wordpress-ai-client-provider-ollama' ), 403 );
+		}
+
+		$provider_id = 'ollama';
+		$registry    = AiClient::defaultRegistry();
+
+		if ( ! $registry->hasProvider( $provider_id ) ) {
+			wp_send_json_error( __( 'AI provider not found.', 'wordpress-ai-client-provider-ollama' ), 404 );
+		}
+
+		$provider_classname = $registry->getProviderClassName( $provider_id );
+
+		try {
+			// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+			$provider_availability = $provider_classname::availability();
+			if ( ! $provider_availability->isConfigured() ) {
+				wp_send_json_error( __( 'AI provider not configured - missing API credentials.', 'wordpress-ai-client-provider-ollama' ), 400 );
+			}
+
+			// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+			$model_metadata_directory = $provider_classname::modelMetadataDirectory();
+			$model_metadata_objects   = $model_metadata_directory->listModelMetadata();
+
+			wp_send_json_success( $model_metadata_objects );
+		} catch ( \Throwable $e ) {
+			/* translators: %s: Error message. */
+			wp_send_json_error( sprintf( __( 'Could not list models for provider - are the API credentials invalid? Error: %s', 'wordpress-ai-client-provider-ollama' ), $e->getMessage() ), 500 );
+		}
 	}
 }
