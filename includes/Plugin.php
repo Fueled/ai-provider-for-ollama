@@ -13,7 +13,7 @@ namespace WordPress\AiClientProviderOllama;
 use WordPress\AiClient\AiClient;
 use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
 use WordPress\AiClientProviderOllama\Provider\OllamaProvider;
-use WordPress\AiClientProviderOllama\Settings\OllamaSettingsScreen;
+use WordPress\AiClientProviderOllama\Settings\OllamaSettings;
 
 /**
  * Plugin class.
@@ -30,7 +30,7 @@ class Plugin {
 	public function init(): void {
 		add_action( 'init', array( $this, 'register_provider' ), 5 );
 		add_action( 'init', array( $this, 'register_fallback_auth' ), 20 );
-		add_action( 'admin_menu', array( $this, 'register_settings_screen' ) );
+		add_action( 'init', array( $this, 'register_settings' ) );
 	}
 
 	/**
@@ -109,12 +109,12 @@ class Plugin {
 	}
 
 	/**
-	 * Registers the Ollama settings screen in the WordPress admin.
+	 * Registers the Ollama settings in the WordPress admin.
 	 *
 	 * @since 1.0.0
 	 */
-	public function register_settings_screen(): void {
-		$screen = new OllamaSettingsScreen();
-		$screen->register();
+	public function register_settings(): void {
+		$settings = new OllamaSettings();
+		$settings->register();
 	}
 }
