@@ -245,9 +245,6 @@ class OllamaSettings {
 			$settings = array();
 		}
 
-		$saved_model = isset( $settings['model'] ) ? $settings['model'] : '';
-		$nonce       = wp_create_nonce( self::NONCE_ACTION );
-
 		wp_localize_script(
 			'wp-ai-client-ollama-settings',
 			'wpAiClientOllamaSettings',
@@ -255,16 +252,8 @@ class OllamaSettings {
 				'selectId'   => self::OPTION_NAME . '-model',
 				'ajaxUrl'    => admin_url( 'admin-ajax.php' )
 					. '?action=' . self::AJAX_ACTION
-					. '&_wpnonce=' . $nonce,
-				'savedModel' => $saved_model,
-				'i18n'       => array(
-					'loading'      => __( 'Loading models…', 'wordpress-ai-client-provider-ollama' ),
-					'failed'       => __( 'Failed to load models.', 'wordpress-ai-client-provider-ollama' ),
-					'invalid'      => __( 'Invalid response.', 'wordpress-ai-client-provider-ollama' ),
-					'selectModel'  => __( '— Select a model —', 'wordpress-ai-client-provider-ollama' ),
-					'unavailable'  => __( '(not available)', 'wordpress-ai-client-provider-ollama' ),
-					'connectError' => __( 'Could not connect to load models.', 'wordpress-ai-client-provider-ollama' ),
-				),
+					. '&_wpnonce=' . wp_create_nonce( self::NONCE_ACTION ),
+				'savedModel' => isset( $settings['model'] ) ? $settings['model'] : '',
 			)
 		);
 	}

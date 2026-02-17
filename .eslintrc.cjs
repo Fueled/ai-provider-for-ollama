@@ -1,3 +1,8 @@
+/**
+ * External dependencies
+ */
+const path = require( 'path' );
+
 module.exports = {
 	root: true,
 	extends: [ 'plugin:@wordpress/eslint-plugin/recommended' ],
@@ -7,12 +12,12 @@ module.exports = {
 		ecmaFeatures: {
 			jsx: true,
 		},
-		project: './tsconfig.json',
+		project: path.join( __dirname, 'tsconfig.json' ),
 	},
 	settings: {
 		'import/resolver': {
 			typescript: {
-				project: './tsconfig.json',
+				project: path.join( __dirname, 'tsconfig.json' ),
 			},
 		},
 	},
@@ -39,7 +44,7 @@ module.exports = {
 		'@wordpress/i18n-text-domain': [
 			'error',
 			{
-				allowedTextDomain: 'ai',
+				allowedTextDomain: 'wordpress-ai-client-provider-ollama',
 			},
 		],
 		'@wordpress/no-unsafe-wp-apis': 'off',
