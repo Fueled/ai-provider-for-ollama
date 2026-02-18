@@ -110,7 +110,6 @@ class Plugin {
 	 *
 	 * If no API key was provided via wp-ai-client (which passes credentials at priority 10),
 	 * this registers an empty API key so that local Ollama instances work without configuration.
-	 * Local Ollama ignores empty Bearer tokens.
 	 *
 	 * @since 1.0.0
 	 */

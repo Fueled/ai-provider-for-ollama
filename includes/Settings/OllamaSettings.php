@@ -60,7 +60,7 @@ class OllamaSettings {
 
 		add_settings_field(
 			self::OPTION_NAME . '_host',
-			__( 'Ollama Host URL', 'wordpress-ai-client-provider-ollama' ),
+			__( 'Host URL', 'wordpress-ai-client-provider-ollama' ),
 			array( $this, 'render_host_field' ),
 			self::PAGE_SLUG,
 			self::SECTION_ID,
@@ -69,8 +69,8 @@ class OllamaSettings {
 
 		add_settings_field(
 			self::OPTION_NAME . '_model',
-			__( 'Default Model', 'wordpress-ai-client-provider-ollama' ),
-			array( $this, 'render_model_field' ),
+			__( 'Available Models', 'wordpress-ai-client-provider-ollama' ),
+			array( $this, 'render_available_models_field' ),
 			self::PAGE_SLUG,
 			self::SECTION_ID,
 			array( 'label_for' => self::OPTION_NAME . '-model' )
@@ -85,7 +85,7 @@ class OllamaSettings {
 	public function register_settings_screen(): void {
 		add_options_page(
 			__( 'Ollama Settings', 'wordpress-ai-client-provider-ollama' ),
-			__( 'Ollama Credentials', 'wordpress-ai-client-provider-ollama' ),
+			__( 'Ollama Settings', 'wordpress-ai-client-provider-ollama' ),
 			'manage_options',
 			self::PAGE_SLUG,
 			array( $this, 'render_screen' )
@@ -111,8 +111,7 @@ class OllamaSettings {
 		}
 
 		return array(
-			'host'  => $host,
-			'model' => isset( $value['model'] ) ? sanitize_text_field( (string) $value['model'] ) : '',
+			'host' => $host,
 		);
 	}
 
@@ -127,13 +126,15 @@ class OllamaSettings {
 		}
 		?>
 
-		<div class="wrap">
+		<div class="wrap" style="max-width: 50rem;">
 			<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 			<p>
 				<?php
 				printf(
 					/* translators: 1: link to the AI Credentials screen, 2: closing link tag */
-					esc_html__( 'Configure the connection to your Ollama instance. If you want to use Ollama Cloud, enter the API key on the %1$sSettings > AI Credentials%2$s screen.', 'wordpress-ai-client-provider-ollama' ),
+					esc_html__( 'Configure the connection to your Ollama instance. If you want to use Ollama Cloud, enter %1$shttps://ollama.com%2$s in the host URL field and enter your API key on the %3$sSettings > AI Credentials%4$s screen.', 'wordpress-ai-client-provider-ollama' ),
+					'<code>',
+					'</code>',
 					'<a href="' . esc_url( admin_url( 'options-general.php?page=wp-ai-client' ) ) . '">',
 					'</a>'
 				);
@@ -187,7 +188,7 @@ class OllamaSettings {
 			<?php
 			printf(
 				/* translators: 1: code tag, 2: closing code tag */
-				esc_html__( 'The base URL of your Ollama instance (without /v1). Example: %1$shttp://localhost:11434%2$s', 'wordpress-ai-client-provider-ollama' ),
+				esc_html__( 'The base URL of your Ollama instance (without /v1). Example: %1$shttp://localhost:11434%2$s or %1$shttps://ollama.com%2$s', 'wordpress-ai-client-provider-ollama' ),
 				'<code>',
 				'</code>'
 			);
@@ -198,34 +199,19 @@ class OllamaSettings {
 	}
 
 	/**
-	 * Renders the model selector field.
+	 * Renders the available models list.
 	 *
 	 * @since 1.0.0
 	 */
-	public function render_model_field(): void {
-		$settings = get_option( self::OPTION_NAME, array() );
-		if ( ! is_array( $settings ) ) {
-			$settings = array();
-		}
-
-		$saved_model = isset( $settings['model'] ) ? $settings['model'] : '';
-
-		$select_id   = self::OPTION_NAME . '-model';
-		$select_name = self::OPTION_NAME . '[model]';
+	public function render_available_models_field(): void {
 		?>
 
-		<select id="<?php echo esc_attr( $select_id ); ?>" name="<?php echo esc_attr( $select_name ); ?>">
-			<option value=""><?php echo esc_html__( '— Select a model —', 'wordpress-ai-client-provider-ollama' ); ?></option>
-			<?php if ( '' !== $saved_model ) : ?>
-				<option value="<?php echo esc_attr( $saved_model ); ?>" selected>
-					<?php echo esc_html( $saved_model ); ?>
-				</option>
-			<?php endif; ?>
-		</select>
-		<span id="ollama-model-status" style="margin-left:8px;"></span>
+		<div id="ollama-models-container">
+			<span id="ollama-model-status"></span>
+		</div>
 		<p class="description">
 			<?php
-			echo esc_html__( 'Select the default model to use with Ollama. Models are fetched from your Ollama instance.', 'wordpress-ai-client-provider-ollama' );
+			echo esc_html__( 'Available models are fetched from your Ollama instance. If a model is not listed that you want, ensure that model is installed within Ollama.', 'wordpress-ai-client-provider-ollama' );
 			?>
 		</p>
 
@@ -259,18 +245,11 @@ class OllamaSettings {
 			true
 		);
 
-		$settings = get_option( self::OPTION_NAME, array() );
-		if ( ! is_array( $settings ) ) {
-			$settings = array();
-		}
-
 		wp_localize_script(
 			'wp-ai-client-ollama-settings',
 			'wpAiClientOllamaSettings',
 			array(
-				'selectId'   => self::OPTION_NAME . '-model',
-				'savedModel' => isset( $settings['model'] ) ? $settings['model'] : '',
-				'ajaxUrl'    => esc_url( admin_url( 'admin-ajax.php' ) . '?action=' . self::AJAX_ACTION . '&_wpnonce=' . wp_create_nonce( self::NONCE_ACTION ) ),
+				'ajaxUrl' => esc_url( admin_url( 'admin-ajax.php' ) . '?action=' . self::AJAX_ACTION . '&_wpnonce=' . wp_create_nonce( self::NONCE_ACTION ) ),
 			)
 		);
 	}

@@ -2,11 +2,9 @@
  * WordPress dependencies
  */
 import apiFetch from '@wordpress/api-fetch';
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 
 interface Config {
-	selectId: string;
-	savedModel: string;
 	ajaxUrl: string;
 }
 
@@ -18,7 +16,7 @@ declare global {
 
 interface AjaxResponse {
 	success: boolean;
-	data: string[] | string;
+	data: ModelMetadata[] | string;
 }
 
 interface ModelMetadata {
@@ -29,18 +27,16 @@ interface ModelMetadata {
 const ERROR_COLOR = '#d63638';
 
 /**
- * Populates the models select element with the available models.
+ * Loads and displays the available models in a list.
  *
  * @param config The configuration object.
  * @since 1.0.0
  */
-async function populateModels( config: Config ): Promise< void > {
-	const select = document.getElementById(
-		config.selectId
-	) as HTMLSelectElement | null;
+async function loadModels( config: Config ): Promise< void > {
+	const container = document.getElementById( 'ollama-models-container' );
 	const status = document.getElementById( 'ollama-model-status' );
 
-	if ( ! select || ! status ) {
+	if ( ! container || ! status ) {
 		return;
 	}
 
@@ -50,13 +46,9 @@ async function populateModels( config: Config ): Promise< void > {
 	);
 
 	let resp: AjaxResponse;
-	let models: string[];
 
 	try {
 		resp = await apiFetch< AjaxResponse >( { url: config.ajaxUrl } );
-		models = ( resp.data as unknown as ModelMetadata[] ).map(
-			( m ) => m.id
-		);
 	} catch ( error ) {
 		const fallback = __(
 			'Could not connect to load models.',
@@ -73,9 +65,6 @@ async function populateModels( config: Config ): Promise< void > {
 		return;
 	}
 
-	status.textContent = '';
-	select.innerHTML = '';
-
 	if ( ! resp.success || ! resp.data ) {
 		status.textContent =
 			typeof resp.data === 'string'
@@ -88,34 +77,38 @@ async function populateModels( config: Config ): Promise< void > {
 		return;
 	}
 
-	const defaultOption = document.createElement( 'option' );
-	defaultOption.value = '';
-	defaultOption.textContent = __(
-		'\u2014 Select a model \u2014',
-		'wordpress-ai-client-provider-ollama'
+	const models = resp.data as ModelMetadata[];
+
+	// Clear the container (removes the status span).
+	container.innerHTML = '';
+
+	if ( models.length === 0 ) {
+		const empty = document.createElement( 'p' );
+		empty.textContent = __(
+			'No models found. Pull a model with ollama pull <model> and reload this page.',
+			'wordpress-ai-client-provider-ollama'
+		);
+		container.appendChild( empty );
+		return;
+	}
+
+	const count = document.createElement( 'p' );
+	count.textContent = sprintf(
+		/* translators: %d: number of models */
+		__( '%d models available:', 'wordpress-ai-client-provider-ollama' ),
+		models.length
 	);
-	select.appendChild( defaultOption );
+	container.appendChild( count );
 
+	const list = document.createElement( 'ul' );
 	for ( const model of models ) {
-		const option = document.createElement( 'option' );
-		option.value = model;
-		option.textContent = model;
-		if ( model === config.savedModel ) {
-			option.selected = true;
-		}
-		select.appendChild( option );
+		const item = document.createElement( 'li' );
+		const code = document.createElement( 'code' );
+		code.textContent = model.id;
+		item.appendChild( code );
+		list.appendChild( item );
 	}
-
-	if ( config.savedModel && ! models.includes( config.savedModel ) ) {
-		const savedOption = document.createElement( 'option' );
-		savedOption.value = config.savedModel;
-		savedOption.textContent =
-			config.savedModel +
-			' ' +
-			__( '(not available)', 'wordpress-ai-client-provider-ollama' );
-		savedOption.selected = true;
-		select.insertBefore( savedOption, select.children[ 1 ] ?? null );
-	}
+	container.appendChild( list );
 }
 
 /**
@@ -126,6 +119,6 @@ async function populateModels( config: Config ): Promise< void > {
 document.addEventListener( 'DOMContentLoaded', () => {
 	const config = window.wpAiClientOllamaSettings;
 	if ( config ) {
-		populateModels( config );
+		loadModels( config );
 	}
 } );
