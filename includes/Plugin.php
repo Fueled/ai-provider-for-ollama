@@ -33,6 +33,7 @@ class Plugin {
 		add_action( 'init', array( $this, 'ensure_http_transporter' ), 15 );
 		add_action( 'init', array( $this, 'register_fallback_auth' ), 20 );
 		add_action( 'init', array( $this, 'initialize_settings' ) );
+		add_filter( 'plugin_action_links_' . plugin_basename( WP_AI_CLIENT_PROVIDER_OLLAMA_PLUGIN_FILE ), array( $this, 'plugin_action_links' ) );
 	}
 
 	/**
@@ -144,5 +145,28 @@ class Plugin {
 	public function initialize_settings(): void {
 		$settings = new OllamaSettings();
 		$settings->init();
+	}
+
+	/**
+	 * Adds action links to the plugin list table.
+	 *
+	 * This adds "Settings" link to the plugin's action links
+	 * on the Plugins page.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<string> $links Existing action links.
+	 * @return array<string> Modified action links.
+	 */
+	public function plugin_action_links( array $links ): array {
+		$settings_link = sprintf(
+			'<a href="%1$s">%2$s</a>',
+			admin_url( 'options-general.php?page=wp-ai-client-ollama' ),
+			esc_html__( 'Settings', 'wordpress-ai-client-provider-ollama' )
+		);
+
+		array_unshift( $links, $settings_link );
+
+		return $links;
 	}
 }

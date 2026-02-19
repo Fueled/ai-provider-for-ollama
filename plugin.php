@@ -26,6 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'WP_AI_CLIENT_PROVIDER_OLLAMA_MIN_PHP_VERSION', '7.4' );
 define( 'WP_AI_CLIENT_PROVIDER_OLLAMA_MIN_WP_VERSION', '6.9' );
 define( 'WP_AI_CLIENT_PROVIDER_OLLAMA_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+define( 'WP_AI_CLIENT_PROVIDER_OLLAMA_PLUGIN_FILE', __FILE__ );
 
 /**
  * Displays an admin notice for requirement failures.

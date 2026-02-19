@@ -19,5 +19,7 @@ export const visitAdminPage = async ( admin: Admin, path: string ) => {
  * @param admin The admin fixture from the test context.
  */
 export const visitSettingsPage = async ( admin: Admin ) => {
-	await admin.visitAdminPage( 'options-general.php?page=wp-ai-client-ollama' );
+	await admin.visitAdminPage(
+		'options-general.php?page=wp-ai-client-ollama'
+	);
 };
