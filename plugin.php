@@ -95,7 +95,7 @@ function check_wp_version(): bool {
 				requirement_notice(
 					sprintf(
 						/* translators: 1: Required WordPress version, 2: Current WordPress version */
-						__( 'The Ollama Provider plugin requires WordPress version %1$s or higher. You are running WordPress version %2$s.', 'wordpress-ai-client-provider-ollama' ),
+						__( 'The Ollama Provider plugin requires WordPress version %1$s or higher. You are running WordPress version %2$s!', 'wordpress-ai-client-provider-ollama' ),
 						WP_AI_CLIENT_PROVIDER_OLLAMA_MIN_WP_VERSION,
 						$wp_version
 					)
