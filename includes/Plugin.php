@@ -10,6 +10,10 @@ declare( strict_types=1 );
 
 namespace WordPress\AiClientProviderOllama;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 use WordPress\AiClient\AiClient;
 use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
 use WordPress\AiClient\Providers\Http\HttpTransporterFactory;
