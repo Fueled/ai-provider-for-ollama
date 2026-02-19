@@ -9,7 +9,7 @@
   "files": [
     "build",
     "includes",
-		"vendor",
+    "vendor",
     "README.md",
     "readme.txt",
     "plugin.php"
