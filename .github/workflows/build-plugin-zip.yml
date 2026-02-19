@@ -58,11 +58,10 @@ jobs:
       - name: Create artifact
         run: |
           npm run plugin-zip
-          unzip wordpress-ai-client-provider-ollama.zip -d wordpress-ai-client-provider-ollama
 
       - name: Upload artifact
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: wordpress-ai-client-provider-ollama-plugin-zip-pr${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
-          path: wordpress-ai-client-provider-ollama
+          path: wordpress-ai-client-provider-ollama.zip
           if-no-files-found: error
