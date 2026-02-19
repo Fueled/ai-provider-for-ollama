@@ -5,7 +5,7 @@ name: PR Playground Preview
 # Operates on artifacts from the unprivileged build workflow
 on:
   workflow_run:
-    workflows: ["Build Plugin Zip"]
+    workflows: [ 'Build Plugin Zip' ]
     types:
       - completed
 

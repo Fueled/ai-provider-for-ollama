@@ -26,6 +26,8 @@ permissions: {}
 jobs:
   build:
     uses: ./.github/workflows/build-plugin-zip.yml
+    permissions:
+      contents: read
 
   plugin-check:
     name: Run Plugin Check
