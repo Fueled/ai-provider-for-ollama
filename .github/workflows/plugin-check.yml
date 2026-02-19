@@ -1,31 +1,23 @@
 name: Plugin Check
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - develop
-      - trunk
-  pull_request:
+  workflow_run:
+    workflows: [ 'Build Plugin Zip' ]
     types:
-      - opened
-      - synchronize
-      - ready_for_review
+      - completed
 
 # Disable permissions for all available scopes by default.
 # Any needed permissions should be configured at the job level.
 permissions: {}
 
 jobs:
-  build:
-    uses: ./.github/workflows/build-plugin-zip.yml
-    permissions:
-      contents: read
-
   plugin-check:
     name: Run Plugin Check
     runs-on: 'ubuntu-latest'
-    needs: build
+    # Only run if the build workflow succeeded and was triggered by a pull_request
+    if: >
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
     permissions:
       contents: read
     timeout-minutes: 20
@@ -41,6 +33,7 @@ jobs:
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           path: ${{ github.event.repository.name }}
+          pattern: wordpress-ai-client-provider-ollama-plugin-zip-pr*
 
       - name: Run plugin check
         uses: wordpress/plugin-check-action@6f5a57e173c065a394b78688f75df543e4011902 # v1.1.5
