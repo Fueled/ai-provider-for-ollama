@@ -20,6 +20,7 @@ jobs:
       github.event.workflow_run.conclusion == 'success'
     permissions:
       contents: read
+      actions: read
     timeout-minutes: 20
 
     steps:
@@ -34,12 +35,13 @@ jobs:
         with:
           path: ${{ github.event.repository.name }}
           pattern: wordpress-ai-client-provider-ollama-plugin-zip-pr*
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run plugin check
         uses: wordpress/plugin-check-action@6f5a57e173c065a394b78688f75df543e4011902 # v1.1.5
         with:
           build-dir: ${{ github.event.repository.name }}
-          wp-version: 'latest'
           ignore-warnings: true
           exclude-directories: |
             build
