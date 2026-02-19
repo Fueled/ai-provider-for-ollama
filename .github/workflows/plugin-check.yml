@@ -38,6 +38,9 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Unzip built zip
+        run: unzip ${{ github.event.repository.name }}/wordpress-ai-client-provider-ollama.zip -d ${{ github.event.repository.name }}
+
       - name: Display structure of downloaded files
         run: ls -R
         working-directory: ${{ github.event.repository.name }}
