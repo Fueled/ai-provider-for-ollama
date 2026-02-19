@@ -4,6 +4,10 @@ declare( strict_types=1 );
 
 namespace WordPress\AiClientProviderOllama\Settings;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 use WordPress\AiClient\AiClient;
 
 /**
