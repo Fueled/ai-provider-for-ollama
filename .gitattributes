@@ -2,27 +2,27 @@
 * text=auto
 
 # Directories
-/.git
-/.github
-/.wordpress-org
-/node_modules
-/tests
-/vendor
+/.git export-ignore
+/.github export-ignore
+/.wordpress-org export-ignore
+/node_modules export-ignore
+/tests export-ignore
+/vendor export-ignore
 
 # Files
-.*
-CHANGELOG.md
-CODE_OF_CONDUCT.md
-composer.json
-composer.lock
-CONTRIBUTING.md
-CREDITS.md
-LICENSE.md
-package-lock.json
-package.json
-phpcs.xml.dist
-phpstan.neon.dist
-phpunit.xml.dist
-README.md
-SECURITY.md
-webpack.config.js
+/.* export-ignore
+/CHANGELOG.md export-ignore
+/CODE_OF_CONDUCT.md export-ignore
+/composer.json export-ignore
+/composer.lock export-ignore
+/CONTRIBUTING.md export-ignore
+/CREDITS.md export-ignore
+/LICENSE.md export-ignore
+/package-lock.json export-ignore
+/package.json export-ignore
+/phpcs.xml.dist export-ignore
+/phpstan.neon.dist export-ignore
+/phpunit.xml.dist export-ignore
+/README.md export-ignore
+/SECURITY.md export-ignore
+/webpack.config.js export-ignore
