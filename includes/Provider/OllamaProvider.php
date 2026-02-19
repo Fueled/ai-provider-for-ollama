@@ -31,10 +31,10 @@ class OllamaProvider extends AbstractApiProvider {
 	protected static function baseUrl(): string {
 		$host = getenv( 'OLLAMA_HOST' );
 		if ( false !== $host && '' !== $host ) {
-			return rtrim( $host, '/' ) . '/v1';
+			return rtrim( $host, '/' );
 		}
 
-		return 'http://localhost:11434/v1';
+		return 'http://localhost:11434';
 	}
 
 	/**
