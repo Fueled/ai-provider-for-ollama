@@ -70,7 +70,7 @@ class OllamaProvider extends AbstractApiProvider {
 			'Ollama',
 			ProviderTypeEnum::cloud(),
 			'https://ollama.com/settings/keys',
-			RequestAuthenticationMethod::apiKey()
+			class_exists( RequestAuthenticationMethod::class ) ? RequestAuthenticationMethod::apiKey() : null
 		);
 	}
 
