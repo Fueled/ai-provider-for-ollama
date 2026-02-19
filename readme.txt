@@ -22,21 +22,21 @@ Ollama exposes an [OpenAI-compatible API](https://ollama.com/blog/openai-compati
 * Automatic model discovery from your Ollama instance
 * Function calling support
 * Structured output (JSON mode) support
-* Settings page for host URL and default model configuration
+* Settings page for host URL and seeing available models
 * Works without an API key for local instances
 
 **Requirements:**
 
 * PHP 7.4 or higher
 * WordPress AI Client plugin must be installed and activated
-* Ollama running locally or on a remote server
+* Ollama running locally or on a remote server (like Ollama Cloud)
 
 == Installation ==
 
 1. Ensure the WordPress AI Client plugin is installed and activated.
 2. Upload the plugin files to `/wp-content/plugins/wordpress-ai-client-provider-ollama/`.
 3. Activate the plugin through the 'Plugins' menu in WordPress.
-4. Go to **Settings > Ollama** to configure the host URL and default model.
+4. Go to **Settings > Ollama Settings** to configure the host URL and see available models.
 
 == Frequently Asked Questions ==
 
@@ -48,14 +48,14 @@ Visit [ollama.com](https://ollama.com/) to download and install Ollama for your 
 
 No. For local Ollama instances, no API key is needed. The plugin automatically handles authentication for local setups.
 
-For remote Ollama instances that require authentication, enter the API key in the WordPress AI Client **Settings > AI Credentials** screen.
+For remote Ollama instances that require authentication, enter the API key in the WordPress AI Client **Settings > AI Credentials** screen. If using Ollama Cloud, you also need to set your Ollama host URL in the **Settings > Ollama Settings** screen to `https://ollama.com`.
 
 = How do I change the Ollama host URL? =
 
 By default, the provider connects to `http://localhost:11434`. You can change this in two ways:
 
 1. Set the `OLLAMA_HOST` environment variable (takes precedence).
-2. Go to **Settings > Ollama** in the WordPress admin and enter your host URL.
+2. Go to **Settings > Ollama Settings** in the WordPress admin and enter your host URL.
 
 = Does this plugin work without the WordPress AI Client? =
 
