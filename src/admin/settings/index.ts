@@ -2,7 +2,7 @@
  * WordPress dependencies
  */
 import apiFetch from '@wordpress/api-fetch';
-import { __, sprintf } from '@wordpress/i18n';
+import { __, _n, sprintf } from '@wordpress/i18n';
 
 interface Config {
 	ajaxUrl: string;
@@ -95,7 +95,12 @@ async function loadModels( config: Config ): Promise< void > {
 	const count = document.createElement( 'p' );
 	count.textContent = sprintf(
 		/* translators: %d: number of models */
-		__( '%d models available:', 'wordpress-ai-client-provider-ollama' ),
+		_n(
+			'%d model available:',
+			'%d models available:',
+			models.length,
+			'wordpress-ai-client-provider-ollama'
+		),
 		models.length
 	);
 	container.appendChild( count );
