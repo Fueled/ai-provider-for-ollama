@@ -43,12 +43,12 @@ jobs:
 
       - name: Display structure of downloaded files
         run: ls -R
-        working-directory: ${{ github.event.repository.name }}
+        working-directory: ${{ github.event.repository.name }}/${{ github.event.repository.name }}
 
       - name: Run plugin check
         uses: wordpress/plugin-check-action@6f5a57e173c065a394b78688f75df543e4011902 # v1.1.5
         with:
-          build-dir: ${{ github.event.repository.name }}
+          build-dir: ${{ github.event.repository.name }}/${{ github.event.repository.name }}
           ignore-warnings: true
           exclude-directories: |
             build
