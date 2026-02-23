@@ -40,10 +40,7 @@ async function loadModels( config: Config ): Promise< void > {
 		return;
 	}
 
-	status.textContent = __(
-		'Loading models\u2026',
-		'ai-provider-for-ollama'
-	);
+	status.textContent = __( 'Loading models\u2026', 'ai-provider-for-ollama' );
 
 	let resp: AjaxResponse;
 
@@ -69,10 +66,7 @@ async function loadModels( config: Config ): Promise< void > {
 		status.textContent =
 			typeof resp.data === 'string'
 				? resp.data
-				: __(
-						'Failed to load models.',
-						'ai-provider-for-ollama'
-				  );
+				: __( 'Failed to load models.', 'ai-provider-for-ollama' );
 		status.style.color = ERROR_COLOR;
 		return;
 	}
