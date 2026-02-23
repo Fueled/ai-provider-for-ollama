@@ -1,7 +1,7 @@
 <?php
 /**
- * Plugin Name: WordPress AI Client Provider for Ollama
- * Plugin URI: https://github.com/10up/wordpress-ai-client-provider-ollama
+ * Plugin Name: AI Provider for Ollama
+ * Plugin URI: https://github.com/10up/ai-provider-for-ollama
  * Description: Ollama provider for the WordPress AI Client.
  * Requires at least: 6.9
  * Requires PHP: 7.4
@@ -10,14 +10,14 @@
  * Author URI: https://10up.com
  * License: GPL-2.0-or-later
  * License URI: https://spdx.org/licenses/GPL-2.0-or-later.html
- * Text Domain: wordpress-ai-client-provider-ollama
+ * Text Domain: ai-provider-for-ollama
  *
- * @package WordPress\AiClientProviderOllama
+ * @package WordPress\AiProviderOllama
  */
 
 declare( strict_types=1 );
 
-namespace WordPress\AiClientProviderOllama;
+namespace WordPress\AiProviderOllama;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -63,7 +63,7 @@ function check_php_version(): bool {
 				requirement_notice(
 					sprintf(
 						/* translators: 1: Required PHP version, 2: Current PHP version */
-						__( 'The Ollama Provider plugin requires PHP version %1$s or higher. You are running PHP version %2$s.', 'wordpress-ai-client-provider-ollama' ),
+						__( 'The Ollama Provider plugin requires PHP version %1$s or higher. You are running PHP version %2$s.', 'ai-provider-for-ollama' ),
 						WP_AI_CLIENT_PROVIDER_OLLAMA_MIN_PHP_VERSION,
 						PHP_VERSION
 					)
@@ -95,7 +95,7 @@ function check_wp_version(): bool {
 				requirement_notice(
 					sprintf(
 						/* translators: 1: Required WordPress version, 2: Current WordPress version */
-						__( 'The Ollama Provider plugin requires WordPress version %1$s or higher. You are running WordPress version %2$s.', 'wordpress-ai-client-provider-ollama' ),
+						__( 'The Ollama Provider plugin requires WordPress version %1$s or higher. You are running WordPress version %2$s.', 'ai-provider-for-ollama' ),
 						WP_AI_CLIENT_PROVIDER_OLLAMA_MIN_WP_VERSION,
 						$wp_version
 					)
@@ -135,7 +135,7 @@ function load(): void {
 				requirement_notice(
 					sprintf(
 						/* translators: %s: composer install command */
-						esc_html__( 'Your installation of the Ollama Provider plugin is incomplete. Please run %s.', 'wordpress-ai-client-provider-ollama' ),
+						esc_html__( 'Your installation of the Ollama Provider plugin is incomplete. Please run %s.', 'ai-provider-for-ollama' ),
 						'<code>composer install</code>'
 					)
 				);

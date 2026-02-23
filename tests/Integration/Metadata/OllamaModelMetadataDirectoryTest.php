@@ -2,14 +2,14 @@
 
 declare( strict_types=1 );
 
-namespace WordPress\AiClientProviderOllama\Tests\Integration\Metadata;
+namespace WordPress\AiProviderOllama\Tests\Integration\Metadata;
 
 use PHPUnit\Framework\TestCase;
 use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
 use WordPress\AiClient\Providers\Http\DTO\Response;
 use WordPress\AiClient\Providers\Http\Exception\ResponseException;
-use WordPress\AiClientProviderOllama\Metadata\OllamaModelMetadataDirectory;
-use WordPress\AiClientProviderOllama\Tests\Integration\Mocks\MockHttpTransporter;
+use WordPress\AiProviderOllama\Metadata\OllamaModelMetadataDirectory;
+use WordPress\AiProviderOllama\Tests\Integration\Mocks\MockHttpTransporter;
 
 /**
  * Tests for OllamaModelMetadataDirectory.
@@ -17,7 +17,7 @@ use WordPress\AiClientProviderOllama\Tests\Integration\Mocks\MockHttpTransporter
  * Uses a MockHttpTransporter with queued responses matching Ollama's
  * /api/tags and /api/show response shapes.
  *
- * @covers \WordPress\AiClientProviderOllama\Metadata\OllamaModelMetadataDirectory
+ * @covers \WordPress\AiProviderOllama\Metadata\OllamaModelMetadataDirectory
  */
 class OllamaModelMetadataDirectoryTest extends TestCase {
 

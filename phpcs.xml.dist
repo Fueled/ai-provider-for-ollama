@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <ruleset
-	name="WordPress AI Client Provider for Ollama"
+	name="AI Provider for Ollama"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/PHPCSStandards/PHP_CodeSniffer/master/phpcs.xsd"
 >
-	<description>Sniffs for WordPress AI Client Provider for Ollama</description>
+	<description>Sniffs for AI Provider for Ollama</description>
 
 	<!-- What to scan: include any root-level PHP files, and the /inc folder -->
 	<file>./includes/</file>
@@ -195,7 +195,7 @@
 		<properties>
 			<property name="text_domain" type="array">
 				<!-- If flagged, remove the text-domain entirely. -->
-				<element value="wordpress-ai-client-provider-ollama" />
+				<element value="ai-provider-for-ollama" />
 			</property>
 		</properties>
 	</rule>

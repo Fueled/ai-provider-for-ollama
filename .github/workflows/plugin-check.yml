@@ -34,12 +34,12 @@ jobs:
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           path: ${{ github.event.repository.name }}
-          pattern: wordpress-ai-client-provider-ollama-plugin-zip-pr*
+          pattern: ai-provider-for-ollama-plugin-zip-pr*
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Unzip built zip
-        run: unzip ${{ github.event.repository.name }}/wordpress-ai-client-provider-ollama.zip -d ${{ github.event.repository.name }}
+        run: unzip ${{ github.event.repository.name }}/ai-provider-for-ollama.zip -d ${{ github.event.repository.name }}
 
       - name: Display structure of downloaded files
         run: ls -R

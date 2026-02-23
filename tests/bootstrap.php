@@ -2,7 +2,7 @@
 /**
  * Bootstrap the PHPUnit tests.
  *
- * @package WordPress\AiClientProviderOllama\Tests
+ * @package WordPress\AiProviderOllama\Tests
  */
 
 define( 'TESTS_REPO_ROOT_DIR', dirname( __DIR__ ) );

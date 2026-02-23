@@ -42,7 +42,7 @@ async function loadModels( config: Config ): Promise< void > {
 
 	status.textContent = __(
 		'Loading models\u2026',
-		'wordpress-ai-client-provider-ollama'
+		'ai-provider-for-ollama'
 	);
 
 	let resp: AjaxResponse;
@@ -52,7 +52,7 @@ async function loadModels( config: Config ): Promise< void > {
 	} catch ( error ) {
 		const fallback = __(
 			'Could not connect to load models.',
-			'wordpress-ai-client-provider-ollama'
+			'ai-provider-for-ollama'
 		);
 		status.textContent =
 			error !== null &&
@@ -71,7 +71,7 @@ async function loadModels( config: Config ): Promise< void > {
 				? resp.data
 				: __(
 						'Failed to load models.',
-						'wordpress-ai-client-provider-ollama'
+						'ai-provider-for-ollama'
 				  );
 		status.style.color = ERROR_COLOR;
 		return;
@@ -86,7 +86,7 @@ async function loadModels( config: Config ): Promise< void > {
 		const empty = document.createElement( 'p' );
 		empty.textContent = __(
 			'No models found. Pull a model with ollama pull <model> and reload this page.',
-			'wordpress-ai-client-provider-ollama'
+			'ai-provider-for-ollama'
 		);
 		container.appendChild( empty );
 		return;
@@ -99,7 +99,7 @@ async function loadModels( config: Config ): Promise< void > {
 			'%d model available:',
 			'%d models available:',
 			models.length,
-			'wordpress-ai-client-provider-ollama'
+			'ai-provider-for-ollama'
 		),
 		models.length
 	);

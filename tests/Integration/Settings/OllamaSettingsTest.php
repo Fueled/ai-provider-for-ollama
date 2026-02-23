@@ -2,14 +2,14 @@
 
 declare( strict_types=1 );
 
-namespace WordPress\AiClientProviderOllama\Tests\Integration\Settings;
+namespace WordPress\AiProviderOllama\Tests\Integration\Settings;
 
-use WordPress\AiClientProviderOllama\Settings\OllamaSettings;
+use WordPress\AiProviderOllama\Settings\OllamaSettings;
 
 /**
  * Tests for OllamaSettings.
  *
- * @covers \WordPress\AiClientProviderOllama\Settings\OllamaSettings
+ * @covers \WordPress\AiProviderOllama\Settings\OllamaSettings
  */
 class OllamaSettingsTest extends \WP_UnitTestCase {
 

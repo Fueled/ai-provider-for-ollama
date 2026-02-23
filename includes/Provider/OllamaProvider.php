@@ -2,7 +2,7 @@
 
 declare( strict_types=1 );
 
-namespace WordPress\AiClientProviderOllama\Provider;
+namespace WordPress\AiProviderOllama\Provider;
 
 use WordPress\AiClient\Common\Exception\RuntimeException;
 use WordPress\AiClient\Providers\ApiBasedImplementation\AbstractApiProvider;
@@ -13,8 +13,8 @@ use WordPress\AiClient\Providers\Enums\ProviderTypeEnum;
 use WordPress\AiClient\Providers\Http\Enums\RequestAuthenticationMethod;
 use WordPress\AiClient\Providers\Models\Contracts\ModelInterface;
 use WordPress\AiClient\Providers\Models\DTO\ModelMetadata;
-use WordPress\AiClientProviderOllama\Metadata\OllamaModelMetadataDirectory;
-use WordPress\AiClientProviderOllama\Models\OllamaTextGenerationModel;
+use WordPress\AiProviderOllama\Metadata\OllamaModelMetadataDirectory;
+use WordPress\AiProviderOllama\Models\OllamaTextGenerationModel;
 
 /**
  * Class for the Ollama provider.

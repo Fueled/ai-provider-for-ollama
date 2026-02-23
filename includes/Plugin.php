@@ -8,7 +8,7 @@
 
 declare( strict_types=1 );
 
-namespace WordPress\AiClientProviderOllama;
+namespace WordPress\AiProviderOllama;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -17,8 +17,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 use WordPress\AiClient\AiClient;
 use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
 use WordPress\AiClient\Providers\Http\HttpTransporterFactory;
-use WordPress\AiClientProviderOllama\Provider\OllamaProvider;
-use WordPress\AiClientProviderOllama\Settings\OllamaSettings;
+use WordPress\AiProviderOllama\Provider\OllamaProvider;
+use WordPress\AiProviderOllama\Settings\OllamaSettings;
 
 /**
  * Plugin class.
@@ -166,7 +166,7 @@ class Plugin {
 		$settings_link = sprintf(
 			'<a href="%1$s">%2$s</a>',
 			admin_url( 'options-general.php?page=wp-ai-client-ollama' ),
-			esc_html__( 'Settings', 'wordpress-ai-client-provider-ollama' )
+			esc_html__( 'Settings', 'ai-provider-for-ollama' )
 		);
 
 		array_unshift( $links, $settings_link );

@@ -1,4 +1,4 @@
-# WordPress AI Client Provider for Ollama
+# AI Provider for Ollama
 
 Ollama provider for the [PHP AI Client SDK](https://github.com/WordPress/php-ai-client). Works as both a Composer package with the `php-ai-client` package and as a WordPress plugin with the `wp-ai-client` plugin.
 
@@ -16,7 +16,7 @@ Ollama provider for the [PHP AI Client SDK](https://github.com/WordPress/php-ai-
 
 1. Install and activate the [wp-ai-client](https://github.com/WordPress/wp-ai-client) plugin.
 2. Place this plugin in your `wp-content/plugins/` directory.
-3. Activate "WordPress AI Client Provider for Ollama" from the Plugins screen.
+3. Activate "AI Provider for Ollama" from the Plugins screen.
 
 ### As a Composer Package
 
@@ -58,7 +58,7 @@ $result = Prompt_Builder::create()
 ```php
 use WordPress\AiClient\AiClient;
 use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
-use WordPress\AiClientProviderOllama\Provider\OllamaProvider;
+use WordPress\AiProviderOllama\Provider\OllamaProvider;
 
 require_once 'vendor/autoload.php';
 

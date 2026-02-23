@@ -2,7 +2,7 @@
 
 declare( strict_types=1 );
 
-namespace WordPress\AiClientProviderOllama\Provider;
+namespace WordPress\AiProviderOllama\Provider;
 
 use WordPress\AiClient\Providers\Contracts\ProviderAvailabilityInterface;
 
