@@ -21,7 +21,7 @@ Ollama provider for the [PHP AI Client SDK](https://github.com/WordPress/php-ai-
 ### As a Composer Package
 
 ```bash
-composer require wordpress/ai-client-provider-ollama
+composer require fueled/ai-provider-for-ollama
 ```
 
 ## Configuration
