@@ -2,8 +2,9 @@
 
 declare( strict_types=1 );
 
-namespace WordPress\AiProviderOllama\Metadata;
+namespace Fueled\AiProviderForOllama\Metadata;
 
+use Fueled\AiProviderForOllama\Provider\OllamaProvider;
 use WordPress\AiClient\Messages\Enums\ModalityEnum;
 use WordPress\AiClient\Providers\ApiBasedImplementation\AbstractApiBasedModelMetadataDirectory;
 use WordPress\AiClient\Providers\Http\DTO\Request;
@@ -14,7 +15,6 @@ use WordPress\AiClient\Providers\Models\DTO\ModelMetadata;
 use WordPress\AiClient\Providers\Models\DTO\SupportedOption;
 use WordPress\AiClient\Providers\Models\Enums\CapabilityEnum;
 use WordPress\AiClient\Providers\Models\Enums\OptionEnum;
-use WordPress\AiProviderOllama\Provider\OllamaProvider;
 
 /**
  * Class for the Ollama model metadata directory.

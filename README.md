@@ -56,9 +56,9 @@ $result = Prompt_Builder::create()
 ### Standalone PHP (php-ai-client)
 
 ```php
+use Fueled\AiProviderForOllama\Provider\OllamaProvider;
 use WordPress\AiClient\AiClient;
 use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
-use WordPress\AiProviderOllama\Provider\OllamaProvider;
 
 require_once 'vendor/autoload.php';
 

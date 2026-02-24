@@ -2,13 +2,13 @@
 
 declare( strict_types=1 );
 
-namespace WordPress\AiProviderOllama\Tests\Integration\Provider;
+namespace Fueled\AiProviderForOllama\Tests\Integration\Provider;
 
+use Fueled\AiProviderForOllama\Metadata\OllamaModelMetadataDirectory;
+use Fueled\AiProviderForOllama\Provider\OllamaProvider;
+use Fueled\AiProviderForOllama\Provider\OllamaProviderAvailability;
 use PHPUnit\Framework\TestCase;
 use WordPress\AiClient\Providers\AbstractProvider;
-use WordPress\AiProviderOllama\Metadata\OllamaModelMetadataDirectory;
-use WordPress\AiProviderOllama\Provider\OllamaProvider;
-use WordPress\AiProviderOllama\Provider\OllamaProviderAvailability;
 
 /**
  * Tests for OllamaProvider.

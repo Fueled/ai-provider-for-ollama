@@ -2,14 +2,14 @@
 
 declare( strict_types=1 );
 
-namespace WordPress\AiProviderOllama\Tests\Integration\Metadata;
+namespace Fueled\AiProviderForOllama\Tests\Integration\Metadata;
 
+use Fueled\AiProviderForOllama\Metadata\OllamaModelMetadataDirectory;
+use Fueled\AiProviderForOllama\Tests\Integration\Mocks\MockHttpTransporter;
 use PHPUnit\Framework\TestCase;
 use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
 use WordPress\AiClient\Providers\Http\DTO\Response;
 use WordPress\AiClient\Providers\Http\Exception\ResponseException;
-use WordPress\AiProviderOllama\Metadata\OllamaModelMetadataDirectory;
-use WordPress\AiProviderOllama\Tests\Integration\Mocks\MockHttpTransporter;
 
 /**
  * Tests for OllamaModelMetadataDirectory.

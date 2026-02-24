@@ -2,12 +2,12 @@
 
 declare( strict_types=1 );
 
-namespace WordPress\AiProviderOllama\Models;
+namespace Fueled\AiProviderForOllama\Models;
 
+use Fueled\AiProviderForOllama\Provider\OllamaProvider;
 use WordPress\AiClient\Providers\Http\DTO\Request;
 use WordPress\AiClient\Providers\Http\Enums\HttpMethodEnum;
 use WordPress\AiClient\Providers\OpenAiCompatibleImplementation\AbstractOpenAiCompatibleTextGenerationModel;
-use WordPress\AiProviderOllama\Provider\OllamaProvider;
 
 /**
  * Class for an Ollama text generation model using the OpenAI-compatible chat completions API.

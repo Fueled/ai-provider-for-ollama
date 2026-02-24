@@ -2,9 +2,9 @@
 
 declare( strict_types=1 );
 
-namespace WordPress\AiProviderOllama\Tests\Integration\Settings;
+namespace Fueled\AiProviderForOllama\Tests\Integration\Settings;
 
-use WordPress\AiProviderOllama\Settings\OllamaSettings;
+use Fueled\AiProviderForOllama\Settings\OllamaSettings;
 
 /**
  * Tests for OllamaSettings.

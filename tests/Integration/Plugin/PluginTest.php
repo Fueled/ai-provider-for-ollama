@@ -2,13 +2,12 @@
 
 declare( strict_types=1 );
 
-namespace WordPress\AiProviderOllama\Tests\Integration\Plugin;
+namespace Fueled\AiProviderForOllama\Tests\Integration\Plugin;
 
+use Fueled\AiProviderForOllama\Plugin;
 use WordPress\AiClient\AiClient;
 use WordPress\AiClient\Providers\AbstractProvider;
 use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
-use WordPress\AiProviderOllama\Plugin;
-use WordPress\AiProviderOllama\Provider\OllamaProvider;
 
 /**
  * Tests for Plugin.

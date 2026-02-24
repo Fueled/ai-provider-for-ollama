@@ -8,17 +8,17 @@
 
 declare( strict_types=1 );
 
-namespace WordPress\AiProviderOllama;
+namespace Fueled\AiProviderForOllama;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use Fueled\AiProviderForOllama\Provider\OllamaProvider;
+use Fueled\AiProviderForOllama\Settings\OllamaSettings;
 use WordPress\AiClient\AiClient;
 use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
 use WordPress\AiClient\Providers\Http\HttpTransporterFactory;
-use WordPress\AiProviderOllama\Provider\OllamaProvider;
-use WordPress\AiProviderOllama\Settings\OllamaSettings;
 
 /**
  * Plugin class.
@@ -37,7 +37,7 @@ class Plugin {
 		add_action( 'init', array( $this, 'ensure_http_transporter' ), 15 );
 		add_action( 'init', array( $this, 'register_fallback_auth' ), 20 );
 		add_action( 'init', array( $this, 'initialize_settings' ) );
-		add_filter( 'plugin_action_links_' . plugin_basename( WP_AI_PROVIDER_OLLAMA_PLUGIN_FILE ), array( $this, 'plugin_action_links' ) );
+		add_filter( 'plugin_action_links_' . plugin_basename( AI_PROVIDER_FOR_OLLAMA_PLUGIN_FILE ), array( $this, 'plugin_action_links' ) );
 	}
 
 	/**
