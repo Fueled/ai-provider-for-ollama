@@ -45,7 +45,7 @@
     "prefer-stable": true,
     "autoload": {
         "psr-4": {
-            "WordPress\\AiProviderOllama\\": "includes/"
+            "Fueled\\AiProviderForOllama\\": "includes/"
         }
     },
     "config": {
