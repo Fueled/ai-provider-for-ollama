@@ -2,15 +2,15 @@
 
 declare( strict_types=1 );
 
-namespace WordPress\AiClientProviderOllama\Tests\Integration\Provider;
+namespace Fueled\AiProviderForOllama\Tests\Integration\Provider;
 
+use Fueled\AiProviderForOllama\Provider\OllamaProviderAvailability;
 use PHPUnit\Framework\TestCase;
-use WordPress\AiClientProviderOllama\Provider\OllamaProviderAvailability;
 
 /**
  * Tests for OllamaProviderAvailability.
  *
- * @covers \WordPress\AiClientProviderOllama\Provider\OllamaProviderAvailability
+ * @covers \Fueled\AiProviderForOllama\Provider\OllamaProviderAvailability
  */
 class OllamaProviderAvailabilityTest extends TestCase {
 

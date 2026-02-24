@@ -44,7 +44,7 @@ module.exports = {
 		'@wordpress/i18n-text-domain': [
 			'error',
 			{
-				allowedTextDomain: 'wordpress-ai-client-provider-ollama',
+				allowedTextDomain: 'ai-provider-for-ollama',
 			},
 		],
 		'@wordpress/no-unsafe-wp-apis': 'off',

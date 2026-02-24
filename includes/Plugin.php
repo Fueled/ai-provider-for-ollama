@@ -8,17 +8,17 @@
 
 declare( strict_types=1 );
 
-namespace WordPress\AiClientProviderOllama;
+namespace Fueled\AiProviderForOllama;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use Fueled\AiProviderForOllama\Provider\OllamaProvider;
+use Fueled\AiProviderForOllama\Settings\OllamaSettings;
+use WordPress\AI_Client\HTTP\WP_AI_Client_Discovery_Strategy;
 use WordPress\AiClient\AiClient;
 use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
-use WordPress\AiClient\Providers\Http\HttpTransporterFactory;
-use WordPress\AiClientProviderOllama\Provider\OllamaProvider;
-use WordPress\AiClientProviderOllama\Settings\OllamaSettings;
 
 /**
  * Plugin class.
@@ -34,10 +34,9 @@ class Plugin {
 	 */
 	public function init(): void {
 		add_action( 'init', array( $this, 'register_provider' ), 5 );
-		add_action( 'init', array( $this, 'ensure_http_transporter' ), 15 );
-		add_action( 'init', array( $this, 'register_fallback_auth' ), 20 );
+		add_action( 'init', array( $this, 'register_fallback_auth' ), 15 );
 		add_action( 'init', array( $this, 'initialize_settings' ) );
-		add_filter( 'plugin_action_links_' . plugin_basename( WP_AI_CLIENT_PROVIDER_OLLAMA_PLUGIN_FILE ), array( $this, 'plugin_action_links' ) );
+		add_filter( 'plugin_action_links_' . plugin_basename( AI_PROVIDER_FOR_OLLAMA_PLUGIN_FILE ), array( $this, 'plugin_action_links' ) );
 	}
 
 	/**
@@ -72,6 +71,11 @@ class Plugin {
 			return;
 		}
 
+		// Ensure the HTTP transporter is initialized.
+		if ( class_exists( WP_AI_Client_Discovery_Strategy::class ) ) {
+			WP_AI_Client_Discovery_Strategy::init();
+		}
+
 		$this->set_ollama_host_from_option();
 
 		$registry = AiClient::defaultRegistry();
@@ -81,33 +85,6 @@ class Plugin {
 		}
 
 		$registry->registerProvider( OllamaProvider::class );
-	}
-
-	/**
-	 * Ensures the HTTP transporter is set on the registry.
-	 *
-	 * Providers register at priority 5, before the WordPress PSR-18 HTTP
-	 * client discovery strategy is available (registered at priority 10 by
-	 * wp-ai-client). This method runs at priority 15 to trigger transporter
-	 * creation after the strategy is in place.
-	 *
-	 * @since 1.0.0
-	 */
-	public function ensure_http_transporter(): void {
-		if ( ! class_exists( AiClient::class ) ) {
-			return;
-		}
-
-		$registry = AiClient::defaultRegistry();
-
-		try {
-			$registry->getHttpTransporter();
-		} catch ( \Throwable $e ) {
-			try {
-				$registry->setHttpTransporter( HttpTransporterFactory::createTransporter() );
-			} catch ( \Throwable $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- Graceful degradation when no PSR-18 client is available.
-			}
-		}
 	}
 
 	/**
@@ -166,7 +143,7 @@ class Plugin {
 		$settings_link = sprintf(
 			'<a href="%1$s">%2$s</a>',
 			admin_url( 'options-general.php?page=wp-ai-client-ollama' ),
-			esc_html__( 'Settings', 'wordpress-ai-client-provider-ollama' )
+			esc_html__( 'Settings', 'ai-provider-for-ollama' )
 		);
 
 		array_unshift( $links, $settings_link );

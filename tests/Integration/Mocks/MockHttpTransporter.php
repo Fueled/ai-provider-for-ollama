@@ -2,7 +2,7 @@
 
 declare( strict_types=1 );
 
-namespace WordPress\AiClientProviderOllama\Tests\Integration\Mocks;
+namespace Fueled\AiProviderForOllama\Tests\Integration\Mocks;
 
 use WordPress\AiClient\Providers\Http\Contracts\HttpTransporterInterface;
 use WordPress\AiClient\Providers\Http\DTO\Request;

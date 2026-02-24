@@ -2,15 +2,15 @@
 
 declare( strict_types=1 );
 
-namespace WordPress\AiClientProviderOllama\Tests\Integration\Models;
+namespace Fueled\AiProviderForOllama\Tests\Integration\Models;
 
+use Fueled\AiProviderForOllama\Tests\Integration\Mocks\MockHttpTransporter;
 use PHPUnit\Framework\TestCase;
 use WordPress\AiClient\Providers\DTO\ProviderMetadata;
 use WordPress\AiClient\Providers\Enums\ProviderTypeEnum;
 use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
 use WordPress\AiClient\Providers\Http\Enums\HttpMethodEnum;
 use WordPress\AiClient\Providers\Models\DTO\ModelMetadata;
-use WordPress\AiClientProviderOllama\Tests\Integration\Mocks\MockHttpTransporter;
 
 /**
  * Tests for OllamaTextGenerationModel path normalization in createRequest().
@@ -19,7 +19,7 @@ use WordPress\AiClientProviderOllama\Tests\Integration\Mocks\MockHttpTransporter
  * behaviour in OllamaTextGenerationModel — everything else is covered by
  * the php-ai-client AbstractOpenAiCompatibleTextGenerationModel tests.
  *
- * @covers \WordPress\AiClientProviderOllama\Models\OllamaTextGenerationModel
+ * @covers \Fueled\AiProviderForOllama\Models\OllamaTextGenerationModel
  */
 class OllamaTextGenerationModelTest extends TestCase {
 

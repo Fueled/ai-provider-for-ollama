@@ -1,4 +1,4 @@
-=== WordPress AI Client Provider for Ollama ===
+=== AI Provider for Ollama ===
 Contributors: 10up
 Tags: ai, ollama, llm, local-ai, artificial-intelligence
 Requires at least: 6.9
@@ -34,7 +34,7 @@ Ollama exposes an [OpenAI-compatible API](https://ollama.com/blog/openai-compati
 == Installation ==
 
 1. Ensure the WordPress AI Client plugin is installed and activated.
-2. Upload the plugin files to `/wp-content/plugins/wordpress-ai-client-provider-ollama/`.
+2. Upload the plugin files to `/wp-content/plugins/ai-provider-for-ollama/`.
 3. Activate the plugin through the 'Plugins' menu in WordPress.
 4. Go to **Settings > Ollama Settings** to configure the host URL and see available models.
 

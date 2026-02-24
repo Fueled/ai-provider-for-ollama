@@ -2,11 +2,11 @@
 
 declare( strict_types=1 );
 
-namespace WordPress\AiClientProviderOllama\Tests\Integration\Models;
+namespace Fueled\AiProviderForOllama\Tests\Integration\Models;
 
+use Fueled\AiProviderForOllama\Models\OllamaTextGenerationModel;
 use WordPress\AiClient\Providers\Http\DTO\Request;
 use WordPress\AiClient\Providers\Http\Enums\HttpMethodEnum;
-use WordPress\AiClientProviderOllama\Models\OllamaTextGenerationModel;
 
 /**
  * Test double that exposes the protected createRequest() method for path-normalization tests.

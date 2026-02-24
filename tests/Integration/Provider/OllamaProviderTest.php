@@ -2,18 +2,18 @@
 
 declare( strict_types=1 );
 
-namespace WordPress\AiClientProviderOllama\Tests\Integration\Provider;
+namespace Fueled\AiProviderForOllama\Tests\Integration\Provider;
 
+use Fueled\AiProviderForOllama\Metadata\OllamaModelMetadataDirectory;
+use Fueled\AiProviderForOllama\Provider\OllamaProvider;
+use Fueled\AiProviderForOllama\Provider\OllamaProviderAvailability;
 use PHPUnit\Framework\TestCase;
 use WordPress\AiClient\Providers\AbstractProvider;
-use WordPress\AiClientProviderOllama\Metadata\OllamaModelMetadataDirectory;
-use WordPress\AiClientProviderOllama\Provider\OllamaProvider;
-use WordPress\AiClientProviderOllama\Provider\OllamaProviderAvailability;
 
 /**
  * Tests for OllamaProvider.
  *
- * @covers \WordPress\AiClientProviderOllama\Provider\OllamaProvider
+ * @covers \Fueled\AiProviderForOllama\Provider\OllamaProvider
  */
 class OllamaProviderTest extends TestCase {
 

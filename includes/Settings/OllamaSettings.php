@@ -2,7 +2,7 @@
 
 declare( strict_types=1 );
 
-namespace WordPress\AiClientProviderOllama\Settings;
+namespace Fueled\AiProviderForOllama\Settings;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -64,7 +64,7 @@ class OllamaSettings {
 
 		add_settings_field(
 			self::OPTION_NAME . '_host',
-			__( 'Host URL', 'wordpress-ai-client-provider-ollama' ),
+			__( 'Host URL', 'ai-provider-for-ollama' ),
 			array( $this, 'render_host_field' ),
 			self::PAGE_SLUG,
 			self::SECTION_ID,
@@ -73,7 +73,7 @@ class OllamaSettings {
 
 		add_settings_field(
 			self::OPTION_NAME . '_model',
-			__( 'Available Models', 'wordpress-ai-client-provider-ollama' ),
+			__( 'Available Models', 'ai-provider-for-ollama' ),
 			array( $this, 'render_available_models_field' ),
 			self::PAGE_SLUG,
 			self::SECTION_ID,
@@ -88,8 +88,8 @@ class OllamaSettings {
 	 */
 	public function register_settings_screen(): void {
 		add_options_page(
-			__( 'Ollama Settings', 'wordpress-ai-client-provider-ollama' ),
-			__( 'Ollama Settings', 'wordpress-ai-client-provider-ollama' ),
+			__( 'Ollama Settings', 'ai-provider-for-ollama' ),
+			__( 'Ollama Settings', 'ai-provider-for-ollama' ),
 			'manage_options',
 			self::PAGE_SLUG,
 			array( $this, 'render_screen' )
@@ -136,7 +136,7 @@ class OllamaSettings {
 				<?php
 				printf(
 					/* translators: 1: link to the AI Credentials screen, 2: closing link tag */
-					esc_html__( 'Configure the connection to your Ollama instance. If you want to use Ollama Cloud, enter %1$shttps://ollama.com%2$s in the host URL field and enter your API key on the %3$sSettings > AI Credentials%4$s screen.', 'wordpress-ai-client-provider-ollama' ),
+					esc_html__( 'Configure the connection to your Ollama instance. If you want to use Ollama Cloud, enter %1$shttps://ollama.com%2$s in the host URL field and enter your API key on the %3$sSettings > AI Credentials%4$s screen.', 'ai-provider-for-ollama' ),
 					'<code>',
 					'</code>',
 					'<a href="' . esc_url( admin_url( 'options-general.php?page=wp-ai-client' ) ) . '">',
@@ -148,7 +148,7 @@ class OllamaSettings {
 				<?php
 				printf(
 					/* translators: 1: code tag, 2: closing code tag */
-					esc_html__( 'Leave the host URL empty to use the default (%1$shttp://localhost:11434%2$s). You can also set the %1$sOLLAMA_HOST%2$s environment variable to override this setting.', 'wordpress-ai-client-provider-ollama' ),
+					esc_html__( 'Leave the host URL empty to use the default (%1$shttp://localhost:11434%2$s). You can also set the %1$sOLLAMA_HOST%2$s environment variable to override this setting.', 'ai-provider-for-ollama' ),
 					'<code>',
 					'</code>'
 				);
@@ -192,7 +192,7 @@ class OllamaSettings {
 			<?php
 			printf(
 				/* translators: 1: code tag, 2: closing code tag */
-				esc_html__( 'The base URL of your Ollama instance (without /v1). Example: %1$shttp://localhost:11434%2$s or %1$shttps://ollama.com%2$s', 'wordpress-ai-client-provider-ollama' ),
+				esc_html__( 'The base URL of your Ollama instance (without /v1). Example: %1$shttp://localhost:11434%2$s or %1$shttps://ollama.com%2$s', 'ai-provider-for-ollama' ),
 				'<code>',
 				'</code>'
 			);
@@ -215,7 +215,7 @@ class OllamaSettings {
 		</div>
 		<p class="description">
 			<?php
-			echo esc_html__( 'Available models are fetched from your Ollama instance. If a model is not listed that you want, ensure that model is installed within Ollama.', 'wordpress-ai-client-provider-ollama' );
+			echo esc_html__( 'Available models are fetched from your Ollama instance. If a model is not listed that you want, ensure that model is installed within Ollama.', 'ai-provider-for-ollama' );
 			?>
 		</p>
 
@@ -234,7 +234,7 @@ class OllamaSettings {
 			return;
 		}
 
-		$plugin_dir = WP_AI_CLIENT_PROVIDER_OLLAMA_PLUGIN_DIR;
+		$plugin_dir = AI_PROVIDER_FOR_OLLAMA_PLUGIN_DIR;
 		$asset_file = $plugin_dir . 'build/admin/settings.asset.php';
 		$asset      = file_exists( $asset_file ) ? require $asset_file : array(); // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.UsingVariable -- Asset file path is built from a known constant.
 
@@ -267,14 +267,14 @@ class OllamaSettings {
 		check_ajax_referer( self::NONCE_ACTION );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( __( 'Insufficient permissions.', 'wordpress-ai-client-provider-ollama' ), 403 );
+			wp_send_json_error( __( 'Insufficient permissions.', 'ai-provider-for-ollama' ), 403 );
 		}
 
 		$provider_id = 'ollama';
 		$registry    = AiClient::defaultRegistry();
 
 		if ( ! $registry->hasProvider( $provider_id ) ) {
-			wp_send_json_error( __( 'AI provider not found.', 'wordpress-ai-client-provider-ollama' ), 404 );
+			wp_send_json_error( __( 'AI provider not found.', 'ai-provider-for-ollama' ), 404 );
 		}
 
 		$provider_classname = $registry->getProviderClassName( $provider_id );
@@ -283,7 +283,7 @@ class OllamaSettings {
 			// phpcs:ignore Generic.Commenting.DocComment.MissingShort
 			$provider_availability = $provider_classname::availability();
 			if ( ! $provider_availability->isConfigured() ) {
-				wp_send_json_error( __( 'AI provider not configured - missing API credentials.', 'wordpress-ai-client-provider-ollama' ), 400 );
+				wp_send_json_error( __( 'AI provider not configured - missing API credentials.', 'ai-provider-for-ollama' ), 400 );
 			}
 
 			// phpcs:ignore Generic.Commenting.DocComment.MissingShort
@@ -293,7 +293,7 @@ class OllamaSettings {
 			wp_send_json_success( $model_metadata_objects );
 		} catch ( \Throwable $e ) {
 			/* translators: %s: Error message. */
-			wp_send_json_error( sprintf( __( 'Could not list models for provider - are the API credentials invalid? Error: %s', 'wordpress-ai-client-provider-ollama' ), $e->getMessage() ), 500 );
+			wp_send_json_error( sprintf( __( 'Could not list models for provider - are the API credentials invalid? Error: %s', 'ai-provider-for-ollama' ), $e->getMessage() ), 500 );
 		}
 	}
 }
