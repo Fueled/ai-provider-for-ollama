@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: AI Provider for Ollama
- * Plugin URI: https://github.com/10up/ai-provider-for-ollama
+ * Plugin URI: https://github.com/fueled/ai-provider-for-ollama
  * Description: Ollama provider for the WordPress AI Client.
  * Requires at least: 6.9
  * Requires PHP: 7.4
@@ -23,10 +23,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WP_AI_CLIENT_PROVIDER_OLLAMA_MIN_PHP_VERSION', '7.4' );
-define( 'WP_AI_CLIENT_PROVIDER_OLLAMA_MIN_WP_VERSION', '6.9' );
-define( 'WP_AI_CLIENT_PROVIDER_OLLAMA_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
-define( 'WP_AI_CLIENT_PROVIDER_OLLAMA_PLUGIN_FILE', __FILE__ );
+define( 'WP_AI_PROVIDER_OLLAMA_MIN_PHP_VERSION', '7.4' );
+define( 'WP_AI_PROVIDER_OLLAMA_MIN_WP_VERSION', '6.9' );
+define( 'WP_AI_PROVIDER_OLLAMA_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+define( 'WP_AI_PROVIDER_OLLAMA_PLUGIN_FILE', __FILE__ );
 
 /**
  * Displays an admin notice for requirement failures.
@@ -56,7 +56,7 @@ function requirement_notice( string $message ): void {
  * @return bool True if PHP version is sufficient, false otherwise.
  */
 function check_php_version(): bool {
-	if ( version_compare( phpversion(), WP_AI_CLIENT_PROVIDER_OLLAMA_MIN_PHP_VERSION, '<' ) ) {
+	if ( version_compare( phpversion(), WP_AI_PROVIDER_OLLAMA_MIN_PHP_VERSION, '<' ) ) {
 		add_action(
 			'admin_notices',
 			static function () {
@@ -64,7 +64,7 @@ function check_php_version(): bool {
 					sprintf(
 						/* translators: 1: Required PHP version, 2: Current PHP version */
 						__( 'The Ollama Provider plugin requires PHP version %1$s or higher. You are running PHP version %2$s.', 'ai-provider-for-ollama' ),
-						WP_AI_CLIENT_PROVIDER_OLLAMA_MIN_PHP_VERSION,
+						WP_AI_PROVIDER_OLLAMA_MIN_PHP_VERSION,
 						PHP_VERSION
 					)
 				);
@@ -87,7 +87,7 @@ function check_php_version(): bool {
  * @return bool True if WordPress version is sufficient, false otherwise.
  */
 function check_wp_version(): bool {
-	if ( ! is_wp_version_compatible( WP_AI_CLIENT_PROVIDER_OLLAMA_MIN_WP_VERSION ) ) {
+	if ( ! is_wp_version_compatible( WP_AI_PROVIDER_OLLAMA_MIN_WP_VERSION ) ) {
 		add_action(
 			'admin_notices',
 			static function () {
@@ -96,7 +96,7 @@ function check_wp_version(): bool {
 					sprintf(
 						/* translators: 1: Required WordPress version, 2: Current WordPress version */
 						__( 'The Ollama Provider plugin requires WordPress version %1$s or higher. You are running WordPress version %2$s.', 'ai-provider-for-ollama' ),
-						WP_AI_CLIENT_PROVIDER_OLLAMA_MIN_WP_VERSION,
+						WP_AI_PROVIDER_OLLAMA_MIN_WP_VERSION,
 						$wp_version
 					)
 				);
@@ -128,7 +128,7 @@ function load(): void {
 	}
 
 	// Throw an error if the composer autoloader is not found.
-	if ( ! file_exists( WP_AI_CLIENT_PROVIDER_OLLAMA_PLUGIN_DIR . 'vendor/autoload.php' ) ) {
+	if ( ! file_exists( WP_AI_PROVIDER_OLLAMA_PLUGIN_DIR . 'vendor/autoload.php' ) ) {
 		add_action(
 			'admin_notices',
 			static function () {
@@ -147,7 +147,7 @@ function load(): void {
 	}
 
 	// Load the composer autoloader.
-	require_once WP_AI_CLIENT_PROVIDER_OLLAMA_PLUGIN_DIR . 'vendor/autoload.php';
+	require_once WP_AI_PROVIDER_OLLAMA_PLUGIN_DIR . 'vendor/autoload.php';
 
 	// Initialize the plugin.
 	$plugin = new Plugin();

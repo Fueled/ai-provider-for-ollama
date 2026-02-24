@@ -234,7 +234,7 @@ class OllamaSettings {
 			return;
 		}
 
-		$plugin_dir = WP_AI_CLIENT_PROVIDER_OLLAMA_PLUGIN_DIR;
+		$plugin_dir = WP_AI_PROVIDER_OLLAMA_PLUGIN_DIR;
 		$asset_file = $plugin_dir . 'build/admin/settings.asset.php';
 		$asset      = file_exists( $asset_file ) ? require $asset_file : array(); // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.UsingVariable -- Asset file path is built from a known constant.
 

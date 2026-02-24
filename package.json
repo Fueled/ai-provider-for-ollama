@@ -4,7 +4,7 @@
   "license": "GPL-2.0-or-later",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/WordPress/ai-provider-for-ollama.git"
+    "url": "git+https://github.com/fueled/ai-provider-for-ollama.git"
   },
   "files": [
     "build",
