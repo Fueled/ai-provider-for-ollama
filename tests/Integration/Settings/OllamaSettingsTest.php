@@ -9,7 +9,7 @@ use Fueled\AiProviderForOllama\Settings\OllamaSettings;
 /**
  * Tests for OllamaSettings.
  *
- * @covers \WordPress\AiProviderOllama\Settings\OllamaSettings
+ * @covers \Fueled\AiProviderForOllama\Settings\OllamaSettings
  */
 class OllamaSettingsTest extends \WP_UnitTestCase {
 

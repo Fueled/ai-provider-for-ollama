@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * Tests for OllamaProviderAvailability.
  *
- * @covers \WordPress\AiProviderOllama\Provider\OllamaProviderAvailability
+ * @covers \Fueled\AiProviderForOllama\Provider\OllamaProviderAvailability
  */
 class OllamaProviderAvailabilityTest extends TestCase {
 

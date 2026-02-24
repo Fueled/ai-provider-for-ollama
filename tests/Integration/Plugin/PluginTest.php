@@ -12,7 +12,7 @@ use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
 /**
  * Tests for Plugin.
  *
- * @covers \WordPress\AiProviderOllama\Plugin
+ * @covers \Fueled\AiProviderForOllama\Plugin
  */
 class PluginTest extends \WP_UnitTestCase {
 

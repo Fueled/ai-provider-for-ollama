@@ -13,7 +13,7 @@ use WordPress\AiClient\Providers\AbstractProvider;
 /**
  * Tests for OllamaProvider.
  *
- * @covers \WordPress\AiProviderOllama\Provider\OllamaProvider
+ * @covers \Fueled\AiProviderForOllama\Provider\OllamaProvider
  */
 class OllamaProviderTest extends TestCase {
 

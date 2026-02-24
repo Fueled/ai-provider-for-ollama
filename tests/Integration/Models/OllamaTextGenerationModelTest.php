@@ -19,7 +19,7 @@ use WordPress\AiClient\Providers\Models\DTO\ModelMetadata;
  * behaviour in OllamaTextGenerationModel — everything else is covered by
  * the php-ai-client AbstractOpenAiCompatibleTextGenerationModel tests.
  *
- * @covers \WordPress\AiProviderOllama\Models\OllamaTextGenerationModel
+ * @covers \Fueled\AiProviderForOllama\Models\OllamaTextGenerationModel
  */
 class OllamaTextGenerationModelTest extends TestCase {
 

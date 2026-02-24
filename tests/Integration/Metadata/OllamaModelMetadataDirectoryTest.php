@@ -17,7 +17,7 @@ use WordPress\AiClient\Providers\Http\Exception\ResponseException;
  * Uses a MockHttpTransporter with queued responses matching Ollama's
  * /api/tags and /api/show response shapes.
  *
- * @covers \WordPress\AiProviderOllama\Metadata\OllamaModelMetadataDirectory
+ * @covers \Fueled\AiProviderForOllama\Metadata\OllamaModelMetadataDirectory
  */
 class OllamaModelMetadataDirectoryTest extends TestCase {
 
