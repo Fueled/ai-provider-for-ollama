@@ -42,9 +42,11 @@ class OllamaModelMetadataDirectoryTest extends TestCase {
 		$this->directory   = new OllamaModelMetadataDirectory();
 		$this->directory->setHttpTransporter( $this->transporter );
 		$this->directory->setRequestAuthentication( new ApiKeyRequestAuthentication( '' ) );
+		$this->directory->invalidateCaches();
 	}
 
 	protected function tearDown(): void {
+		$this->directory->invalidateCaches();
 		putenv( 'OLLAMA_HOST' );
 		parent::tearDown();
 	}

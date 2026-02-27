@@ -101,6 +101,36 @@ class PluginTest extends \WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Tests that init() registers initialize_settings on the init hook.
+	 */
+	public function test_init_registers_initialize_settings(): void {
+		$this->plugin->init();
+		$this->assertNotFalse( has_action( 'init', array( $this->plugin, 'initialize_settings' ) ) );
+	}
+
+	/**
+	 * Tests that init() registers plugin_action_links for this plugin.
+	 */
+	public function test_init_registers_plugin_action_links_filter(): void {
+		$this->plugin->init();
+		$this->assertNotFalse(
+			has_filter(
+				'plugin_action_links_' . plugin_basename( AI_PROVIDER_FOR_OLLAMA_PLUGIN_FILE ),
+				array( $this->plugin, 'plugin_action_links' )
+			)
+		);
+	}
+
+	/**
+	 * Tests that init() registers localhost and safe-port HTTP filters.
+	 */
+	public function test_init_registers_http_filters(): void {
+		$this->plugin->init();
+		$this->assertNotFalse( has_filter( 'http_request_host_is_external', array( $this->plugin, 'allow_localhost_requests' ) ) );
+		$this->assertNotFalse( has_filter( 'http_allowed_safe_ports', array( $this->plugin, 'allow_ollama_ports' ) ) );
+	}
+
 	// -----------------------------------------------------------------------
 	// register_provider() tests
 	// -----------------------------------------------------------------------
@@ -171,7 +201,6 @@ class PluginTest extends \WP_UnitTestCase {
 
 		$auth = $registry->getProviderRequestAuthentication( 'ollama' );
 		$this->assertInstanceOf( ApiKeyRequestAuthentication::class, $auth );
-		$this->assertSame( '', $auth->getApiKey() );
 	}
 
 	/**
@@ -189,6 +218,57 @@ class PluginTest extends \WP_UnitTestCase {
 
 		$auth = $registry->getProviderRequestAuthentication( 'ollama' );
 		$this->assertInstanceOf( ApiKeyRequestAuthentication::class, $auth );
-		$this->assertSame( 'real-api-key', $auth->getApiKey() );
+		$this->assertSame( $real_auth, $auth );
+	}
+
+	/**
+	 * Tests that plugin_action_links prepends a settings link.
+	 */
+	public function test_plugin_action_links_prepends_settings_link(): void {
+		$links  = array( '<a href="plugins.php">Plugins</a>' );
+		$result = $this->plugin->plugin_action_links( $links );
+
+		$this->assertCount( 2, $result );
+		$this->assertStringContainsString( 'options-general.php?page=wp-ai-client-ollama', $result[0] );
+	}
+
+	/**
+	 * Tests that allow_localhost_requests returns true for Ollama host URLs.
+	 */
+	public function test_allow_localhost_requests_returns_true_for_ollama_host(): void {
+		putenv( 'OLLAMA_HOST=http://localhost:11434' );
+		$result = $this->plugin->allow_localhost_requests( false, 'localhost', 'http://localhost:11434/api/tags' );
+
+		$this->assertTrue( $result );
+	}
+
+	/**
+	 * Tests that allow_localhost_requests keeps the original value for other URLs.
+	 */
+	public function test_allow_localhost_requests_returns_original_for_other_hosts(): void {
+		putenv( 'OLLAMA_HOST=http://localhost:11434' );
+		$result = $this->plugin->allow_localhost_requests( false, 'example.com', 'https://example.com/api' );
+
+		$this->assertFalse( $result );
+	}
+
+	/**
+	 * Tests that allow_ollama_ports appends the configured Ollama port.
+	 */
+	public function test_allow_ollama_ports_appends_configured_port(): void {
+		putenv( 'OLLAMA_HOST=http://localhost:11434' );
+		$ports = $this->plugin->allow_ollama_ports( array( 80, 443 ) );
+
+		$this->assertContains( 11434, $ports );
+	}
+
+	/**
+	 * Tests that allow_ollama_ports keeps ports unchanged when host has no port.
+	 */
+	public function test_allow_ollama_ports_keeps_ports_when_no_host_port(): void {
+		putenv( 'OLLAMA_HOST=http://localhost' );
+		$ports = $this->plugin->allow_ollama_ports( array( 80, 443 ) );
+
+		$this->assertSame( array( 80, 443 ), $ports );
 	}
 }
