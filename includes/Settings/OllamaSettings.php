@@ -172,12 +172,8 @@ class OllamaSettings {
 	 * @since 1.0.0
 	 */
 	public function render_host_field(): void {
-		$settings = get_option( self::OPTION_NAME, array() );
-		if ( ! is_array( $settings ) ) {
-			$settings = array();
-		}
-
-		$value = isset( $settings['host'] ) ? $settings['host'] : '';
+		$settings = self::get_settings();
+		$value    = isset( $settings['host'] ) ? $settings['host'] : '';
 		?>
 
 		<input
@@ -295,5 +291,16 @@ class OllamaSettings {
 			/* translators: %s: Error message. */
 			wp_send_json_error( sprintf( __( 'Could not list models for provider - are the API credentials invalid? Error: %s', 'ai-provider-for-ollama' ), $e->getMessage() ), 500 );
 		}
+	}
+
+	/**
+	 * Gets the settings from the WordPress option.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @return array<string, string> The settings.
+	 */
+	public static function get_settings(): array {
+		return (array) get_option( self::OPTION_NAME, array() );
 	}
 }

@@ -16,7 +16,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use Fueled\AiProviderForOllama\Provider\OllamaProvider;
 use Fueled\AiProviderForOllama\Settings\OllamaSettings;
-use WordPress\AI_Client\HTTP\WP_AI_Client_Discovery_Strategy;
 use WordPress\AiClient\AiClient;
 use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
 
@@ -37,28 +36,47 @@ class Plugin {
 		add_action( 'init', array( $this, 'register_fallback_auth' ), 15 );
 		add_action( 'init', array( $this, 'initialize_settings' ) );
 		add_filter( 'plugin_action_links_' . plugin_basename( AI_PROVIDER_FOR_OLLAMA_PLUGIN_FILE ), array( $this, 'plugin_action_links' ) );
+		add_filter( 'http_request_host_is_external', array( $this, 'allow_localhost_requests' ), 10, 3 );
+		add_filter( 'http_allowed_safe_ports', array( $this, 'allow_ollama_ports' ) );
 	}
 
 	/**
-	 * Sets the OLLAMA_HOST environment variable from the WordPress option.
+	 * Gets the Ollama host.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @return string The Ollama host.
+	 */
+	private function get_ollama_host(): string {
+		// Get the OLLAMA_HOST environment variable if set.
+		$host = getenv( 'OLLAMA_HOST' );
+		if ( false !== $host && '' !== $host ) {
+			return $host;
+		}
+
+		// Get the Ollama host from the WordPress option if set.
+		$settings = OllamaSettings::get_settings();
+		if ( isset( $settings['host'] ) && '' !== $settings['host'] ) {
+			return $settings['host'];
+		}
+
+		return 'http://localhost:11434';
+	}
+
+	/**
+	 * Sets the OLLAMA_HOST environment variable.
 	 *
 	 * @since 1.0.0
 	 */
-	private function set_ollama_host_from_option(): void {
-		// Check if the OLLAMA_HOST environment variable is already set.
-		$env_host = getenv( 'OLLAMA_HOST' );
-		if ( false !== $env_host && '' !== $env_host ) {
-			return;
-		}
+	private function set_ollama_host(): void {
+		$host = $this->get_ollama_host();
 
-		// Get the Ollama host from the WordPress option.
-		$settings = get_option( 'wp_ai_client_ollama_settings', array() );
-		if ( ! is_array( $settings ) || ! isset( $settings['host'] ) || '' === $settings['host'] ) {
+		if ( '' === $host ) {
 			return;
 		}
 
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_putenv -- Required to set OLLAMA_HOST for the provider SDK.
-		putenv( 'OLLAMA_HOST=' . $settings['host'] );
+		putenv( 'OLLAMA_HOST=' . $host );
 	}
 
 	/**
@@ -71,12 +89,7 @@ class Plugin {
 			return;
 		}
 
-		// Ensure the HTTP transporter is initialized.
-		if ( class_exists( WP_AI_Client_Discovery_Strategy::class ) ) {
-			WP_AI_Client_Discovery_Strategy::init();
-		}
-
-		$this->set_ollama_host_from_option();
+		$this->set_ollama_host();
 
 		$registry = AiClient::defaultRegistry();
 
@@ -149,5 +162,42 @@ class Plugin {
 		array_unshift( $links, $settings_link );
 
 		return $links;
+	}
+
+	/**
+	 * Allows localhost requests to the Ollama host.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param bool $external Whether the request is external.
+	 * @param string $host The host of the request.
+	 * @param string $url The URL of the request.
+	 * @return bool Whether the request is allowed.
+	 */
+	public function allow_localhost_requests( $external, $host, $url ): bool {
+		if ( strpos( $url, $this->get_ollama_host() ) !== false ) {
+			return true;
+		}
+
+		return $external;
+	}
+
+	/**
+	 * Allows Ollama ports.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<int> $ports The ports.
+	 * @return array<int> The allowed ports.
+	 */
+	public function allow_ollama_ports( $ports ): array {
+		$ollama_host = $this->get_ollama_host();
+		$ollama_port = wp_parse_url( $ollama_host, PHP_URL_PORT );
+
+		if ( ! $ollama_port ) {
+			return $ports;
+		}
+
+		return array_merge( $ports, array( $ollama_port ) );
 	}
 }
