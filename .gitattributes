@@ -25,4 +25,5 @@
 /phpunit.xml.dist export-ignore
 /README.md export-ignore
 /SECURITY.md export-ignore
+/tsconfig.json export-ignore
 /webpack.config.js export-ignore
