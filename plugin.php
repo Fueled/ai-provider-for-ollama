@@ -6,8 +6,8 @@
  * Requires at least: 6.9
  * Requires PHP:      7.4
  * Version:           1.0.0
- * Author:            10up
- * Author URI:        https://10up.com
+ * Author:            Fueled
+ * Author URI:        https://fueled.com
  * License:           GPL-2.0-or-later
  * License URI:       https://spdx.org/licenses/GPL-2.0-or-later.html
  * Text Domain:       ai-provider-for-ollama

@@ -1,6 +1,6 @@
 === AI Provider for Ollama ===
-Contributors:      10up
-Tags:              ai, ollama, llm, local-ai, artificial-intelligence
+Contributors:      fueled, 10up
+Tags:              ai, ollama, llm, local-ai, connector
 Requires at least: 6.9
 Tested up to:      6.9
 Stable tag:        1.0.0
