@@ -1,5 +1,13 @@
 # AI Provider for Ollama
 
+[![Support Level](https://img.shields.io/badge/support-active-green.svg)](#support-level) [![Release Version](https://img.shields.io/github/release/10up/classifai.svg)](https://github.com/10up/classifai/releases/latest) ![WordPress tested up to version](https://img.shields.io/badge/WordPress-v6.9%20tested-success.svg) [![GPLv2 License](https://img.shields.io/github/license/10up/classifai.svg)](https://github.com/10up/classifai/blob/develop/LICENSE.md)
+
+[![Test](https://github.com/Fueled/ai-provider-for-ollama/actions/workflows/test.yml/badge.svg)](https://github.com/Fueled/ai-provider-for-ollama/actions/workflows/test.yml) [![Plugin Check](https://github.com/Fueled/ai-provider-for-ollama/actions/workflows/plugin-check.yml/badge.svg)](https://github.com/Fueled/ai-provider-for-ollama/actions/workflows/plugin-check.yml) [![Dependency Review](https://github.com/Fueled/ai-provider-for-ollama/actions/workflows/dependency-review.yml/badge.svg)](https://github.com/Fueled/ai-provider-for-ollama/actions/workflows/dependency-review.yml)
+
+> Ollama provider for the PHP and WP AI Client packages.
+
+## Overview
+
 Ollama provider for the [PHP AI Client SDK](https://github.com/WordPress/php-ai-client). Works as both a Composer package with the `php-ai-client` package and as a WordPress plugin with the `wp-ai-client` plugin.
 
 [Ollama](https://ollama.com/) lets you run large language models locally or remotely. Ollama exposes an [OpenAI-compatible API](https://ollama.com/blog/openai-compatibility), and this provider uses that API to communicate with any model you have pulled into Ollama (Llama, Mistral, Gemma, Phi, and many more) or any available Ollama Cloud model.
@@ -70,6 +78,18 @@ $result = AiClient::prompt('Hello!')
     ->usingProvider('ollama')
     ->generateText();
 ```
+
+## Support Level
+
+**Active:** Fueled is actively working on this, and we expect to continue work for the foreseeable future including keeping tested up to the most recent version of WordPress.  Bug reports, feature requests, questions, and pull requests are welcome.
+
+## Changelog
+
+A complete listing of all notable changes to ClassifAI are documented in [CHANGELOG.md](https://github.com/Fueled/ai-provider-for-ollama/blob/develop/CHANGELOG.md).
+
+## Contributing
+
+Please read [CODE_OF_CONDUCT.md](https://github.com/Fueled/ai-provider-for-ollama/blob/develop/CODE_OF_CONDUCT.md) for details on our code of conduct, [CONTRIBUTING.md](https://github.com/Fueled/ai-provider-for-ollama/blob/develop/CONTRIBUTING.md) for details on the process for submitting pull requests to us, and [CREDITS.md](https://github.com/Fueled/ai-provider-for-ollama/blob/develop/CREDITS.md) for a listing of maintainers, contributors, and libraries for ClassifAI.
 
 ## Like what you see?
 
