@@ -155,7 +155,7 @@ class Plugin {
 	public function plugin_action_links( array $links ): array {
 		$settings_link = sprintf(
 			'<a href="%1$s">%2$s</a>',
-			admin_url( 'options-general.php?page=wp-ai-client-ollama' ),
+			admin_url( 'options-general.php?page=ai-provider-for-ollama' ),
 			esc_html__( 'Settings', 'ai-provider-for-ollama' )
 		);
 

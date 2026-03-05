@@ -114,7 +114,7 @@ class OllamaSettingsTest extends \WP_UnitTestCase {
 		$this->settings->init();
 		$this->assertNotFalse(
 			has_action(
-				'wp_ajax_wp_ai_client_ollama_list_models',
+				'wp_ajax_ai_provider_for_ollama_list_models',
 				array( $this->settings, 'ajax_list_models' )
 			)
 		);

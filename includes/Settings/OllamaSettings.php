@@ -14,18 +14,18 @@ use WordPress\AiClient\AiClient;
  * Class for the Ollama settings in the WordPress admin.
  *
  * Provides a settings page under Settings > Ollama for configuring the Ollama
- * host URL and default model.
+ * host URL.
  *
  * @since 1.0.0
  */
 class OllamaSettings {
 
-	private const OPTION_GROUP = 'wp-ai-client-ollama-settings';
-	private const OPTION_NAME  = 'wp_ai_client_ollama_settings';
-	private const PAGE_SLUG    = 'wp-ai-client-ollama';
-	private const SECTION_ID   = 'wp_ai_client_ollama_main';
-	private const AJAX_ACTION  = 'wp_ai_client_ollama_list_models';
-	private const NONCE_ACTION = 'wp_ai_client_ollama_nonce';
+	private const OPTION_GROUP = 'ai-provider-for-ollama-settings';
+	private const OPTION_NAME  = 'ai_provider_for_ollama_settings';
+	private const PAGE_SLUG    = 'ai-provider-for-ollama';
+	private const SECTION_ID   = 'ai_provider_for_ollama_main';
+	private const AJAX_ACTION  = 'ai_provider_for_ollama_list_models';
+	private const NONCE_ACTION = 'ai_provider_for_ollama_nonce';
 
 	/**
 	 * Initializes the settings.
@@ -238,7 +238,7 @@ class OllamaSettings {
 		$version      = isset( $asset['version'] ) ? $asset['version'] : false;
 
 		wp_enqueue_script(
-			'wp-ai-client-ollama-settings',
+			'ai-provider-for-ollama-settings',
 			plugins_url( 'build/admin/settings.js', $plugin_dir . 'plugin.php' ),
 			$dependencies,
 			$version,
@@ -246,8 +246,8 @@ class OllamaSettings {
 		);
 
 		wp_localize_script(
-			'wp-ai-client-ollama-settings',
-			'wpAiClientOllamaSettings',
+			'ai-provider-for-ollama-settings',
+			'aiProviderForOllamaSettings',
 			array(
 				'ajaxUrl' => esc_url( admin_url( 'admin-ajax.php' ) . '?action=' . self::AJAX_ACTION . '&_wpnonce=' . wp_create_nonce( self::NONCE_ACTION ) ),
 			)
