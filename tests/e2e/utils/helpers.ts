@@ -20,6 +20,6 @@ export const visitAdminPage = async ( admin: Admin, path: string ) => {
  */
 export const visitSettingsPage = async ( admin: Admin ) => {
 	await admin.visitAdminPage(
-		'options-general.php?page=wp-ai-client-ollama'
+		'options-general.php?page=ai-provider-for-ollama'
 	);
 };

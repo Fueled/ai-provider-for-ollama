@@ -10,7 +10,7 @@ interface Config {
 
 declare global {
 	interface Window {
-		wpAiClientOllamaSettings: Config;
+		aiProviderForOllamaSettings: Config;
 	}
 }
 
@@ -116,7 +116,7 @@ async function loadModels( config: Config ): Promise< void > {
  * @since 1.0.0
  */
 document.addEventListener( 'DOMContentLoaded', () => {
-	const config = window.wpAiClientOllamaSettings;
+	const config = window.aiProviderForOllamaSettings;
 	if ( config ) {
 		loadModels( config );
 	}

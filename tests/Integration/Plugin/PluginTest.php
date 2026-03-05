@@ -35,12 +35,12 @@ class PluginTest extends \WP_UnitTestCase {
 		$this->plugin             = new Plugin();
 		$this->original_ollama_host = getenv( 'OLLAMA_HOST' );
 		putenv( 'OLLAMA_HOST=' );
-		delete_option( 'wp_ai_client_ollama_settings' );
+		delete_option( 'ai_provider_for_ollama_settings' );
 	}
 
 	protected function tearDown(): void {
 		$this->restore_ollama_host();
-		delete_option( 'wp_ai_client_ollama_settings' );
+		delete_option( 'ai_provider_for_ollama_settings' );
 		parent::tearDown();
 	}
 
@@ -148,7 +148,7 @@ class PluginTest extends \WP_UnitTestCase {
 	 * Tests that register_provider() sets OLLAMA_HOST from the WordPress option when not already set.
 	 */
 	public function test_register_provider_sets_env_var_from_option(): void {
-		update_option( 'wp_ai_client_ollama_settings', array( 'host' => 'http://my-server:11434' ) );
+		update_option( 'ai_provider_for_ollama_settings', array( 'host' => 'http://my-server:11434' ) );
 		putenv( 'OLLAMA_HOST=' );
 
 		$this->plugin->register_provider();
@@ -161,7 +161,7 @@ class PluginTest extends \WP_UnitTestCase {
 	 */
 	public function test_register_provider_does_not_override_existing_env_var(): void {
 		putenv( 'OLLAMA_HOST=http://existing:11434' );
-		update_option( 'wp_ai_client_ollama_settings', array( 'host' => 'http://different:11434' ) );
+		update_option( 'ai_provider_for_ollama_settings', array( 'host' => 'http://different:11434' ) );
 
 		$this->plugin->register_provider();
 
@@ -229,7 +229,7 @@ class PluginTest extends \WP_UnitTestCase {
 		$result = $this->plugin->plugin_action_links( $links );
 
 		$this->assertCount( 2, $result );
-		$this->assertStringContainsString( 'options-general.php?page=wp-ai-client-ollama', $result[0] );
+		$this->assertStringContainsString( 'options-general.php?page=ai-provider-for-ollama', $result[0] );
 	}
 
 	/**
