@@ -85,7 +85,7 @@ $result = AiClient::prompt('Hello!')
 
 ## Changelog
 
-A complete listing of all notable changes to ClassifAI are documented in [CHANGELOG.md](https://github.com/Fueled/ai-provider-for-ollama/blob/develop/CHANGELOG.md).
+A complete listing of all notable changes to AI Provider for Ollama are documented in [CHANGELOG.md](https://github.com/Fueled/ai-provider-for-ollama/blob/develop/CHANGELOG.md).
 
 ## Contributing
 
