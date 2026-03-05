@@ -1,0 +1,48 @@
+# macOS/IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Log files
+*.log
+/tests/logs
+
+# Dependencies
+/vendor/
+/node_modules/
+
+# Build output
+build/
+build-module/
+build-types/
+
+# Environment
+.env
+
+# AI files
+.gemini/
+.claude/
+AGENTS.md
+GEMINI.md
+CLAUDE.md
+
+# Cache
+.phpunit.result.cache
+
+# Test output
+/tests/_output/*
+!/tests/_output/.gitkeep
+/tests/e2e/artifacts
+/artifacts
+
+# WP ENV
+/.wp-env.override.json
+
+# Tests & Coverage
+/coverage/
+
+# TypeScript
+*.tsbuildinfo

@@ -1,0 +1,60 @@
+{
+  "name": "ai-provider-for-ollama",
+  "private": true,
+  "license": "GPL-2.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fueled/ai-provider-for-ollama.git"
+  },
+  "files": [
+    "build",
+    "includes",
+    "vendor",
+    "README.md",
+    "readme.txt",
+    "plugin.php"
+  ],
+  "scripts": {
+    "plugin-zip": "wp-scripts plugin-zip",
+    "build": "wp-scripts build",
+    "start": "wp-scripts start",
+    "format:js": "wp-scripts format ./src",
+    "lint:js": "wp-scripts lint-js",
+    "lint:js:fix": "wp-scripts lint-js --fix",
+    "lint:php": "wp-env run tests-cli --env-cwd=wp-content/plugins/ai-provider-for-ollama composer run-script lint",
+    "lint:php:fix": "wp-env run tests-cli --env-cwd=wp-content/plugins/ai-provider-for-ollama composer run-script format",
+    "lint:php:stan": "wp-env run tests-cli --env-cwd=wp-content/plugins/ai-provider-for-ollama composer run-script phpstan",
+    "test:php": "wp-env run tests-cli --env-cwd=wp-content/plugins/ai-provider-for-ollama vendor/bin/phpunit -c phpunit.xml.dist",
+		"test:e2e:env:start": "wp-env start",
+    "test:e2e:env:stop": "wp-env stop",
+    "test:e2e": "wp-scripts test-playwright --config tests/e2e/playwright.config.ts",
+    "test:e2e:debug": "wp-scripts test-playwright --config tests/e2e/playwright.config.ts --ui",
+    "typecheck": "tsc --noEmit",
+    "wp-env": "wp-env"
+  },
+  "devDependencies": {
+		"@playwright/test": "^1.57.0",
+    "@types/react": "^18.3.27",
+    "@types/react-dom": "^18.3.7",
+		"@wordpress/e2e-test-utils-playwright": "^1.37.0",
+    "@wordpress/env": "^10.39.0",
+    "@wordpress/scripts": "^31.5.0",
+    "filenamify": "^7.0.1",
+    "typescript": "^5.9.3",
+    "webpack-remove-empty-scripts": "^1.1.1"
+  },
+  "dependencies": {
+    "@wordpress/api-fetch": "^7.40.0",
+    "@wordpress/i18n": "^6.13.0",
+    "react": "^18.3.1"
+  },
+  "overrides": {
+    "webpack-dev-server@<=5.2.0": ">=5.2.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "engines": {
+    "node": ">=22.21.1",
+    "npm": ">=10.9.4"
+  }
+}
