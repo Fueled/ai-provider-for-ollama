@@ -1,16 +1,16 @@
 <?php
 /**
- * Plugin Name: AI Provider for Ollama
- * Plugin URI: https://github.com/fueled/ai-provider-for-ollama
- * Description: Ollama provider for the WordPress AI Client.
- * Requires at least: 6.9
- * Requires PHP: 7.4
- * Version: 1.0.0
- * Author: Fueled
- * Author URI: https://fueled.com
- * License: GPL-2.0-or-later
- * License URI: https://spdx.org/licenses/GPL-2.0-or-later.html
- * Text Domain: ai-provider-for-ollama
+ * Plugin Name:       AI Provider for Ollama
+ * Plugin URI:        https://github.com/fueled/ai-provider-for-ollama
+ * Description:       Ollama provider for the WordPress AI Client.
+ * Requires at least: 7.0
+ * Requires PHP:      7.4
+ * Version:           1.0.0
+ * Author:            Fueled
+ * Author URI:        https://fueled.com
+ * License:           GPL-2.0-or-later
+ * License URI:       https://spdx.org/licenses/GPL-2.0-or-later.html
+ * Text Domain:       ai-provider-for-ollama
  *
  * @package Fueled\AiProviderForOllama
  */
