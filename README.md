@@ -89,7 +89,7 @@ A complete listing of all notable changes to AI Provider for Ollama are document
 
 ## Contributing
 
-Please read [CODE_OF_CONDUCT.md](https://github.com/Fueled/ai-provider-for-ollama/blob/develop/CODE_OF_CONDUCT.md) for details on our code of conduct, [CONTRIBUTING.md](https://github.com/Fueled/ai-provider-for-ollama/blob/develop/CONTRIBUTING.md) for details on the process for submitting pull requests to us, and [CREDITS.md](https://github.com/Fueled/ai-provider-for-ollama/blob/develop/CREDITS.md) for a listing of maintainers, contributors, and libraries for ClassifAI.
+Please read [CODE_OF_CONDUCT.md](https://github.com/Fueled/ai-provider-for-ollama/blob/develop/CODE_OF_CONDUCT.md) for details on our code of conduct, [CONTRIBUTING.md](https://github.com/Fueled/ai-provider-for-ollama/blob/develop/CONTRIBUTING.md) for details on the process for submitting pull requests to us, and [CREDITS.md](https://github.com/Fueled/ai-provider-for-ollama/blob/develop/CREDITS.md) for a listing of maintainers, contributors, and libraries for AI Provider for Ollama.
 
 ## Like what you see?
 
