@@ -5,8 +5,8 @@ declare( strict_types=1 );
 namespace Fueled\AiProviderForOllama\Provider;
 
 use Fueled\AiProviderForOllama\Metadata\OllamaModelMetadataDirectory;
-use Fueled\AiProviderForOllama\Models\OllamaTextGenerationModel;
 use Fueled\AiProviderForOllama\Models\OllamaImageGenerationModel;
+use Fueled\AiProviderForOllama\Models\OllamaTextGenerationModel;
 use WordPress\AiClient\Common\Exception\RuntimeException;
 use WordPress\AiClient\Providers\ApiBasedImplementation\AbstractApiProvider;
 use WordPress\AiClient\Providers\Contracts\ModelMetadataDirectoryInterface;
