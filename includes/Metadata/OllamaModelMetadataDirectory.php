@@ -5,6 +5,7 @@ declare( strict_types=1 );
 namespace Fueled\AiProviderForOllama\Metadata;
 
 use Fueled\AiProviderForOllama\Provider\OllamaProvider;
+use WordPress\AiClient\Files\Enums\FileTypeEnum;
 use WordPress\AiClient\Messages\Enums\ModalityEnum;
 use WordPress\AiClient\Providers\ApiBasedImplementation\AbstractApiBasedModelMetadataDirectory;
 use WordPress\AiClient\Providers\Http\DTO\Request;
@@ -79,13 +80,14 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	 */
 	private function buildModelMetadata( string $model_name, ?array $details ): ?ModelMetadata {
 		// Fallback when /api/show fails: assume text-only generation.
-		$has_vision = false;
+		$has_vision                = false;
+		$is_image_generation_model = $this->isLikelyImageGenerationModel( $model_name, $details );
 
 		if ( null !== $details ) {
 			$model_capabilities = isset( $details['capabilities'] ) ? $details['capabilities'] : array();
 
-			// Skip embedding-only models (non-empty capabilities array lacking 'completion').
-			if ( ! empty( $model_capabilities ) && ! in_array( 'completion', $model_capabilities, true ) ) {
+			// Skip embedding-only models, but keep image-generation models which may not report "completion".
+			if ( ! empty( $model_capabilities ) && ! in_array( 'completion', $model_capabilities, true ) && ! $is_image_generation_model ) {
 				return null;
 			}
 
@@ -108,6 +110,24 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 			$input_modalities_option = new SupportedOption(
 				OptionEnum::inputModalities(),
 				array( array( ModalityEnum::text() ) )
+			);
+		}
+
+		if ( $is_image_generation_model ) {
+			return new ModelMetadata(
+				$model_name,
+				$model_name,
+				array(
+					CapabilityEnum::imageGeneration(),
+				),
+				array(
+					new SupportedOption( OptionEnum::inputModalities(), array( array( ModalityEnum::text() ) ) ),
+					new SupportedOption( OptionEnum::outputModalities(), array( array( ModalityEnum::image() ) ) ),
+					new SupportedOption( OptionEnum::candidateCount() ),
+					new SupportedOption( OptionEnum::outputMimeType(), array( 'image/png', 'image/jpeg', 'image/webp' ) ),
+					new SupportedOption( OptionEnum::outputFileType(), array( FileTypeEnum::inline() ) ),
+					new SupportedOption( OptionEnum::customOptions() ),
+				)
 			);
 		}
 
@@ -138,6 +158,41 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 			),
 			$options
 		);
+	}
+
+	/**
+	 * Determines whether a model is likely an image-generation model.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $model_name The model name.
+	 * @param ShowResponseData|null $details The optional model details.
+	 * @return bool True if the model appears to support image generation.
+	 */
+	private function isLikelyImageGenerationModel( string $model_name, ?array $details ): bool {
+		$model_name_lc = strtolower( $model_name );
+		if ( preg_match( '/(?:^|[\/:_-])(flux|sdxl|stable[-_]?diffusion|imagen?|diffusion)(?:[\/:_-]|$)/', $model_name_lc ) ) {
+			return true;
+		}
+
+		if ( null === $details ) {
+			return false;
+		}
+
+		$model_capabilities = isset( $details['capabilities'] ) && is_array( $details['capabilities'] )
+			? $details['capabilities']
+			: array();
+		if ( in_array( 'image', $model_capabilities, true ) || in_array( 'image_generation', $model_capabilities, true ) ) {
+			return true;
+		}
+
+		$families = isset( $details['details']['families'] ) && is_array( $details['details']['families'] )
+			? $details['details']['families']
+			: array();
+
+		return in_array( 'diffusion', $families, true )
+			|| in_array( 'stable-diffusion', $families, true )
+			|| in_array( 'flux', $families, true );
 	}
 
 	/**
