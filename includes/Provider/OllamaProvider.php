@@ -71,7 +71,7 @@ class OllamaProvider extends AbstractApiProvider {
 			'Ollama',
 			ProviderTypeEnum::cloud(),
 			'https://ollama.com/settings/keys',
-			RequestAuthenticationMethod::apiKey()
+			RequestAuthenticationMethod::apiKey(),
 		);
 
 		// Provider description support was added in 1.2.0.
