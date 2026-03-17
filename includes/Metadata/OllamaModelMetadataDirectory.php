@@ -170,29 +170,15 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	 * @return bool True if the model appears to support image generation.
 	 */
 	private function isLikelyImageGenerationModel( string $model_name, ?array $details ): bool {
-		$model_name_lc = strtolower( $model_name );
-		if ( preg_match( '/(?:^|[\/:_-])(flux|sdxl|stable[-_]?diffusion|imagen?|diffusion)(?:[\/:_-]|$)/', $model_name_lc ) ) {
-			return true;
-		}
 
-		if ( null === $details ) {
+		if ( null === $details || '' === $model_name ) {
 			return false;
 		}
 
 		$model_capabilities = isset( $details['capabilities'] ) && is_array( $details['capabilities'] )
 			? $details['capabilities']
 			: array();
-		if ( in_array( 'image', $model_capabilities, true ) || in_array( 'image_generation', $model_capabilities, true ) ) {
-			return true;
-		}
-
-		$families = isset( $details['details']['families'] ) && is_array( $details['details']['families'] )
-			? $details['details']['families']
-			: array();
-
-		return in_array( 'diffusion', $families, true )
-			|| in_array( 'stable-diffusion', $families, true )
-			|| in_array( 'flux', $families, true );
+		return in_array( 'image', $model_capabilities, true );
 	}
 
 	/**
