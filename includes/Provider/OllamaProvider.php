@@ -9,6 +9,7 @@ use Fueled\AiProviderForOllama\Models\OllamaTextGenerationModel;
 use WordPress\AiClient\AiClient;
 use WordPress\AiClient\Common\Exception\RuntimeException;
 use WordPress\AiClient\Providers\ApiBasedImplementation\AbstractApiProvider;
+use WordPress\AiClient\Providers\ApiBasedImplementation\ListModelsApiBasedProviderAvailability;
 use WordPress\AiClient\Providers\Contracts\ModelMetadataDirectoryInterface;
 use WordPress\AiClient\Providers\Contracts\ProviderAvailabilityInterface;
 use WordPress\AiClient\Providers\DTO\ProviderMetadata;
@@ -97,7 +98,10 @@ class OllamaProvider extends AbstractApiProvider {
 	 * @since 1.0.0
 	 */
 	protected static function createProviderAvailability(): ProviderAvailabilityInterface {
-		return new OllamaProviderAvailability();
+		// Check valid API access by attempting to list models.
+		return new ListModelsApiBasedProviderAvailability(
+			static::modelMetadataDirectory()
+		);
 	}
 
 	/**

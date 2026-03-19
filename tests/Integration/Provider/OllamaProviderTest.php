@@ -6,8 +6,8 @@ namespace Fueled\AiProviderForOllama\Tests\Integration\Provider;
 
 use Fueled\AiProviderForOllama\Metadata\OllamaModelMetadataDirectory;
 use Fueled\AiProviderForOllama\Provider\OllamaProvider;
-use Fueled\AiProviderForOllama\Provider\OllamaProviderAvailability;
 use PHPUnit\Framework\TestCase;
+use WordPress\AiClient\Providers\ApiBasedImplementation\ListModelsApiBasedProviderAvailability;
 use WordPress\AiClient\Providers\AbstractProvider;
 
 /**
@@ -134,11 +134,11 @@ class OllamaProviderTest extends TestCase {
 	// -----------------------------------------------------------------------
 
 	/**
-	 * Tests that availability() returns an OllamaProviderAvailability instance.
+	 * Tests that availability() returns a ListModelsApiBasedProviderAvailability instance.
 	 */
-	public function test_availability_returns_ollama_provider_availability(): void {
+	public function test_availability_returns_list_models_api_based_provider_availability(): void {
 		$availability = OllamaProvider::availability();
-		$this->assertInstanceOf( OllamaProviderAvailability::class, $availability );
+		$this->assertInstanceOf( ListModelsApiBasedProviderAvailability::class, $availability );
 	}
 
 	/**
