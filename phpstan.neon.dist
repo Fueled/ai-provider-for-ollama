@@ -31,7 +31,6 @@ parameters:
 			- includes/Metadata/OllamaModelMetadataDirectory.php
 			- includes/Models/OllamaTextGenerationModel.php
 			- includes/Provider/OllamaProvider.php
-			- includes/Provider/OllamaProviderAvailability.php
 			- includes/Settings/OllamaSettings.php
 		analyseAndScan:
 			- node_modules (?)
