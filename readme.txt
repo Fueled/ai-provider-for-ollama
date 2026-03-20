@@ -63,7 +63,14 @@ No, this plugin requires the WordPress AI Client plugin to be installed and acti
 
 == Changelog ==
 
-= 1.0.0 =
+= 1.0.1 - 2026-03-20 =
+
+* **Added:** Support for the provider description and logo path (props [@jeffpaul](https://github.com/jeffpaul), [@dkotter](https://github.com/dkotter) via [#13](https://github.com/Fueled/ai-provider-for-ollama/pull/13)).
+* **Changed:** Display name and slug to meet WPORG Plugin team requirements (props [@jeffpaul](https://github.com/jeffpaul), [@dkotter](https://github.com/dkotter) via [#22](https://github.com/Fueled/ai-provider-for-ollama/pull/22)).
+* **Changed:** Update menu name from Ollama Settings to Ollama (props [@jeffpaul](https://github.com/jeffpaul), [@dkotter](https://github.com/dkotter) via [#19](https://github.com/Fueled/ai-provider-for-ollama/pull/19)).
+* **Fixed:** Ensure we properly check if the provider is connected rather than defaulting to always showing as connected (props [@raftaar1191](https://github.com/raftaar1191), [@dkotter](https://github.com/dkotter) via [#17](https://github.com/Fueled/ai-provider-for-ollama/pull/17)).
+
+= 1.0.0 - 2026-03-05 =
 
 * Initial release
 * Text generation with Ollama models via the OpenAI-compatible API
