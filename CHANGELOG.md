@@ -19,7 +19,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 - Ensure we properly check if the provider is connected rather than defaulting to always showing as connected (props [@raftaar1191](https://github.com/raftaar1191), [@dkotter](https://github.com/dkotter) via [#17](https://github.com/Fueled/ai-provider-for-ollama/pull/17)).
 
-### Security
+### Developer
 
 - Bump `svgo` from 3.3.2 to 3.3.3 (props [@dependabot[bot]](https://github.com/apps/dependabot), [@dkotter](https://github.com/dkotter) via [#11](https://github.com/Fueled/ai-provider-for-ollama/pull/11)).
 - Bump `simple-git` from 3.31.1 to 3.33.0 (props [@dependabot[bot]](https://github.com/apps/dependabot), [@dkotter](https://github.com/dkotter) via [#12](https://github.com/Fueled/ai-provider-for-ollama/pull/12)).
