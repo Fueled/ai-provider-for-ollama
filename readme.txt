@@ -1,4 +1,4 @@
-=== AI Provider for Ollama ===
+=== Fueled AI Provider for Ollama ===
 Contributors:      fueled, 10up
 Tags:              ai, ollama, llm, local-ai, connector
 Requires at least: 7.0
