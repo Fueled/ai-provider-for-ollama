@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name:       AI Provider for Ollama
+ * Plugin Name:       Fueled AI Provider for Ollama
  * Plugin URI:        https://github.com/fueled/ai-provider-for-ollama
  * Description:       Ollama provider for the WordPress AI Client.
  * Requires at least: 7.0
