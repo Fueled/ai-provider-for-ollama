@@ -11,9 +11,7 @@ const { visitAdminPage } = require( '../../utils/helpers' );
 test.describe( 'Plugin activation', () => {
 	test( 'Can deactivate the plugin', async ( { admin, page } ) => {
 		await visitAdminPage( admin, 'plugins.php' );
-		await page
-			.locator( '#deactivate-fueled-ai-provider-for-ollama' )
-			.click();
+		await page.locator( '#deactivate-ai-provider-for-ollama' ).click();
 		await expect( page.getByText( 'Plugin deactivated.' ) ).toHaveCount(
 			1
 		);
@@ -21,7 +19,7 @@ test.describe( 'Plugin activation', () => {
 
 	test( 'Can activate the plugin', async ( { admin, page } ) => {
 		await visitAdminPage( admin, 'plugins.php' );
-		await page.locator( '#activate-fueled-ai-provider-for-ollama' ).click();
+		await page.locator( '#activate-ai-provider-for-ollama' ).click();
 		await expect( page.getByText( 'Plugin activated.' ) ).toHaveCount( 1 );
 	} );
 
@@ -35,7 +33,7 @@ test.describe( 'Plugin activation', () => {
 		// Ensure the Settings link is visible.
 		await expect(
 			page.locator(
-				'tr[data-slug="fueled-ai-provider-for-ollama"] .row-actions a',
+				'tr[data-slug="ai-provider-for-ollama"] .row-actions a',
 				{
 					hasText: 'Settings',
 				}
