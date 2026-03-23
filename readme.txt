@@ -57,10 +57,6 @@ By default, the provider connects to `http://localhost:11434`. You can change th
 1. Set the `OLLAMA_HOST` environment variable (takes precedence).
 2. Go to **Settings > Ollama Settings** in the WordPress admin and enter your host URL.
 
-= Does this plugin work without the WordPress AI Client? =
-
-No, this plugin requires the WordPress AI Client plugin to be installed and activated. It provides the Ollama-specific implementation that the WordPress AI Client uses.
-
 == Changelog ==
 
 = 1.0.2 - 2026-03-23 =
