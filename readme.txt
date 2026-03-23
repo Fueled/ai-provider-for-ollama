@@ -3,7 +3,7 @@ Contributors:      fueled, 10up
 Tags:              ai, ollama, llm, local-ai, connector
 Requires at least: 7.0
 Tested up to:      7.0
-Stable tag:        1.0.1
+Stable tag:        1.0.2
 Requires PHP:      7.4
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -62,6 +62,10 @@ By default, the provider connects to `http://localhost:11434`. You can change th
 No, this plugin requires the WordPress AI Client plugin to be installed and activated. It provides the Ollama-specific implementation that the WordPress AI Client uses.
 
 == Changelog ==
+
+= 1.0.2 - 2026-03-23 =
+
+* **Changed:** Updated plugin display name and slug per WPORG feedback (props [@dkotter](https://github.com/dkotter), [@jeffpaul](https://github.com/jeffpaul) via [#25](https://github.com/Fueled/ai-provider-for-ollama/pull/25)).
 
 = 1.0.1 - 2026-03-20 =
 
