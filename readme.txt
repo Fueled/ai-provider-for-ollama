@@ -63,6 +63,10 @@ No, this plugin requires the WordPress AI Client plugin to be installed and acti
 
 == Changelog ==
 
+= 1.0.2 - 2026-03-23 =
+
+* **Changed:** Updated plugin display name and slug per WPORG feedback (props [@dkotter](https://github.com/dkotter), [@jeffpaul](https://github.com/jeffpaul) via [#25](https://github.com/Fueled/ai-provider-for-ollama/pull/25)).
+
 = 1.0.1 - 2026-03-20 =
 
 * **Added:** Support for the provider description and logo path (props [@jeffpaul](https://github.com/jeffpaul), [@dkotter](https://github.com/dkotter) via [#13](https://github.com/Fueled/ai-provider-for-ollama/pull/13)).
