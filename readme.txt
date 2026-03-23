@@ -1,12 +1,12 @@
 === AI Provider for Ollama ===
-Contributors: fueled, 10up
-Tags: ai, ollama, llm, local-ai, connector
-Requires at least: 6.9
-Tested up to: 6.9
-Stable tag: 1.0.0
-Requires PHP: 7.4
-License: GPL-2.0-or-later
-License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Contributors:      fueled, 10up
+Tags:              ai, ollama, llm, local-ai, connector
+Requires at least: 7.0
+Tested up to:      7.0
+Stable tag:        1.0.2
+Requires PHP:      7.4
+License:           GPL-2.0-or-later
+License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
 Ollama provider for the WordPress AI Client.
 
@@ -57,13 +57,20 @@ By default, the provider connects to `http://localhost:11434`. You can change th
 1. Set the `OLLAMA_HOST` environment variable (takes precedence).
 2. Go to **Settings > Ollama Settings** in the WordPress admin and enter your host URL.
 
-= Does this plugin work without the WordPress AI Client? =
-
-No, this plugin requires the WordPress AI Client plugin to be installed and activated. It provides the Ollama-specific implementation that the WordPress AI Client uses.
-
 == Changelog ==
 
-= 1.0.0 =
+= 1.0.2 - 2026-03-23 =
+
+* **Changed:** Updated plugin display name and slug per WPORG feedback (props [@dkotter](https://github.com/dkotter), [@jeffpaul](https://github.com/jeffpaul) via [#25](https://github.com/Fueled/ai-provider-for-ollama/pull/25)).
+
+= 1.0.1 - 2026-03-20 =
+
+* **Added:** Support for the provider description and logo path (props [@jeffpaul](https://github.com/jeffpaul), [@dkotter](https://github.com/dkotter) via [#13](https://github.com/Fueled/ai-provider-for-ollama/pull/13)).
+* **Changed:** Display name and slug to meet WPORG Plugin team requirements (props [@jeffpaul](https://github.com/jeffpaul), [@dkotter](https://github.com/dkotter) via [#22](https://github.com/Fueled/ai-provider-for-ollama/pull/22)).
+* **Changed:** Update menu name from Ollama Settings to Ollama (props [@jeffpaul](https://github.com/jeffpaul), [@dkotter](https://github.com/dkotter) via [#19](https://github.com/Fueled/ai-provider-for-ollama/pull/19)).
+* **Fixed:** Ensure we properly check if the provider is connected rather than defaulting to always showing as connected (props [@raftaar1191](https://github.com/raftaar1191), [@dkotter](https://github.com/dkotter) via [#17](https://github.com/Fueled/ai-provider-for-ollama/pull/17)).
+
+= 1.0.0 - 2026-03-05 =
 
 * Initial release
 * Text generation with Ollama models via the OpenAI-compatible API
