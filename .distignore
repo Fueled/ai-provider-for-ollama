@@ -3,8 +3,8 @@
 /.github
 /.wordpress-org
 /node_modules
+/src
 /tests
-/vendor
 
 # Files
 .*
@@ -22,4 +22,5 @@ phpstan.neon.dist
 phpunit.xml.dist
 README.md
 SECURITY.md
+tsconfig.json
 webpack.config.js
