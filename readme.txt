@@ -59,6 +59,11 @@ By default, the provider connects to `http://localhost:11434`. You can change th
 
 == Changelog ==
 
+= 1.0.3 - 2026-03-25 =
+
+* **Changed:** Removed AI Client dependency FAQ entry (props [@raftaar1191](https://github.com/raftaar1191) via [#29](https://github.com/Fueled/ai-provider-for-ollama/pull/29)).
+* **Fixed:** Ensure the vendor directory ends up in our final release (props [@soderlind](https://github.com/soderlind), [@dkotter](https://github.com/dkotter) via [#31](https://github.com/Fueled/ai-provider-for-ollama/pull/31)).
+
 = 1.0.2 - 2026-03-23 =
 
 * **Changed:** Updated plugin display name and slug per WPORG feedback (props [@dkotter](https://github.com/dkotter), [@jeffpaul](https://github.com/jeffpaul) via [#25](https://github.com/Fueled/ai-provider-for-ollama/pull/25)).
