@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased] - TBD
 
+## [1.0.3] - 2026-03-25
+### Changed
+- Removed AI Client dependency FAQ entry (props [@raftaar1191](https://github.com/raftaar1191) via [#29](https://github.com/Fueled/ai-provider-for-ollama/pull/29)).
+
+### Fixed
+- Ensure the vendor directory ends up in our final release (props [@soderlind](https://github.com/soderlind), [@dkotter](https://github.com/dkotter) via [#31](https://github.com/Fueled/ai-provider-for-ollama/pull/31)).
+
 ## [1.0.2] - 2026-03-23
 ### Changed
 - Updated plugin display name and slug per WPORG feedback (props [@dkotter](https://github.com/dkotter), [@jeffpaul](https://github.com/jeffpaul) via [#25](https://github.com/Fueled/ai-provider-for-ollama/pull/25)).
@@ -36,6 +43,7 @@ First public release of the AI Provider for Ollama plugin. 🎉
 - Function calling and structured output support
 
 [Unreleased]: https://github.com/Fueled/ai-provider-for-ollama/compare/main...develop
+[1.0.3]: https://github.com/Fueled/ai-provider-for-ollama/compare/1.0.2...1.0.3
 [1.0.2]: https://github.com/Fueled/ai-provider-for-ollama/compare/1.0.1...1.0.2
 [1.0.1]: https://github.com/Fueled/ai-provider-for-ollama/compare/1.0.0...1.0.1
 [1.0.0]: https://github.com/Fueled/ai-provider-for-ollama/tree/1.0.0

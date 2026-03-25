@@ -12,7 +12,7 @@ The following individuals are responsible for curating the list of issues, respo
 
 Thank you to all the people who have already contributed to this repository via bug reports, code, design, ideas, project management, translation, testing, etc.
 
-[Darin Kotter (@dkotter)](https://github.com/dkotter), [Jeffrey Paul (@jeffpaul)](https://github.com/jeffpaul), [Deepak Gupta (@raftaar1191)](https://github.com/raftaar1191).
+[Darin Kotter (@dkotter)](https://github.com/dkotter), [Jeffrey Paul (@jeffpaul)](https://github.com/jeffpaul), [Deepak Gupta (@raftaar1191)](https://github.com/raftaar1191), [Per Søderlind (@soderlind)](https://github.com/soderlind).
 
 ## Libraries
 
