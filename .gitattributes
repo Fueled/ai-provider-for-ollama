@@ -6,8 +6,8 @@
 /.github export-ignore
 /.wordpress-org export-ignore
 /node_modules export-ignore
+/src export-ignore
 /tests export-ignore
-/vendor export-ignore
 
 # Files
 /.* export-ignore

@@ -7,8 +7,10 @@ namespace Fueled\AiProviderForOllama\Provider;
 use Fueled\AiProviderForOllama\Metadata\OllamaModelMetadataDirectory;
 use Fueled\AiProviderForOllama\Models\OllamaImageGenerationModel;
 use Fueled\AiProviderForOllama\Models\OllamaTextGenerationModel;
+use WordPress\AiClient\AiClient;
 use WordPress\AiClient\Common\Exception\RuntimeException;
 use WordPress\AiClient\Providers\ApiBasedImplementation\AbstractApiProvider;
+use WordPress\AiClient\Providers\ApiBasedImplementation\ListModelsApiBasedProviderAvailability;
 use WordPress\AiClient\Providers\Contracts\ModelMetadataDirectoryInterface;
 use WordPress\AiClient\Providers\Contracts\ProviderAvailabilityInterface;
 use WordPress\AiClient\Providers\DTO\ProviderMetadata;
@@ -73,13 +75,29 @@ class OllamaProvider extends AbstractApiProvider {
 	 * @since 1.0.0
 	 */
 	protected static function createProviderMetadata(): ProviderMetadata {
-		return new ProviderMetadata(
+		$provider_meta = array(
 			'ollama',
 			'Ollama',
 			ProviderTypeEnum::cloud(),
 			'https://ollama.com/settings/keys',
-			RequestAuthenticationMethod::apiKey()
+			RequestAuthenticationMethod::apiKey(),
 		);
+
+		// Provider description support was added in 1.2.0.
+		if ( version_compare( AiClient::VERSION, '1.2.0', '>=' ) ) {
+			if ( function_exists( '__' ) ) {
+				$provider_meta[] = __( 'Text generation with Ollama, either running locally or on Ollama Cloud.', 'ai-provider-for-ollama' );
+			} else {
+				$provider_meta[] = 'Text generation with Ollama, either running locally or on Ollama Cloud.';
+			}
+		}
+
+		// Provider logo path support was added in 1.3.0.
+		if ( version_compare( AiClient::VERSION, '1.3.0', '>=' ) ) {
+			$provider_meta[] = __DIR__ . '/logo.svg';
+		}
+
+		return new ProviderMetadata( ...$provider_meta );
 	}
 
 	/**
@@ -88,7 +106,10 @@ class OllamaProvider extends AbstractApiProvider {
 	 * @since 1.0.0
 	 */
 	protected static function createProviderAvailability(): ProviderAvailabilityInterface {
-		return new OllamaProviderAvailability();
+		// Check valid API access by attempting to list models.
+		return new ListModelsApiBasedProviderAvailability(
+			static::modelMetadataDirectory()
+		);
 	}
 
 	/**

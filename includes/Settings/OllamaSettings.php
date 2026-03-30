@@ -89,7 +89,7 @@ class OllamaSettings {
 	public function register_settings_screen(): void {
 		add_options_page(
 			__( 'Ollama Settings', 'ai-provider-for-ollama' ),
-			__( 'Ollama Settings', 'ai-provider-for-ollama' ),
+			__( 'Ollama', 'ai-provider-for-ollama' ),
 			'manage_options',
 			self::PAGE_SLUG,
 			array( $this, 'render_screen' )
@@ -139,7 +139,7 @@ class OllamaSettings {
 					esc_html__( 'Configure the connection to your Ollama instance. If you want to use Ollama Cloud, enter %1$shttps://ollama.com%2$s in the host URL field and enter your API key on the %3$sSettings > Connectors%4$s screen.', 'ai-provider-for-ollama' ),
 					'<code>',
 					'</code>',
-					'<a href="' . esc_url( admin_url( 'options-general.php?page=connectors-wp-admin' ) ) . '">',
+					'<a href="' . esc_url( admin_url( 'options-connectors.php' ) ) . '">',
 					'</a>'
 				);
 				?>
