@@ -8,23 +8,23 @@
 
 ## Overview
 
-Ollama provider for the [PHP AI Client SDK](https://github.com/WordPress/php-ai-client). Works as both a Composer package with the `php-ai-client` package and as a WordPress plugin with the `wp-ai-client` plugin.
+Ollama provider for the [PHP AI Client SDK](https://github.com/WordPress/php-ai-client). Works as both a Composer package with the `php-ai-client` package and as a WordPress plugin with the AI Client that is bundled with WordPress 7.0+.
 
 [Ollama](https://ollama.com/) lets you run large language models locally or remotely. Ollama exposes an [OpenAI-compatible API](https://ollama.com/blog/openai-compatibility), and this provider uses that API to communicate with any model you have pulled into Ollama (Llama, Mistral, Gemma, Phi, and many more) or any available Ollama Cloud model.
 
 ## Requirements
 
 - PHP 7.4+
-- [php-ai-client](https://github.com/WordPress/php-ai-client) `^0.4` or [wp-ai-client](https://github.com/WordPress/wp-ai-client) `^0.2`
+- [php-ai-client](https://github.com/WordPress/php-ai-client) `^1.3` or WordPress 7.0+
 - Ollama running locally or remotely (like Ollama Cloud)
 
 ## Installation
 
 ### As a WordPress Plugin
 
-1. Install and activate the [wp-ai-client](https://github.com/WordPress/wp-ai-client) plugin.
-2. Place this plugin in your `wp-content/plugins/` directory.
-3. Activate "AI Provider for Ollama" from the Plugins screen.
+1. Upload the plugin files to `/wp-content/plugins/ai-provider-for-ollama/`.
+2. Activate the plugin through the 'Plugins' menu in WordPress.
+3. Go to **Settings > Ollama** to configure the host URL and see available models.
 
 ### As a Composer Package
 
@@ -39,25 +39,22 @@ composer require fueled/ai-provider-for-ollama
 By default, the provider connects to `http://localhost:11434`. You can change this in two ways:
 
 1. **Environment variable** (takes precedence): Set the `OLLAMA_HOST` environment variable.
-2. **WordPress admin**: Go to **Settings > Ollama Settings** and enter your Ollama host URL.
+2. **WordPress admin**: Go to **Settings > Ollama** and enter your Ollama host URL.
 
 ### API Key
 
 For local Ollama instances, no API key is needed. The plugin automatically registers an empty API key as a fallback.
 
-For remote Ollama instances that require authentication (e.g., Ollama Cloud), enter the API key in the [wp-ai-client](https://github.com/WordPress/wp-ai-client) **Settings > AI Credentials** screen. If using Ollama Cloud, you also need to set your Ollama host URL in the **Settings > Ollama Settings** screen to `https://ollama.com`.
+For remote Ollama instances that require authentication (e.g., Ollama Cloud), enter the API key in the **Settings > Connectors** screen. If using Ollama Cloud, you also need to set your Ollama host URL in the **Settings > Ollama** screen to `https://ollama.com`.
 
 ## Usage
 
-### With WordPress (wp-ai-client)
+### With WordPress (AI Client)
 
 ```php
-use WordPress\AI_Client\Prompt_Builder;
-
-$result = Prompt_Builder::create()
+$result = wp_ai_client_prompt( 'Hello, how are you?' )
     ->using_provider( 'ollama' )
-    ->set_system_instruction( 'You are a helpful assistant.' )
-    ->add_text_message( 'Hello, how are you?' )
+    ->using_system_instruction( 'You are a helpful assistant.' )
     ->generate_text();
 ```
 
