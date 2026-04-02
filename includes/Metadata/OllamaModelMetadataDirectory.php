@@ -163,7 +163,7 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	/**
 	 * Determines whether a model is likely an image-generation model.
 	 *
-	 * @since 1.0.0
+	 * @since x.x.x
 	 *
 	 * @param string $model_name The model name.
 	 * @param ShowResponseData|null $details The optional model details.

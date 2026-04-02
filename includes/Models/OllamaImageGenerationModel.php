@@ -3,7 +3,7 @@
  * Ollama image generation model.
  *
  * @package Fueled\AiProviderForOllama\Models
- * @since   1.0.0
+ * @since   x.x.x
  */
 
 declare( strict_types=1 );
@@ -34,7 +34,7 @@ use WordPress\AiClient\Results\Enums\FinishReasonEnum;
  *
  * Generates images via Ollama's native /api/generate endpoint.
  *
- * @since 1.0.0
+ * @since x.x.x
  *
  * @phpstan-type ResponseData array{
  *     model?: string,
@@ -51,7 +51,7 @@ class OllamaImageGenerationModel extends AbstractApiBasedModel implements ImageG
 	/**
 	 * Generates images from a prompt using the Ollama API.
 	 *
-	 * @since 1.0.0
+	 * @since x.x.x
 	 *
 	 * @param array $prompt Array of messages containing the image generation prompt.
 	 * @return \WordPress\AiClient\Results\DTO\GenerativeAiResult Result containing the generated image.
@@ -90,7 +90,7 @@ class OllamaImageGenerationModel extends AbstractApiBasedModel implements ImageG
 	 *  - ollama.request_timeout (seconds)
 	 *  - ollama.connect_timeout (seconds)
 	 *
-	 * @since 1.0.0
+	 * @since x.x.x
 	 *
 	 * @return \WordPress\AiClient\Providers\Http\DTO\RequestOptions Prepared request options.
 	 */
@@ -127,7 +127,7 @@ class OllamaImageGenerationModel extends AbstractApiBasedModel implements ImageG
 	/**
 	 * Parses an Ollama /api/generate response to a generative AI result.
 	 *
-	 * @since 1.0.0
+	 * @since x.x.x
 	 *
 	 * @param \WordPress\AiClient\Providers\Http\DTO\Response $response The Ollama API response.
 	 * @param string $mime_type Expected output image MIME type.
@@ -183,7 +183,7 @@ class OllamaImageGenerationModel extends AbstractApiBasedModel implements ImageG
 	/**
 	 * Extracts the prompt text from a single-user-message array.
 	 *
-	 * @since 1.0.0
+	 * @since x.x.x
 	 *
 	 * @param \WordPress\AiClient\Messages\DTO\Message[] $messages The messages array.
 	 * @return string The extracted text prompt.
