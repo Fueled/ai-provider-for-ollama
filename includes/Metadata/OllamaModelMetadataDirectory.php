@@ -124,7 +124,7 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 					new SupportedOption( OptionEnum::inputModalities(), array( array( ModalityEnum::text() ) ) ),
 					new SupportedOption( OptionEnum::outputModalities(), array( array( ModalityEnum::image() ) ) ),
 					new SupportedOption( OptionEnum::candidateCount() ),
-					new SupportedOption( OptionEnum::outputMimeType(), array( 'image/png', 'image/jpeg', 'image/webp' ) ),
+					new SupportedOption( OptionEnum::outputMimeType(), array( 'image/png' ) ),
 					new SupportedOption( OptionEnum::outputFileType(), array( FileTypeEnum::inline() ) ),
 					new SupportedOption( OptionEnum::customOptions() ),
 				)
