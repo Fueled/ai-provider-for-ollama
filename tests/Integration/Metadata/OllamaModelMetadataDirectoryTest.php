@@ -241,6 +241,109 @@ class OllamaModelMetadataDirectoryTest extends TestCase {
 	}
 
 	// -----------------------------------------------------------------------
+	// Image-generation detection tests
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Tests that a model with the 'image' capability is treated as an image-generation model.
+	 *
+	 * Image-generation models are included even without 'completion', and they
+	 * receive image-focused options (outputMimeType = image/png) rather than
+	 * standard text-generation options (no systemInstruction, etc.).
+	 */
+	public function test_image_generation_model_detected_via_image_capability(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( 'stable-diffusion' ) ) );
+		$this->transporter->queue_response( $this->make_show_response( array( 'image' ) ) );
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertCount( 1, $models );
+
+		$option_names = array_map(
+			static function ( $opt ): string {
+				return (string) $opt->getName();
+			},
+			$models[0]->getSupportedOptions()
+		);
+
+		// Image-generation models get image/png mime type, not text options.
+		$output_mime_opt = $this->find_option( $models[0]->getSupportedOptions(), 'isOutputMimeType' );
+		$this->assertNotNull( $output_mime_opt, 'Expected outputMimeType supported option' );
+		$this->assertContains( 'image/png', (array) $output_mime_opt->getSupportedValues() );
+		$this->assertNotContains( 'text/plain', (array) $output_mime_opt->getSupportedValues() );
+
+		// Standard text-generation options should be absent.
+		$this->assertNotContains( 'systemInstruction', $option_names );
+		$this->assertNotContains( 'maxTokens', $option_names );
+	}
+
+	/**
+	 * Tests that an image-generation model without 'completion' is not filtered out as embedding-only.
+	 */
+	public function test_image_generation_model_without_completion_is_not_excluded(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( 'stable-diffusion' ) ) );
+		// Only 'image' capability — no 'completion'.
+		$this->transporter->queue_response( $this->make_show_response( array( 'image' ) ) );
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertCount( 1, $models );
+		$this->assertSame( 'stable-diffusion', $models[0]->getId() );
+	}
+
+	/**
+	 * Tests that a model with both 'image' and 'completion' capabilities is treated as image-generation.
+	 */
+	public function test_image_generation_model_with_completion_capability_is_detected(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( 'stable-diffusion' ) ) );
+		$this->transporter->queue_response( $this->make_show_response( array( 'completion', 'image' ) ) );
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertCount( 1, $models );
+
+		$output_mime_opt = $this->find_option( $models[0]->getSupportedOptions(), 'isOutputMimeType' );
+		$this->assertNotNull( $output_mime_opt );
+		$this->assertContains( 'image/png', (array) $output_mime_opt->getSupportedValues() );
+	}
+
+	/**
+	 * Tests that a null details (failed /api/show) is not treated as an image-generation model.
+	 */
+	public function test_null_details_does_not_produce_image_generation_model(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( 'llama3.2' ) ) );
+		$this->transporter->queue_response( $this->make_error_response() );
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertCount( 1, $models );
+
+		// Fallback model should have text/plain mime type, not image/png.
+		$output_mime_opt = $this->find_option( $models[0]->getSupportedOptions(), 'isOutputMimeType' );
+		$this->assertNotNull( $output_mime_opt );
+		$this->assertContains( 'text/plain', (array) $output_mime_opt->getSupportedValues() );
+		$this->assertNotContains( 'image/png', (array) $output_mime_opt->getSupportedValues() );
+	}
+
+	/**
+	 * Tests that a model with outputModalities image-only for image-generation models.
+	 */
+	public function test_image_generation_model_has_image_output_modality(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( 'stable-diffusion' ) ) );
+		$this->transporter->queue_response( $this->make_show_response( array( 'image' ) ) );
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertCount( 1, $models );
+
+		$output_modalities_opt = $this->find_option( $models[0]->getSupportedOptions(), 'isOutputModalities' );
+		$this->assertNotNull( $output_modalities_opt, 'Expected outputModalities supported option' );
+		$output_modalities = (array) $output_modalities_opt->getSupportedValues();
+		// Should have exactly one combination: [image].
+		$this->assertCount( 1, $output_modalities );
+	}
+
+	// -----------------------------------------------------------------------
 	// Graceful-degradation and error tests
 	// -----------------------------------------------------------------------
 
