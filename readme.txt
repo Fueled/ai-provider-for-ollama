@@ -28,34 +28,33 @@ Ollama exposes an [OpenAI-compatible API](https://ollama.com/blog/openai-compati
 **Requirements:**
 
 * PHP 7.4 or higher
-* WordPress AI Client plugin must be installed and activated
+* WordPress 7.0 or higher
 * Ollama running locally or on a remote server (like Ollama Cloud)
 
 == Installation ==
 
-1. Ensure the WordPress AI Client plugin is installed and activated.
-2. Upload the plugin files to `/wp-content/plugins/ai-provider-for-ollama/`.
-3. Activate the plugin through the 'Plugins' menu in WordPress.
-4. Go to **Settings > Ollama Settings** to configure the host URL and see available models.
+1. Upload the plugin files to `/wp-content/plugins/ai-provider-for-ollama/`.
+2. Activate the plugin through the 'Plugins' menu in WordPress.
+3. Go to **Settings > Ollama** to configure the host URL and see available models.
 
 == Frequently Asked Questions ==
 
 = How do I install Ollama? =
 
-Visit [ollama.com](https://ollama.com/) to download and install Ollama for your platform. Once installed, pull a model with `ollama pull llama3.2` and the provider will automatically discover it.
+Visit [ollama.com](https://ollama.com/) to download and install Ollama for your platform. Once installed, pull a model (example `ollama pull llama3.2`) and the provider will automatically discover it.
 
 = Do I need an API key? =
 
 No. For local Ollama instances, no API key is needed. The plugin automatically handles authentication for local setups.
 
-For remote Ollama instances that require authentication, enter the API key in the WordPress AI Client **Settings > AI Credentials** screen. If using Ollama Cloud, you also need to set your Ollama host URL in the **Settings > Ollama Settings** screen to `https://ollama.com`.
+For remote Ollama instances that require authentication, enter the API key in the **Settings > Connectors** screen. If using Ollama Cloud, you also need to set your Ollama host URL in the **Settings > Ollama** screen to `https://ollama.com`.
 
 = How do I change the Ollama host URL? =
 
 By default, the provider connects to `http://localhost:11434`. You can change this in two ways:
 
 1. Set the `OLLAMA_HOST` environment variable (takes precedence).
-2. Go to **Settings > Ollama Settings** in the WordPress admin and enter your host URL.
+2. Go to **Settings > Ollama** in the WordPress admin and enter your host URL.
 
 == Changelog ==
 
