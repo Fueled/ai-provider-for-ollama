@@ -81,7 +81,7 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	private function buildModelMetadata( string $model_name, ?array $details ): ?ModelMetadata {
 		// Fallback when /api/show fails: assume text-only generation.
 		$has_vision                = false;
-		$is_image_generation_model = $this->isLikelyImageGenerationModel( $model_name, $details );
+		$is_image_generation_model = $this->isImageGenerationModel( $model_name, $details );
 
 		if ( null !== $details ) {
 			$model_capabilities = isset( $details['capabilities'] ) ? $details['capabilities'] : array();
@@ -169,7 +169,7 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	 * @param ShowResponseData|null $details The optional model details.
 	 * @return bool True if the model appears to support image generation.
 	 */
-	private function isLikelyImageGenerationModel( string $model_name, ?array $details ): bool {
+	private function isImageGenerationModel( string $model_name, ?array $details ): bool {
 
 		if ( null === $details || '' === $model_name ) {
 			return false;
