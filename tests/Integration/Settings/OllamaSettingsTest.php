@@ -5,6 +5,17 @@ declare( strict_types=1 );
 namespace Fueled\AiProviderForOllama\Tests\Integration\Settings;
 
 use Fueled\AiProviderForOllama\Settings\OllamaSettings;
+use WordPress\AiClient\AiClient;
+use WordPress\AiClient\Common\Exception\InvalidArgumentException;
+use WordPress\AiClient\Providers\Contracts\ModelMetadataDirectoryInterface;
+use WordPress\AiClient\Providers\Contracts\ProviderAvailabilityInterface;
+use WordPress\AiClient\Providers\Contracts\ProviderInterface;
+use WordPress\AiClient\Providers\DTO\ProviderMetadata;
+use WordPress\AiClient\Providers\Enums\ProviderTypeEnum;
+use WordPress\AiClient\Providers\Models\Contracts\ModelInterface;
+use WordPress\AiClient\Providers\Models\DTO\ModelConfig;
+use WordPress\AiClient\Providers\Models\DTO\ModelMetadata;
+use WordPress\AiClient\Providers\Models\Enums\CapabilityEnum;
 
 /**
  * Tests for OllamaSettings.
@@ -22,7 +33,55 @@ class OllamaSettingsTest extends \WP_UnitTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
+		$this->reset_registry();
+		$this->reset_mock_provider_state();
 		$this->settings = new OllamaSettings();
+	}
+
+	protected function tearDown(): void {
+		$this->reset_registry();
+		$this->reset_mock_provider_state();
+		parent::tearDown();
+	}
+
+	/**
+	 * Resets the AiClient default registry so each test starts clean.
+	 */
+	private function reset_registry(): void {
+		$ai_client_reflection = new \ReflectionClass( AiClient::class );
+		$registry_prop        = $ai_client_reflection->getProperty( 'defaultRegistry' );
+		$registry_prop->setAccessible( true );
+		$registry_prop->setValue( null, null );
+	}
+
+	/**
+	 * Resets all mutable static state used by mock provider test doubles.
+	 */
+	private function reset_mock_provider_state(): void {
+		MockOllamaProviderAvailability::$is_configured = true;
+		MockOllamaModelMetadataDirectory::$throw_on_list = false;
+		MockOllamaModelMetadataDirectory::$models        = array();
+	}
+
+	/**
+	 * Registers the mock ollama provider in the default registry.
+	 */
+	private function register_mock_provider(): void {
+		AiClient::defaultRegistry()->registerProvider( MockOllamaProvider::class );
+	}
+
+	/**
+	 * Creates test model metadata for mock model directory responses.
+	 *
+	 * @param string $id Model identifier.
+	 */
+	private function create_mock_model_metadata( string $id = 'llama3.1' ): ModelMetadata {
+		return new ModelMetadata(
+			$id,
+			'Ollama Test Model',
+			array( CapabilityEnum::textGeneration() ),
+			array()
+		);
 	}
 
 	// -----------------------------------------------------------------------
@@ -118,5 +177,227 @@ class OllamaSettingsTest extends \WP_UnitTestCase {
 				array( $this->settings, 'ajax_list_models' )
 			)
 		);
+	}
+
+	/**
+	 * Tests that init() registers is_connected on wpai_has_ai_credentials.
+	 */
+	public function test_init_registers_wpai_has_ai_credentials_filter(): void {
+		$this->settings->init();
+		$this->assertNotFalse(
+			has_filter( 'wpai_has_ai_credentials', array( $this->settings, 'is_connected' ) )
+		);
+	}
+
+	/**
+	 * Tests that get_models() returns an error if the provider is not registered.
+	 */
+	public function test_get_models_returns_error_when_provider_is_not_registered(): void {
+		$result = $this->settings->get_models();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ai_provider_not_found', $result->get_error_code() );
+		$this->assertSame( 404, $result->get_error_data() );
+	}
+
+	/**
+	 * Tests that get_models() returns an error if provider availability is unconfigured.
+	 */
+	public function test_get_models_returns_error_when_provider_is_not_configured(): void {
+		MockOllamaProviderAvailability::$is_configured = false;
+		$this->register_mock_provider();
+
+		$result = $this->settings->get_models();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ai_provider_not_configured', $result->get_error_code() );
+		$this->assertSame( 400, $result->get_error_data() );
+	}
+
+	/**
+	 * Tests that get_models() returns listed models when provider is configured.
+	 */
+	public function test_get_models_returns_models_when_provider_is_configured(): void {
+		$this->register_mock_provider();
+		$model = $this->create_mock_model_metadata();
+		MockOllamaModelMetadataDirectory::$models = array( $model );
+
+		$result = $this->settings->get_models();
+
+		$this->assertIsArray( $result );
+		$this->assertCount( 1, $result );
+		$this->assertInstanceOf( ModelMetadata::class, $result[0] );
+		$this->assertSame( $model->getId(), $result[0]->getId() );
+	}
+
+	/**
+	 * Tests that get_models() returns an error when model listing throws.
+	 */
+	public function test_get_models_returns_error_when_model_listing_throws(): void {
+		$this->register_mock_provider();
+		MockOllamaModelMetadataDirectory::$throw_on_list = true;
+
+		$result = $this->settings->get_models();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'could_not_list_models', $result->get_error_code() );
+		$this->assertSame( 500, $result->get_error_data() );
+		$this->assertStringContainsString( 'Could not list models for provider', $result->get_error_message() );
+	}
+
+	/**
+	 * Tests that is_connected() returns false when model lookup errors.
+	 */
+	public function test_is_connected_returns_false_when_get_models_fails(): void {
+		$this->assertFalse( $this->settings->is_connected() );
+	}
+
+	/**
+	 * Tests that is_connected() returns true when model lookup succeeds.
+	 */
+	public function test_is_connected_returns_true_when_get_models_succeeds(): void {
+		$this->register_mock_provider();
+		MockOllamaModelMetadataDirectory::$models = array( $this->create_mock_model_metadata() );
+
+		$this->assertTrue( $this->settings->is_connected() );
+	}
+
+	/**
+	 * Tests that wpai_has_ai_credentials filter resolves to false when disconnected.
+	 */
+	public function test_wpai_has_ai_credentials_filter_returns_false_when_disconnected(): void {
+		$this->settings->init();
+
+		$result = apply_filters( 'wpai_has_ai_credentials', true );
+
+		$this->assertFalse( $result );
+	}
+
+	/**
+	 * Tests that wpai_has_ai_credentials filter resolves to true when connected.
+	 */
+	public function test_wpai_has_ai_credentials_filter_returns_true_when_connected(): void {
+		$this->settings->init();
+		$this->register_mock_provider();
+		MockOllamaModelMetadataDirectory::$models = array( $this->create_mock_model_metadata() );
+
+		$result = apply_filters( 'wpai_has_ai_credentials', false );
+
+		$this->assertTrue( $result );
+	}
+}
+
+/**
+ * Mock provider for testing OllamaSettings::get_models() behavior.
+ */
+class MockOllamaProvider implements ProviderInterface {
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public static function metadata(): ProviderMetadata {
+		return new ProviderMetadata(
+			'ollama',
+			'Mock Ollama',
+			ProviderTypeEnum::server()
+		);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public static function model( string $model_id, ?ModelConfig $model_config = null ): ModelInterface {
+		throw new InvalidArgumentException( 'Model loading is not used in this test.' );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public static function availability(): ProviderAvailabilityInterface {
+		return new MockOllamaProviderAvailability();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public static function modelMetadataDirectory(): ModelMetadataDirectoryInterface {
+		return new MockOllamaModelMetadataDirectory();
+	}
+}
+
+/**
+ * Mock provider availability used by MockOllamaProvider.
+ */
+class MockOllamaProviderAvailability implements ProviderAvailabilityInterface {
+
+	/**
+	 * Whether the provider should report as configured.
+	 *
+	 * @var bool
+	 */
+	public static bool $is_configured = true;
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function isConfigured(): bool {
+		return self::$is_configured;
+	}
+}
+
+/**
+ * Mock model metadata directory used by MockOllamaProvider.
+ */
+class MockOllamaModelMetadataDirectory implements ModelMetadataDirectoryInterface {
+
+	/**
+	 * Whether listModelMetadata should throw.
+	 *
+	 * @var bool
+	 */
+	public static bool $throw_on_list = false;
+
+	/**
+	 * Models to return when listing model metadata.
+	 *
+	 * @var array<int, ModelMetadata>
+	 */
+	public static array $models = array();
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function listModelMetadata(): array {
+		if ( self::$throw_on_list ) {
+			throw new \RuntimeException( 'Mock listing error.' );
+		}
+
+		return self::$models;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function hasModelMetadata( string $model_id ): bool {
+		foreach ( self::$models as $model_metadata ) {
+			if ( $model_metadata->getId() === $model_id ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getModelMetadata( string $model_id ): ModelMetadata {
+		foreach ( self::$models as $model_metadata ) {
+			if ( $model_metadata->getId() === $model_id ) {
+				return $model_metadata;
+			}
+		}
+
+		throw new InvalidArgumentException( 'Model metadata not found.' );
 	}
 }
