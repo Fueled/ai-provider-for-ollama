@@ -8,8 +8,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use WordPress\AiClient\AiClient;
 use WP_Error;
+use WordPress\AiClient\AiClient;
 
 /**
  * Class for the Ollama settings in the WordPress admin.
@@ -285,13 +285,7 @@ class OllamaSettings {
 	 * @return bool True if the Ollama provider is connected, false otherwise.
 	 */
 	public function is_connected(): bool {
-		$models = $this->get_models();
-
-		if ( is_wp_error( $models ) ) {
-			return false;
-		}
-
-		return true;
+		return ! is_wp_error( $this->get_models() );
 	}
 
 	/**
@@ -299,7 +293,7 @@ class OllamaSettings {
 	 *
 	 * @since x.x.x
 	 *
-	 * @return WP_Error|array<string, ModelMetadata> The models.
+	 * @return \WP_Error|array<string, \Fueled\AiProviderForOllama\Settings\ModelMetadata> The models.
 	 */
 	public function get_models() {
 		$provider_id = 'ollama';
@@ -320,9 +314,7 @@ class OllamaSettings {
 
 			// phpcs:ignore Generic.Commenting.DocComment.MissingShort
 			$model_metadata_directory = $provider_classname::modelMetadataDirectory();
-			$model_metadata_objects   = $model_metadata_directory->listModelMetadata();
-
-			return $model_metadata_objects;
+			return $model_metadata_directory->listModelMetadata();
 		} catch ( \Throwable $e ) {
 			/* translators: %s: Error message. */
 			return new WP_Error( 'could_not_list_models', sprintf( __( 'Could not list models for provider - are the API credentials invalid? Error: %s', 'ai-provider-for-ollama' ), $e->getMessage() ), 500 );
