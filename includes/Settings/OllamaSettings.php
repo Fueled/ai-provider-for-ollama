@@ -309,7 +309,7 @@ class OllamaSettings {
 			// phpcs:ignore Generic.Commenting.DocComment.MissingShort
 			$provider_availability = $provider_classname::availability();
 			if ( ! $provider_availability->isConfigured() ) {
-				return new WP_Error( 'ai_provider_not_configured', __( 'AI provider not configured - missing API credentials.', 'ai-provider-for-ollama' ), 400 );
+				return new WP_Error( 'ai_provider_not_configured', __( 'AI provider not configured - ensure Ollama is running or you have valid API credentials.', 'ai-provider-for-ollama' ), 400 );
 			}
 
 			// phpcs:ignore Generic.Commenting.DocComment.MissingShort
@@ -317,7 +317,7 @@ class OllamaSettings {
 			return $model_metadata_directory->listModelMetadata();
 		} catch ( \Throwable $e ) {
 			/* translators: %s: Error message. */
-			return new WP_Error( 'could_not_list_models', sprintf( __( 'Could not list models for provider - are the API credentials invalid? Error: %s', 'ai-provider-for-ollama' ), $e->getMessage() ), 500 );
+			return new WP_Error( 'could_not_list_models', sprintf( __( 'Could not list models for provider - is Ollama running or are the API credentials invalid? Error: %s', 'ai-provider-for-ollama' ), $e->getMessage() ), 500 );
 		}
 	}
 

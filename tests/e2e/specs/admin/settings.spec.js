@@ -24,7 +24,7 @@ test.describe( 'Plugin settings', () => {
 		// Ensure an error message is displayed.
 		await expect(
 			page.locator( '#ollama-model-status', {
-				hasText: 'Could not connect to load models.',
+				hasText: 'AI provider not configured',
 			} )
 		).toHaveCount( 1 );
 	} );
