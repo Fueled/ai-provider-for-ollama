@@ -56,6 +56,10 @@ By default, the provider connects to `http://localhost:11434`. You can change th
 1. Set the `OLLAMA_HOST` environment variable (takes precedence).
 2. Go to **Settings > Ollama** in the WordPress admin and enter your host URL.
 
+== Screenshots ==
+
+1. Settings > Ollama screen showing available AI models and Host URL configuration.
+
 == Changelog ==
 
 = 1.0.3 - 2026-03-25 =

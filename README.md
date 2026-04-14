@@ -1,5 +1,7 @@
 # AI Provider for Ollama
 
+![AI Provider for Ollama](https://github.com/Fueled/ai-provider-for-ollama/blob/develop/.wordpress-org/banner-1544x500.png)
+
 [![Support Level](https://img.shields.io/badge/support-active-green.svg)](#support-level) [![Release Version](https://img.shields.io/github/release/Fueled/ai-provider-for-ollama.svg)](https://github.com/Fueled/ai-provider-for-ollama/releases/latest) ![WordPress Plugin Required PHP Version](https://img.shields.io/wordpress/plugin/required-php/ai-provider-for-ollama) ![WordPress Plugin: Required WP Version](https://img.shields.io/wordpress/plugin/wp-version/ai-provider-for-ollama) ![WordPress Plugin: Tested WP Version](https://img.shields.io/wordpress/plugin/tested/ai-provider-for-ollama) [![GPLv2 License](https://img.shields.io/github/license/Fueled/ai-provider-for-ollama.svg)](https://github.com/Fueled/ai-provider-for-ollama/blob/develop/LICENSE.md)
 
 [![Test](https://github.com/Fueled/ai-provider-for-ollama/actions/workflows/test.yml/badge.svg)](https://github.com/Fueled/ai-provider-for-ollama/actions/workflows/test.yml) [![Plugin Check](https://github.com/Fueled/ai-provider-for-ollama/actions/workflows/plugin-check.yml/badge.svg)](https://github.com/Fueled/ai-provider-for-ollama/actions/workflows/plugin-check.yml) [![Dependency Review](https://github.com/Fueled/ai-provider-for-ollama/actions/workflows/dependency-review.yml/badge.svg)](https://github.com/Fueled/ai-provider-for-ollama/actions/workflows/dependency-review.yml)
@@ -33,6 +35,8 @@ composer require fueled/ai-provider-for-ollama
 ```
 
 ## Configuration
+
+<img src="/.wordpress-org/screenshot-1.png" alt="Settings > Ollama screen showing available AI models and Host URL configuration." width="600">
 
 ### Ollama Host URL
 
