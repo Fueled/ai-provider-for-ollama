@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - develop
-      - trunk
+      - main
   pull_request:
     branches:
       - develop
