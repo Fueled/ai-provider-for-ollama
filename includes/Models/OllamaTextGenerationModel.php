@@ -19,6 +19,33 @@ use WordPress\AiClient\Providers\OpenAiCompatibleImplementation\AbstractOpenAiCo
 class OllamaTextGenerationModel extends AbstractOpenAiCompatibleTextGenerationModel {
 
 	/**
+	 * Prepares the response format parameter for Ollama's OpenAI-compatible API.
+	 *
+	 * Ollama's OpenAI-compatible API uses the same response_format key as OpenAI,
+	 * but schema mode expects the schema to be nested at json_schema.schema.
+	 *
+	 * @since x.x.x
+	 *
+	 * @param array<string, mixed>|null $output_schema The output schema.
+	 * @return array<string, mixed> The prepared response format parameter.
+	 */
+	protected function prepareResponseFormatParam( ?array $output_schema ): array {
+		if ( is_array( $output_schema ) ) {
+			return array(
+				'type'        => 'json_schema',
+				'json_schema' => array(
+					'name'   => 'response_schema',
+					'schema' => $output_schema,
+				),
+			);
+		}
+
+		return array(
+			'type' => 'json_object',
+		);
+	}
+
+	/**
 	 * {@inheritDoc}
 	 *
 	 * @since 1.0.0
