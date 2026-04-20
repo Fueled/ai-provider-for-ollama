@@ -13,11 +13,7 @@ use WordPress\AiClient\Providers\Http\Enums\HttpMethodEnum;
 use WordPress\AiClient\Providers\Models\DTO\ModelMetadata;
 
 /**
- * Tests for OllamaTextGenerationModel path normalization in createRequest().
- *
- * All tests exercise the path-normalisation logic that is the only custom
- * behaviour in OllamaTextGenerationModel — everything else is covered by
- * the php-ai-client AbstractOpenAiCompatibleTextGenerationModel tests.
+ * Tests for OllamaTextGenerationModel request behavior.
  *
  * @covers \Fueled\AiProviderForOllama\Models\OllamaTextGenerationModel
  */
@@ -93,5 +89,45 @@ class OllamaTextGenerationModelTest extends TestCase {
 			'chat/completions'
 		);
 		$this->assertStringStartsWith( 'http://localhost:11434', $request->getUri() );
+	}
+
+	/**
+	 * Tests that JSON output without schema uses json_object response format.
+	 */
+	public function test_prepare_response_format_uses_json_object_without_schema(): void {
+		$response_format = $this->model->expose_prepare_response_format_param( null );
+
+		$this->assertSame(
+			array(
+				'type' => 'json_object',
+			),
+			$response_format
+		);
+	}
+
+	/**
+	 * Tests that JSON schema output is nested at json_schema.schema.
+	 */
+	public function test_prepare_response_format_wraps_schema_for_ollama_openai_compat(): void {
+		$schema = array(
+			'type'       => 'object',
+			'properties' => array(
+				'name' => array( 'type' => 'string' ),
+			),
+			'required'   => array( 'name' ),
+		);
+
+		$response_format = $this->model->expose_prepare_response_format_param( $schema );
+
+		$this->assertSame(
+			array(
+				'type'        => 'json_schema',
+				'json_schema' => array(
+					'name'   => 'response_schema',
+					'schema' => $schema,
+				),
+			),
+			$response_format
+		);
 	}
 }
