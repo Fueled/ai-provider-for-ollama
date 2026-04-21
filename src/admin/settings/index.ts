@@ -4,6 +4,11 @@
 import apiFetch from '@wordpress/api-fetch';
 import { __, _n, sprintf } from '@wordpress/i18n';
 
+/**
+ * Internal dependencies
+ */
+import './style.scss';
+
 interface Config {
 	ajaxUrl: string;
 }
@@ -29,6 +34,11 @@ interface ModelMetadata {
 interface SupportedOption {
 	name: string;
 	supportedValues?: unknown[];
+}
+
+interface DisplayCapability {
+	key: string;
+	label: string;
 }
 
 const ERROR_COLOR = '#d63638';
@@ -74,7 +84,9 @@ function getCapabilityLabel( capability: string ): string {
  */
 function supportsVision( model: ModelMetadata ): boolean {
 	const inputModalities = model.supportedOptions?.find(
-		( option ) => option.name === 'inputModalities'
+		( option ) =>
+			option.name === 'inputModalities' ||
+			option.name === 'input_modalities'
 	);
 	if (
 		! inputModalities ||
@@ -90,22 +102,58 @@ function supportsVision( model: ModelMetadata ): boolean {
 }
 
 /**
- * Gets displayable capability labels for a model.
+ * Gets displayable capabilities for a model.
  *
  * @param {ModelMetadata} model The model metadata.
- * @return {string[]} Capability labels to display.
+ * @return {DisplayCapability[]} Capabilities to display.
  * @since x.x.x
  */
-function getModelCapabilityLabels( model: ModelMetadata ): string[] {
-	const labels = new Set(
-		( model.supportedCapabilities ?? [] ).map( getCapabilityLabel )
-	);
-
-	if ( supportsVision( model ) ) {
-		labels.add( __( 'Vision', 'ai-provider-for-ollama' ) );
+function getModelDisplayCapabilities(
+	model: ModelMetadata
+): DisplayCapability[] {
+	const capabilitiesMap = new Map< string, DisplayCapability >();
+	for ( const capabilityKey of model.supportedCapabilities ?? [] ) {
+		capabilitiesMap.set( capabilityKey, {
+			key: capabilityKey,
+			label: getCapabilityLabel( capabilityKey ),
+		} );
 	}
 
-	return Array.from( labels );
+	if ( supportsVision( model ) ) {
+		capabilitiesMap.set( 'vision', {
+			key: 'vision',
+			label: __( 'Vision', 'ai-provider-for-ollama' ),
+		} );
+	}
+
+	return Array.from( capabilitiesMap.values() );
+}
+
+/**
+ * Creates a visual pill for a model capability.
+ *
+ * @param {DisplayCapability} capability The displayable capability.
+ * @return {HTMLSpanElement} The capability pill element.
+ * @since x.x.x
+ */
+function createCapabilityPill(
+	capability: DisplayCapability
+): HTMLSpanElement {
+	const pill = document.createElement( 'span' );
+	pill.className = 'ai-provider-for-ollama-capability-pill';
+	pill.textContent = capability.label;
+
+	if ( capability.key === 'vision' ) {
+		pill.classList.add( 'ai-provider-for-ollama-capability-pill--vision' );
+	}
+
+	if ( capability.key === 'image_generation' ) {
+		pill.classList.add(
+			'ai-provider-for-ollama-capability-pill--image-generation'
+		);
+	}
+
+	return pill;
 }
 
 /**
@@ -182,16 +230,24 @@ async function loadModels( config: Config ): Promise< void > {
 	container.appendChild( count );
 
 	const list = document.createElement( 'ul' );
+	list.className = 'ai-provider-for-ollama-models-list';
+
 	for ( const model of models ) {
 		const item = document.createElement( 'li' );
+		item.className = 'ai-provider-for-ollama-model-item';
 		const code = document.createElement( 'code' );
 		code.textContent = model.id;
 		item.appendChild( code );
 
-		const capabilityLabels = getModelCapabilityLabels( model );
-		if ( capabilityLabels.length > 0 ) {
+		const displayCapabilities = getModelDisplayCapabilities( model );
+		if ( displayCapabilities.length > 0 ) {
 			const capabilities = document.createElement( 'span' );
-			capabilities.textContent = ` (${ capabilityLabels.join( ', ' ) })`;
+			capabilities.className = 'ai-provider-for-ollama-capabilities';
+
+			for ( const capability of displayCapabilities ) {
+				capabilities.appendChild( createCapabilityPill( capability ) );
+			}
+
 			item.appendChild( capabilities );
 		}
 
