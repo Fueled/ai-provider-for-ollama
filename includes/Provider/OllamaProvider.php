@@ -5,6 +5,7 @@ declare( strict_types=1 );
 namespace Fueled\AiProviderForOllama\Provider;
 
 use Fueled\AiProviderForOllama\Metadata\OllamaModelMetadataDirectory;
+use Fueled\AiProviderForOllama\Models\OllamaImageGenerationModel;
 use Fueled\AiProviderForOllama\Models\OllamaTextGenerationModel;
 use WordPress\AiClient\AiClient;
 use WordPress\AiClient\Common\Exception\RuntimeException;
@@ -48,6 +49,13 @@ class OllamaProvider extends AbstractApiProvider {
 		ModelMetadata $model_metadata,
 		ProviderMetadata $provider_metadata
 	): ModelInterface {
+
+		$capabilities_string_list = $model_metadata->toArray()[ ModelMetadata::KEY_SUPPORTED_CAPABILITIES ];
+
+		if ( in_array( 'image_generation', $capabilities_string_list, true ) ) {
+			return new OllamaImageGenerationModel( $model_metadata, $provider_metadata );
+		}
+
 		$capabilities = $model_metadata->getSupportedCapabilities();
 		foreach ( $capabilities as $capability ) {
 			if ( $capability->isTextGeneration() ) {
