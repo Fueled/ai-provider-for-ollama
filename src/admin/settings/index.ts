@@ -22,14 +22,96 @@ interface AjaxResponse {
 interface ModelMetadata {
 	id: string;
 	name: string;
+	supportedCapabilities?: string[];
+	supportedOptions?: SupportedOption[];
+}
+
+interface SupportedOption {
+	name: string;
+	supportedValues?: unknown[];
 }
 
 const ERROR_COLOR = '#d63638';
 
+const CAPABILITY_LABELS: Record< string, string > = {
+	text_generation: __( 'Text generation', 'ai-provider-for-ollama' ),
+	image_generation: __( 'Image generation', 'ai-provider-for-ollama' ),
+	text_to_speech_conversion: __( 'Text-to-speech', 'ai-provider-for-ollama' ),
+	speech_generation: __( 'Speech generation', 'ai-provider-for-ollama' ),
+	music_generation: __( 'Music generation', 'ai-provider-for-ollama' ),
+	video_generation: __( 'Video generation', 'ai-provider-for-ollama' ),
+	embedding_generation: __(
+		'Embedding generation',
+		'ai-provider-for-ollama'
+	),
+	chat_history: __( 'Chat history', 'ai-provider-for-ollama' ),
+};
+
+/**
+ * Gets a display label for a capability value.
+ *
+ * @param {string} capability The raw capability value.
+ * @return {string} A translated label.
+ * @since x.x.x
+ */
+function getCapabilityLabel( capability: string ): string {
+	if ( CAPABILITY_LABELS[ capability ] ) {
+		return CAPABILITY_LABELS[ capability ];
+	}
+
+	return capability
+		.split( '_' )
+		.map( ( word ) => word.charAt( 0 ).toUpperCase() + word.slice( 1 ) )
+		.join( ' ' );
+}
+
+/**
+ * Checks if model supports image input (vision).
+ *
+ * @param {ModelMetadata} model The model metadata.
+ * @return {boolean} Whether vision is supported.
+ * @since x.x.x
+ */
+function supportsVision( model: ModelMetadata ): boolean {
+	const inputModalities = model.supportedOptions?.find(
+		( option ) => option.name === 'inputModalities'
+	);
+	if (
+		! inputModalities ||
+		! Array.isArray( inputModalities.supportedValues )
+	) {
+		return false;
+	}
+
+	return inputModalities.supportedValues.some(
+		( modalitySet ) =>
+			Array.isArray( modalitySet ) && modalitySet.includes( 'image' )
+	);
+}
+
+/**
+ * Gets displayable capability labels for a model.
+ *
+ * @param {ModelMetadata} model The model metadata.
+ * @return {string[]} Capability labels to display.
+ * @since x.x.x
+ */
+function getModelCapabilityLabels( model: ModelMetadata ): string[] {
+	const labels = new Set(
+		( model.supportedCapabilities ?? [] ).map( getCapabilityLabel )
+	);
+
+	if ( supportsVision( model ) ) {
+		labels.add( __( 'Vision', 'ai-provider-for-ollama' ) );
+	}
+
+	return Array.from( labels );
+}
+
 /**
  * Loads and displays the available models in a list.
  *
- * @param config The configuration object.
+ * @param {Config} config The configuration object.
  * @since 1.0.0
  */
 async function loadModels( config: Config ): Promise< void > {
@@ -105,6 +187,14 @@ async function loadModels( config: Config ): Promise< void > {
 		const code = document.createElement( 'code' );
 		code.textContent = model.id;
 		item.appendChild( code );
+
+		const capabilityLabels = getModelCapabilityLabels( model );
+		if ( capabilityLabels.length > 0 ) {
+			const capabilities = document.createElement( 'span' );
+			capabilities.textContent = ` (${ capabilityLabels.join( ', ' ) })`;
+			item.appendChild( capabilities );
+		}
+
 		list.appendChild( item );
 	}
 	container.appendChild( list );
