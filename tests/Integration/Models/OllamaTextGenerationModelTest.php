@@ -9,7 +9,9 @@ use PHPUnit\Framework\TestCase;
 use WordPress\AiClient\Providers\DTO\ProviderMetadata;
 use WordPress\AiClient\Providers\Enums\ProviderTypeEnum;
 use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
+use WordPress\AiClient\Providers\Http\DTO\RequestOptions;
 use WordPress\AiClient\Providers\Http\Enums\HttpMethodEnum;
+use WordPress\AiClient\Providers\Models\DTO\ModelConfig;
 use WordPress\AiClient\Providers\Models\DTO\ModelMetadata;
 
 /**
@@ -129,5 +131,90 @@ class OllamaTextGenerationModelTest extends TestCase {
 			),
 			$response_format
 		);
+	}
+
+	/**
+	 * Tests that text requests use longer default request/connect timeouts.
+	 */
+	public function test_default_request_timeouts_are_applied_to_text_requests(): void {
+		$request = $this->model->expose_create_request(
+			HttpMethodEnum::POST(),
+			'chat/completions',
+			array(),
+			array()
+		);
+
+		$this->assertNotNull( $request->getOptions() );
+		$this->assertSame( 60.0, $request->getOptions()->getTimeout() );
+		$this->assertSame( 10.0, $request->getOptions()->getConnectTimeout() );
+	}
+
+	/**
+	 * Tests that custom timeout options are applied and removed from payload data.
+	 */
+	public function test_custom_timeouts_are_applied_and_not_sent_in_payload(): void {
+		$this->model->setConfig(
+			ModelConfig::fromArray(
+				array(
+					'customOptions' => array(
+						'ollama.request_timeout' => 45,
+						'ollama.connect_timeout' => 2,
+					),
+				)
+			)
+		);
+
+		$request = $this->model->expose_create_request(
+			HttpMethodEnum::POST(),
+			'chat/completions',
+			array(),
+			array(
+				'ollama.request_timeout' => 45,
+				'ollama.connect_timeout' => 2,
+				'model'                  => 'llama3.2',
+			)
+		);
+
+		$this->assertNotNull( $request->getOptions() );
+		$this->assertSame( 45.0, $request->getOptions()->getTimeout() );
+		$this->assertSame( 2.0, $request->getOptions()->getConnectTimeout() );
+		$this->assertSame(
+			array(
+				'model' => 'llama3.2',
+			),
+			$request->getData()
+		);
+	}
+
+	/**
+	 * Tests that an existing connect timeout is preserved for text requests.
+	 */
+	public function test_existing_connect_timeout_is_preserved_for_text_requests(): void {
+		$request_options = new RequestOptions();
+		$request_options->setConnectTimeout( 6.0 );
+		$request_options->setTimeout( 20.0 );
+		$this->model->setRequestOptions( $request_options );
+
+		$this->model->setConfig(
+			ModelConfig::fromArray(
+				array(
+					'customOptions' => array(
+						'ollama.request_timeout' => 90,
+						'ollama.connect_timeout' => 2,
+					),
+				)
+			)
+		);
+
+		$request = $this->model->expose_create_request(
+			HttpMethodEnum::POST(),
+			'chat/completions',
+			array(),
+			array()
+		);
+
+		$this->assertNotNull( $request->getOptions() );
+		$this->assertSame( 90.0, $request->getOptions()->getTimeout() );
+		$this->assertSame( 6.0, $request->getOptions()->getConnectTimeout() );
 	}
 }

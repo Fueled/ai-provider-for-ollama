@@ -31,6 +31,7 @@ parameters:
 			- includes/Metadata/OllamaModelMetadataDirectory.php
 			- includes/Models/OllamaImageGenerationModel.php
 			- includes/Models/OllamaTextGenerationModel.php
+			- includes/Models/Traits/OllamaRequestOptionsTrait.php
 			- includes/Provider/OllamaProvider.php
 			- includes/Settings/OllamaSettings.php
 		analyseAndScan:
