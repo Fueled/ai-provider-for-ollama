@@ -132,7 +132,7 @@ class OllamaSettings {
 		}
 		?>
 
-		<div class="wrap" style="max-width: 50rem;">
+		<div class="wrap ai-provider-for-ollama-settings-screen">
 			<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 			<p>
 				<?php
@@ -246,6 +246,14 @@ class OllamaSettings {
 			$version,
 			true
 		);
+
+		wp_enqueue_style(
+			'ai-provider-for-ollama-settings',
+			plugins_url( 'build/admin/style-settings.css', $plugin_dir . 'plugin.php' ),
+			array(),
+			$version
+		);
+		wp_style_add_data( 'ai-provider-for-ollama-settings', 'rtl', 'replace' );
 
 		wp_localize_script(
 			'ai-provider-for-ollama-settings',
