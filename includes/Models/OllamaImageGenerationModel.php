@@ -10,6 +10,7 @@ declare( strict_types=1 );
 
 namespace Fueled\AiProviderForOllama\Models;
 
+use Fueled\AiProviderForOllama\Models\Traits\OllamaRequestOptionsTrait;
 use Fueled\AiProviderForOllama\Provider\OllamaProvider;
 use WordPress\AiClient\Common\Exception\InvalidArgumentException;
 use WordPress\AiClient\Files\DTO\File;
@@ -47,6 +48,7 @@ use WordPress\AiClient\Results\Enums\FinishReasonEnum;
  * }
  */
 class OllamaImageGenerationModel extends AbstractApiBasedModel implements ImageGenerationModelInterface {
+	use OllamaRequestOptionsTrait;
 
 	/**
 	 * Generates images from a prompt using the Ollama API.
@@ -95,33 +97,7 @@ class OllamaImageGenerationModel extends AbstractApiBasedModel implements ImageG
 	 * @return \WordPress\AiClient\Providers\Http\DTO\RequestOptions Prepared request options.
 	 */
 	private function prepareRequestOptionsForImageGeneration(): RequestOptions {
-		$existing_options = $this->getRequestOptions();
-		if ( null !== $existing_options ) {
-			$request_options = RequestOptions::fromArray( $existing_options->toArray() );
-		} else {
-			$request_options = new RequestOptions();
-		}
-
-		$custom_options = $this->getConfig()->getCustomOptions();
-
-		$request_timeout = 300.0;
-		if ( isset( $custom_options['ollama.request_timeout'] ) && is_numeric( $custom_options['ollama.request_timeout'] ) ) {
-			$request_timeout = (float) $custom_options['ollama.request_timeout'];
-		}
-
-		$connect_timeout = 10.0;
-		if ( isset( $custom_options['ollama.connect_timeout'] ) && is_numeric( $custom_options['ollama.connect_timeout'] ) ) {
-			$connect_timeout = (float) $custom_options['ollama.connect_timeout'];
-		}
-
-		// Always enforce request timeout for image generation to avoid 90s defaults.
-		$request_options->setTimeout( $request_timeout );
-
-		if ( null === $request_options->getConnectTimeout() ) {
-			$request_options->setConnectTimeout( $connect_timeout );
-		}
-
-		return $request_options;
+		return $this->prepareRequestOptions( 300.0, 10.0 );
 	}
 
 	/**
