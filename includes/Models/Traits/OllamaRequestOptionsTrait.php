@@ -3,7 +3,7 @@
  * Shared Ollama request options preparation.
  *
  * @package Fueled\AiProviderForOllama\Models\Traits
- * @since   x.x.x
+ * @since   1.1.0
  */
 
 declare( strict_types=1 );
@@ -15,7 +15,7 @@ use WordPress\AiClient\Providers\Http\DTO\RequestOptions;
 /**
  * Trait for preparing request options with configurable timeout defaults.
  *
- * @since x.x.x
+ * @since 1.1.0
  */
 trait OllamaRequestOptionsTrait {
 
@@ -26,7 +26,7 @@ trait OllamaRequestOptionsTrait {
 	 *  - ollama.request_timeout (seconds)
 	 *  - ollama.connect_timeout (seconds)
 	 *
-	 * @since x.x.x
+	 * @since 1.1.0
 	 *
 	 * @param float $default_request_timeout Default request timeout in seconds.
 	 * @param float $default_connect_timeout Default connect timeout in seconds.

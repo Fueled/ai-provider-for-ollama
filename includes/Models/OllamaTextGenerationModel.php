@@ -27,7 +27,7 @@ class OllamaTextGenerationModel extends AbstractOpenAiCompatibleTextGenerationMo
 	 * Ollama's OpenAI-compatible API uses the same response_format key as OpenAI,
 	 * but schema mode expects the schema to be nested at json_schema.schema.
 	 *
-	 * @since x.x.x
+	 * @since 1.1.0
 	 *
 	 * @param array<string, mixed>|null $output_schema The output schema.
 	 * @return array<string, mixed> The prepared response format parameter.
@@ -86,7 +86,7 @@ class OllamaTextGenerationModel extends AbstractOpenAiCompatibleTextGenerationMo
 	 *  - ollama.request_timeout (seconds)
 	 *  - ollama.connect_timeout (seconds)
 	 *
-	 * @since x.x.x
+	 * @since 1.1.0
 	 *
 	 * @return \WordPress\AiClient\Providers\Http\DTO\RequestOptions Prepared request options.
 	 */
