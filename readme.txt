@@ -3,7 +3,7 @@ Contributors:      fueled, 10up
 Tags:              ai, ollama, llm, local-ai, connector
 Requires at least: 7.0
 Tested up to:      7.0
-Stable tag:        1.0.3
+Stable tag:        1.1.0
 Requires PHP:      7.4
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -12,13 +12,14 @@ Ollama provider for the WordPress AI Client.
 
 == Description ==
 
-This plugin provides [Ollama](https://ollama.com/) integration for the WordPress AI Client. It lets WordPress sites use large language models running locally or on a remote Ollama instance for text generation and other AI capabilities.
+This plugin provides [Ollama](https://ollama.com/) integration for the WordPress AI Client. It lets WordPress sites use large language models running locally or on a remote Ollama instance for text and image generation and other AI capabilities.
 
 Ollama exposes an [OpenAI-compatible API](https://ollama.com/blog/openai-compatibility), and this provider uses that API to communicate with any model you have pulled into Ollama (Llama, Mistral, Gemma, Phi, and many more).
 
 **Features:**
 
 * Text generation with any Ollama model
+* Image generation with supported models
 * Automatic model discovery from your Ollama instance
 * Function calling support
 * Structured output (JSON mode) support
@@ -28,36 +29,49 @@ Ollama exposes an [OpenAI-compatible API](https://ollama.com/blog/openai-compati
 **Requirements:**
 
 * PHP 7.4 or higher
-* WordPress AI Client plugin must be installed and activated
+* WordPress 7.0 or higher
 * Ollama running locally or on a remote server (like Ollama Cloud)
 
 == Installation ==
 
-1. Ensure the WordPress AI Client plugin is installed and activated.
-2. Upload the plugin files to `/wp-content/plugins/ai-provider-for-ollama/`.
-3. Activate the plugin through the 'Plugins' menu in WordPress.
-4. Go to **Settings > Ollama Settings** to configure the host URL and see available models.
+1. Upload the plugin files to `/wp-content/plugins/ai-provider-for-ollama/`.
+2. Activate the plugin through the 'Plugins' menu in WordPress.
+3. Go to **Settings > Ollama** to configure the host URL and see available models.
 
 == Frequently Asked Questions ==
 
 = How do I install Ollama? =
 
-Visit [ollama.com](https://ollama.com/) to download and install Ollama for your platform. Once installed, pull a model with `ollama pull llama3.2` and the provider will automatically discover it.
+Visit [ollama.com](https://ollama.com/) to download and install Ollama for your platform. Once installed, pull a model (example `ollama pull llama3.2`) and the provider will automatically discover it.
 
 = Do I need an API key? =
 
 No. For local Ollama instances, no API key is needed. The plugin automatically handles authentication for local setups.
 
-For remote Ollama instances that require authentication, enter the API key in the WordPress AI Client **Settings > AI Credentials** screen. If using Ollama Cloud, you also need to set your Ollama host URL in the **Settings > Ollama Settings** screen to `https://ollama.com`.
+For remote Ollama instances that require authentication, enter the API key in the **Settings > Connectors** screen. If using Ollama Cloud, you also need to set your Ollama host URL in the **Settings > Ollama** screen to `https://ollama.com`.
 
 = How do I change the Ollama host URL? =
 
 By default, the provider connects to `http://localhost:11434`. You can change this in two ways:
 
 1. Set the `OLLAMA_HOST` environment variable (takes precedence).
-2. Go to **Settings > Ollama Settings** in the WordPress admin and enter your host URL.
+2. Go to **Settings > Ollama** in the WordPress admin and enter your host URL.
+
+== Screenshots ==
+
+1. Settings > Ollama screen showing available AI models and Host URL configuration.
 
 == Changelog ==
+
+= 1.1.0 - 2026-04-23 =
+
+### Added
+
+* **Added:** Support for image generation when using compatible models (props [@milindmore22](https://github.com/milindmore22), [@dkotter](https://github.com/dkotter) via [#30](https://github.com/Fueled/ai-provider-for-ollama/pull/30)).
+* **Added:** Integrate with the `wpai_has_ai_credentials` filter to ensure the AI plugin sees Ollama as a valid, connected provider (props [@dkotter](https://github.com/dkotter), [@jeffpaul](https://github.com/jeffpaul) via [#43](https://github.com/Fueled/ai-provider-for-ollama/pull/43)).
+* **Added:** Show the capabilities of each model next to the model name on our settings page (props [@dkotter](https://github.com/dkotter), [@jeffpaul](https://github.com/jeffpaul) via [#51](https://github.com/Fueled/ai-provider-for-ollama/pull/51)).
+* **Changed:** Increase the standard timeout to be 60 seconds for text generation (props [@dkotter](https://github.com/dkotter), [@jeffpaul](https://github.com/jeffpaul) via [#49](https://github.com/Fueled/ai-provider-for-ollama/pull/49)).
+* **Fixed:** Properly parse structured outputs (props [@dkotter](https://github.com/dkotter), [@jeffpaul](https://github.com/jeffpaul) via [#49](https://github.com/Fueled/ai-provider-for-ollama/pull/49)).
 
 = 1.0.3 - 2026-03-25 =
 

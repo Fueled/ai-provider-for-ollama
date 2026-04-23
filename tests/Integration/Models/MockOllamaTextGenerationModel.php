@@ -30,4 +30,14 @@ class MockOllamaTextGenerationModel extends OllamaTextGenerationModel {
 	): Request {
 		return $this->createRequest( $method, $path, $headers, $data );
 	}
+
+	/**
+	 * Publicly exposes the protected prepareResponseFormatParam() method.
+	 *
+	 * @param array<string, mixed>|null $output_schema The output schema.
+	 * @return array<string, mixed> The prepared response format parameter.
+	 */
+	public function expose_prepare_response_format_param( ?array $output_schema ): array {
+		return $this->prepareResponseFormatParam( $output_schema );
+	}
 }

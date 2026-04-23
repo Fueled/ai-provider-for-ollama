@@ -1,0 +1,45 @@
+.ai-provider-for-ollama-settings-screen {
+	max-width: 50rem;
+}
+
+#ollama-models-container {
+	.ai-provider-for-ollama-models-list {
+		margin: 10px 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.ai-provider-for-ollama-model-item {
+		margin-bottom: 0.625rem;
+	}
+
+	.ai-provider-for-ollama-capabilities {
+		display: inline-flex;
+		flex-wrap: wrap;
+		gap: 0.375rem;
+		margin-left: 0.5rem;
+		vertical-align: middle;
+	}
+
+	.ai-provider-for-ollama-capability-pill {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.125rem 0.5rem;
+		border-radius: 999px;
+		background-color: #dbe3f0;
+		color: #1f2937;
+		font-size: 12px;
+		line-height: 1.5;
+		font-weight: 500;
+
+		&.ai-provider-for-ollama-capability-pill--vision {
+			background-color: #dbeafe;
+			color: #1e3a8a;
+		}
+
+		&.ai-provider-for-ollama-capability-pill--image-generation {
+			background-color: #ede9fe;
+			color: #4c1d95;
+		}
+	}
+}

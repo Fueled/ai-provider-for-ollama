@@ -29,7 +29,9 @@ parameters:
 			# Temporary: these files depend on unreleased WordPress core AI Client classes.
 			- includes/Plugin.php
 			- includes/Metadata/OllamaModelMetadataDirectory.php
+			- includes/Models/OllamaImageGenerationModel.php
 			- includes/Models/OllamaTextGenerationModel.php
+			- includes/Models/Traits/OllamaRequestOptionsTrait.php
 			- includes/Provider/OllamaProvider.php
 			- includes/Settings/OllamaSettings.php
 		analyseAndScan:
