@@ -288,7 +288,7 @@ class OllamaSettings {
 	/**
 	 * Checks if the Ollama provider is connected.
 	 *
-	 * @since x.x.x
+	 * @since 1.1.0
 	 *
 	 * @return bool True if the Ollama provider is connected, false otherwise.
 	 */
@@ -299,7 +299,7 @@ class OllamaSettings {
 	/**
 	 * Gets the models from the Ollama provider.
 	 *
-	 * @since x.x.x
+	 * @since 1.1.0
 	 *
 	 * @return \WP_Error|array<string, \Fueled\AiProviderForOllama\Settings\ModelMetadata> The models.
 	 */

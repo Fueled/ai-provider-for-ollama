@@ -62,7 +62,7 @@ const CAPABILITY_LABELS: Record< string, string > = {
  *
  * @param {string} capability The raw capability value.
  * @return {string} A translated label.
- * @since x.x.x
+ * @since 1.1.0
  */
 function getCapabilityLabel( capability: string ): string {
 	if ( CAPABILITY_LABELS[ capability ] ) {
@@ -80,7 +80,7 @@ function getCapabilityLabel( capability: string ): string {
  *
  * @param {ModelMetadata} model The model metadata.
  * @return {boolean} Whether vision is supported.
- * @since x.x.x
+ * @since 1.1.0
  */
 function supportsVision( model: ModelMetadata ): boolean {
 	const inputModalities = model.supportedOptions?.find(
@@ -106,7 +106,7 @@ function supportsVision( model: ModelMetadata ): boolean {
  *
  * @param {ModelMetadata} model The model metadata.
  * @return {DisplayCapability[]} Capabilities to display.
- * @since x.x.x
+ * @since 1.1.0
  */
 function getModelDisplayCapabilities(
 	model: ModelMetadata
@@ -134,7 +134,7 @@ function getModelDisplayCapabilities(
  *
  * @param {DisplayCapability} capability The displayable capability.
  * @return {HTMLSpanElement} The capability pill element.
- * @since x.x.x
+ * @since 1.1.0
  */
 function createCapabilityPill(
 	capability: DisplayCapability
