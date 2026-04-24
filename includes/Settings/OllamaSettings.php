@@ -39,6 +39,7 @@ class OllamaSettings {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_settings_script' ) );
 		add_action( 'wp_ajax_' . self::AJAX_ACTION, array( $this, 'ajax_list_models' ) );
 		add_filter( 'wpai_has_ai_credentials', array( $this, 'is_connected' ) );
+		add_filter( 'wpai_is_ollama_connector_configured', array( $this, 'is_connected' ) );
 	}
 
 	/**
