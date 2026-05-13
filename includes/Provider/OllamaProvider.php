@@ -94,7 +94,9 @@ class OllamaProvider extends AbstractApiProvider {
 
 		// Provider logo path support was added in 1.3.0.
 		if ( version_compare( AiClient::VERSION, '1.3.0', '>=' ) ) {
-			$provider_meta[] = __DIR__ . '/logo.svg';
+			$provider_meta[] = defined( 'AI_PROVIDER_FOR_OLLAMA_PLUGIN_DIR' )
+				? AI_PROVIDER_FOR_OLLAMA_PLUGIN_DIR . 'includes/Provider/logo.svg'
+				: __DIR__ . '/logo.svg';
 		}
 
 		return new ProviderMetadata( ...$provider_meta );
