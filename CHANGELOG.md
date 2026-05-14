@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased] - TBD
 
+## [1.1.1] - 2026-05-14
+### Added
+- Ensure the AI plugin sees Ollama as a valid, connected provider within the status dashboard widget (props [@dkotter](https://github.com/dkotter), [@jeffpaul](https://github.com/jeffpaul) via [#55](https://github.com/Fueled/ai-provider-for-ollama/pull/55)).
+
+### Fixed
+- More robust path inclusion for the logo (props [@dkotter](https://github.com/dkotter), [ABCdatos](https://profiles.wordpress.org/abcdatos/) via [#61](https://github.com/Fueled/ai-provider-for-ollama/pull/61)).
+
+### Developer
+- Bump `ip-address` from 10.1.0 to 10.2.0 (props [@dependabot[bot]](https://github.com/apps/dependabot), [@dkotter](https://github.com/dkotter) via [#57](https://github.com/Fueled/ai-provider-for-ollama/pull/57)).
+- Bump `axios` from 1.15.0 to 1.16.0 (props [@dependabot[bot]](https://github.com/apps/dependabot), [@dkotter](https://github.com/dkotter) via [#58](https://github.com/Fueled/ai-provider-for-ollama/pull/58)).
+- Bump `postcss` from 8.5.6 to 8.5.14 (props [@dependabot[bot]](https://github.com/apps/dependabot), [@dkotter](https://github.com/dkotter) via [#58](https://github.com/Fueled/ai-provider-for-ollama/pull/58)).
+- Bump `simple-git` from 3.33.0 to 3.36.0 (props [@dependabot[bot]](https://github.com/apps/dependabot), [@dkotter](https://github.com/dkotter) via [#58](https://github.com/Fueled/ai-provider-for-ollama/pull/58)).
+- Bump `fast-xml-builder` from 1.1.5 to 1.2.0 (props [@dependabot[bot]](https://github.com/apps/dependabot), [@dkotter](https://github.com/dkotter) via [#59](https://github.com/Fueled/ai-provider-for-ollama/pull/59)).
+- Bump `@babel/plugin-transform-modules-systemjs` from 7.29.0 to 7.29.4 (props [@dependabot[bot]](https://github.com/apps/dependabot), [@dkotter](https://github.com/dkotter) via [#60](https://github.com/Fueled/ai-provider-for-ollama/pull/60)).
+
 ## [1.1.0] - 2026-04-23
 ### Added
 - Support for image generation when using compatible models (props [@milindmore22](https://github.com/milindmore22), [@dkotter](https://github.com/dkotter) via [#30](https://github.com/Fueled/ai-provider-for-ollama/pull/30)).

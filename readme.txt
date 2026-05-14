@@ -63,6 +63,14 @@ By default, the provider connects to `http://localhost:11434`. You can change th
 
 == Changelog ==
 
+= 1.1.1 - 2026-05-14 =
+
+**Added**
+- Ensure the AI plugin sees Ollama as a valid, connected provider within the status dashboard widget (props [@dkotter](https://github.com/dkotter), [@jeffpaul](https://github.com/jeffpaul) via [#55](https://github.com/Fueled/ai-provider-for-ollama/pull/55)).
+
+**Fixed**
+- More robust path inclusion for the logo (props [@dkotter](https://github.com/dkotter), [@abcdatos](https://profiles.wordpress.org/abcdatos/) via [#61](https://github.com/Fueled/ai-provider-for-ollama/pull/61)).
+
 = 1.1.0 - 2026-04-23 =
 
 * **Added:** Support for image generation when using compatible models (props [@milindmore22](https://github.com/milindmore22), [@dkotter](https://github.com/dkotter) via [#30](https://github.com/Fueled/ai-provider-for-ollama/pull/30)).
