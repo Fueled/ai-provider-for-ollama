@@ -82,6 +82,7 @@ First public release of the AI Provider for Ollama plugin. 🎉
 - Function calling and structured output support
 
 [Unreleased]: https://github.com/Fueled/ai-provider-for-ollama/compare/main...develop
+[1.1.0]: https://github.com/Fueled/ai-provider-for-ollama/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/Fueled/ai-provider-for-ollama/compare/1.0.3...1.1.0
 [1.0.3]: https://github.com/Fueled/ai-provider-for-ollama/compare/1.0.2...1.0.3
 [1.0.2]: https://github.com/Fueled/ai-provider-for-ollama/compare/1.0.1...1.0.2
