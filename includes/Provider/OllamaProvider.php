@@ -5,6 +5,7 @@ declare( strict_types=1 );
 namespace Fueled\AiProviderForOllama\Provider;
 
 use Fueled\AiProviderForOllama\Metadata\OllamaModelMetadataDirectory;
+use Fueled\AiProviderForOllama\Models\OllamaEmbeddingGenerationModel;
 use Fueled\AiProviderForOllama\Models\OllamaImageGenerationModel;
 use Fueled\AiProviderForOllama\Models\OllamaTextGenerationModel;
 use WordPress\AiClient\AiClient;
@@ -61,6 +62,10 @@ class OllamaProvider extends AbstractApiProvider {
 			if ( $capability->isTextGeneration() ) {
 				return new OllamaTextGenerationModel( $model_metadata, $provider_metadata );
 			}
+
+			if ( $capability->isEmbeddingGeneration() ) {
+				return new OllamaEmbeddingGenerationModel( $model_metadata, $provider_metadata );
+			}
 		}
 
 		throw new RuntimeException(
@@ -86,9 +91,9 @@ class OllamaProvider extends AbstractApiProvider {
 		// Provider description support was added in 1.2.0.
 		if ( version_compare( AiClient::VERSION, '1.2.0', '>=' ) ) {
 			if ( function_exists( '__' ) ) {
-				$provider_meta[] = __( 'Text generation with Ollama, either running locally or on Ollama Cloud.', 'ai-provider-for-ollama' );
+				$provider_meta[] = __( 'Text, image, and embedding generation with Ollama, either running locally or on Ollama Cloud.', 'ai-provider-for-ollama' );
 			} else {
-				$provider_meta[] = 'Text generation with Ollama, either running locally or on Ollama Cloud.';
+				$provider_meta[] = 'Text, image, and embedding generation with Ollama, either running locally or on Ollama Cloud.';
 			}
 		}
 
