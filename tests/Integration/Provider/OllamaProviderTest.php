@@ -5,6 +5,7 @@ declare( strict_types=1 );
 namespace Fueled\AiProviderForOllama\Tests\Integration\Provider;
 
 use Fueled\AiProviderForOllama\Metadata\OllamaModelMetadataDirectory;
+use Fueled\AiProviderForOllama\Models\OllamaEmbeddingGenerationModel;
 use Fueled\AiProviderForOllama\Models\OllamaImageGenerationModel;
 use Fueled\AiProviderForOllama\Models\OllamaTextGenerationModel;
 use Fueled\AiProviderForOllama\Provider\OllamaProvider;
@@ -13,6 +14,7 @@ use WordPress\AiClient\Common\Exception\RuntimeException;
 use WordPress\AiClient\Providers\AbstractProvider;
 use WordPress\AiClient\Providers\ApiBasedImplementation\ListModelsApiBasedProviderAvailability;
 use WordPress\AiClient\Providers\Models\DTO\ModelMetadata;
+use WordPress\AiClient\Providers\Models\EmbeddingGeneration\Contracts\EmbeddingGenerationModelInterface;
 use WordPress\AiClient\Providers\Models\Enums\CapabilityEnum;
 
 /**
@@ -200,6 +202,26 @@ class OllamaProviderTest extends TestCase {
 		$model = $this->invoke_create_model( $model_metadata );
 
 		$this->assertInstanceOf( OllamaTextGenerationModel::class, $model );
+	}
+
+	/**
+	 * Tests that createModel() returns an OllamaEmbeddingGenerationModel for a model with embeddingGeneration capability.
+	 */
+	public function test_create_model_returns_embedding_generation_model_for_embedding_capability(): void {
+		if ( ! interface_exists( EmbeddingGenerationModelInterface::class ) ) {
+			$this->markTestSkipped( 'SDK does not support embedding generation.' );
+		}
+
+		$model_metadata = new ModelMetadata(
+			'nomic-embed-text',
+			'Nomic Embed Text',
+			array( CapabilityEnum::embeddingGeneration() ),
+			array()
+		);
+
+		$model = $this->invoke_create_model( $model_metadata );
+
+		$this->assertInstanceOf( OllamaEmbeddingGenerationModel::class, $model );
 	}
 
 	/**

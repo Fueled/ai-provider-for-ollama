@@ -10,6 +10,7 @@ use PHPUnit\Framework\TestCase;
 use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
 use WordPress\AiClient\Providers\Http\DTO\Response;
 use WordPress\AiClient\Providers\Http\Exception\ResponseException;
+use WordPress\AiClient\Providers\Models\EmbeddingGeneration\Contracts\EmbeddingGenerationModelInterface;
 
 /**
  * Tests for OllamaModelMetadataDirectory.
@@ -154,15 +155,58 @@ class OllamaModelMetadataDirectoryTest extends TestCase {
 	// -----------------------------------------------------------------------
 
 	/**
-	 * Tests that embedding-only models (non-empty capabilities without 'completion') are excluded.
+	 * Tests that embedding-only models are excluded when the SDK lacks embedding support.
 	 */
-	public function test_embedding_only_model_is_excluded(): void {
+	public function test_embedding_only_model_is_excluded_without_sdk_support(): void {
+		if ( interface_exists( EmbeddingGenerationModelInterface::class ) ) {
+			$this->markTestSkipped( 'SDK supports embedding generation; embedding-only models are included.' );
+		}
+
 		$this->transporter->queue_response( $this->make_tags_response( array( 'nomic-embed-text' ) ) );
 		$this->transporter->queue_response( $this->make_show_response( array( 'embedding' ) ) );
 
 		$models = $this->directory->listModelMetadata();
 
 		$this->assertCount( 0, $models );
+	}
+
+	/**
+	 * Tests that embedding-capable models are included with the embeddingGeneration capability when the SDK supports it.
+	 */
+	public function test_embedding_only_model_is_included_with_embedding_capability(): void {
+		if ( ! interface_exists( EmbeddingGenerationModelInterface::class ) ) {
+			$this->markTestSkipped( 'SDK does not support embedding generation.' );
+		}
+
+		$this->transporter->queue_response( $this->make_tags_response( array( 'nomic-embed-text' ) ) );
+		$this->transporter->queue_response( $this->make_show_response( array( 'embedding' ) ) );
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertCount( 1, $models );
+		$this->assertSame( 'nomic-embed-text', $models[0]->getId() );
+
+		$has_embedding_capability = false;
+		foreach ( $models[0]->getSupportedCapabilities() as $capability ) {
+			if ( $capability->isEmbeddingGeneration() ) {
+				$has_embedding_capability = true;
+				break;
+			}
+		}
+		$this->assertTrue( $has_embedding_capability, 'Expected embeddingGeneration capability.' );
+
+		$this->assertNotNull(
+			$this->find_option( $models[0]->getSupportedOptions(), 'isDimensions' ),
+			'Expected dimensions supported option.'
+		);
+		$this->assertNotNull(
+			$this->find_option( $models[0]->getSupportedOptions(), 'isInputModalities' ),
+			'Expected inputModalities supported option.'
+		);
+		$this->assertNotNull(
+			$this->find_option( $models[0]->getSupportedOptions(), 'isCustomOptions' ),
+			'Expected customOptions supported option.'
+		);
 	}
 
 	/**
