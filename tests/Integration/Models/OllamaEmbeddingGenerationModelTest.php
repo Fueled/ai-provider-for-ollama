@@ -9,9 +9,7 @@ use Fueled\AiProviderForOllama\Tests\Integration\Mocks\MockHttpTransporter;
 use PHPUnit\Framework\TestCase;
 use WordPress\AiClient\Common\Exception\InvalidArgumentException;
 use WordPress\AiClient\Files\DTO\File;
-use WordPress\AiClient\Messages\DTO\Message;
 use WordPress\AiClient\Messages\DTO\MessagePart;
-use WordPress\AiClient\Messages\Enums\MessageRoleEnum;
 use WordPress\AiClient\Providers\DTO\ProviderMetadata;
 use WordPress\AiClient\Providers\Enums\ProviderTypeEnum;
 use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
@@ -31,14 +29,14 @@ class OllamaEmbeddingGenerationModelTest extends TestCase {
 	/**
 	 * Model under test.
 	 *
-	 * @var OllamaEmbeddingGenerationModel
+	 * @var \Fueled\AiProviderForOllama\Models\OllamaEmbeddingGenerationModel
 	 */
 	private OllamaEmbeddingGenerationModel $model;
 
 	/**
 	 * Shared mock transporter for request/response inspection.
 	 *
-	 * @var MockHttpTransporter
+	 * @var \Fueled\AiProviderForOllama\Tests\Integration\Mocks\MockHttpTransporter
 	 */
 	private MockHttpTransporter $transporter;
 
@@ -68,32 +66,27 @@ class OllamaEmbeddingGenerationModelTest extends TestCase {
 	}
 
 	/**
-	 * Builds a single-message user prompt for one embedding input.
+	 * Builds a single text message part for one embedding input.
 	 *
-	 * @param string $text Prompt text.
-	 * @return array<Message>
+	 * @param string $text Input text.
+	 * @return \WordPress\AiClient\Messages\DTO\MessagePart
 	 */
-	private function make_prompt( string $text ): array {
-		return array(
-			new Message(
-				MessageRoleEnum::user(),
-				array( new MessagePart( $text ) )
-			),
-		);
+	private function make_input( string $text ): MessagePart {
+		return new MessagePart( $text );
 	}
 
 	/**
 	 * Builds a mock API response payload for /api/embed.
 	 *
 	 * @param array<string, mixed> $data Payload data.
-	 * @return Response
+	 * @return \WordPress\AiClient\Providers\Http\DTO\Response
 	 */
 	private function make_response( array $data ): Response {
 		return new Response( 200, array(), (string) json_encode( $data ) );
 	}
 
 	/**
-	 * Tests request construction and embedding parsing for a single prompt.
+	 * Tests request construction and embedding parsing for a single input.
 	 */
 	public function test_generate_embedding_result_sends_expected_request_and_parses_vectors(): void {
 		$this->transporter->set_response_to_return(
@@ -106,7 +99,7 @@ class OllamaEmbeddingGenerationModelTest extends TestCase {
 			)
 		);
 
-		$result = $this->model->generateEmbeddingResult( array( $this->make_prompt( 'PHP powers the web.' ) ) );
+		$result = $this->model->generateEmbeddingResult( array( $this->make_input( 'PHP powers the web.' ) ) );
 
 		$request = $this->transporter->get_last_request();
 		$this->assertNotNull( $request );
@@ -134,9 +127,9 @@ class OllamaEmbeddingGenerationModelTest extends TestCase {
 	}
 
 	/**
-	 * Tests that a batch of prompts produces one input string per prompt and vectors in order.
+	 * Tests that a batch of inputs produces one input string per input and vectors in order.
 	 */
-	public function test_generate_embedding_result_handles_batch_prompts(): void {
+	public function test_generate_embedding_result_handles_batch_inputs(): void {
 		$this->transporter->set_response_to_return(
 			$this->make_response(
 				array(
@@ -150,8 +143,8 @@ class OllamaEmbeddingGenerationModelTest extends TestCase {
 
 		$result = $this->model->generateEmbeddingResult(
 			array(
-				$this->make_prompt( 'first text' ),
-				$this->make_prompt( 'second text' ),
+				$this->make_input( 'first text' ),
+				$this->make_input( 'second text' ),
 			)
 		);
 
@@ -176,7 +169,7 @@ class OllamaEmbeddingGenerationModelTest extends TestCase {
 			$this->make_response( array( 'embeddings' => array( array( 0.1, 0.2 ) ) ) )
 		);
 
-		$this->model->generateEmbeddingResult( array( $this->make_prompt( 'text' ) ) );
+		$this->model->generateEmbeddingResult( array( $this->make_input( 'text' ) ) );
 
 		$request = $this->transporter->get_last_request();
 		$this->assertNotNull( $request );
@@ -191,7 +184,7 @@ class OllamaEmbeddingGenerationModelTest extends TestCase {
 			$this->make_response( array( 'embeddings' => array( array( 0.1, 0.2 ) ) ) )
 		);
 
-		$this->model->generateEmbeddingResult( array( $this->make_prompt( 'text' ) ) );
+		$this->model->generateEmbeddingResult( array( $this->make_input( 'text' ) ) );
 
 		$request = $this->transporter->get_last_request();
 		$this->assertNotNull( $request );
@@ -218,7 +211,7 @@ class OllamaEmbeddingGenerationModelTest extends TestCase {
 			$this->make_response( array( 'embeddings' => array( array( 0.1, 0.2 ) ) ) )
 		);
 
-		$this->model->generateEmbeddingResult( array( $this->make_prompt( 'text' ) ) );
+		$this->model->generateEmbeddingResult( array( $this->make_input( 'text' ) ) );
 
 		$request = $this->transporter->get_last_request();
 		$this->assertNotNull( $request );
@@ -248,7 +241,7 @@ class OllamaEmbeddingGenerationModelTest extends TestCase {
 			)
 		);
 
-		$result          = $this->model->generateEmbeddingResult( array( $this->make_prompt( 'text' ) ) );
+		$result          = $this->model->generateEmbeddingResult( array( $this->make_input( 'text' ) ) );
 		$additional_data = $result->getAdditionalData();
 
 		$this->assertArrayNotHasKey( 'embeddings', $additional_data );
@@ -264,31 +257,34 @@ class OllamaEmbeddingGenerationModelTest extends TestCase {
 		);
 
 		$this->expectException( ResponseException::class );
-		$this->model->generateEmbeddingResult( array( $this->make_prompt( 'text' ) ) );
+		$this->model->generateEmbeddingResult( array( $this->make_input( 'text' ) ) );
 	}
 
 	/**
-	 * Tests that a prompt whose message has no text part is rejected.
+	 * Tests that a non-text (file) input part is rejected.
 	 */
-	public function test_prompt_without_text_part_is_rejected(): void {
+	public function test_non_text_input_part_is_rejected(): void {
 		$this->expectException( InvalidArgumentException::class );
 
 		$this->model->generateEmbeddingResult(
 			array(
-				array(
-					new Message(
-						MessageRoleEnum::user(),
-						array( new MessagePart( new File( 'data:image/png;base64,QUJDRA==', 'image/png' ) ) )
-					),
-				),
+				new MessagePart( new File( 'data:image/png;base64,QUJDRA==', 'image/png' ) ),
 			)
 		);
 	}
 
 	/**
-	 * Tests that an empty prompt list is rejected.
+	 * Tests that a blank text input part is rejected.
 	 */
-	public function test_empty_prompt_list_is_rejected(): void {
+	public function test_blank_text_input_part_is_rejected(): void {
+		$this->expectException( InvalidArgumentException::class );
+		$this->model->generateEmbeddingResult( array( new MessagePart( '   ' ) ) );
+	}
+
+	/**
+	 * Tests that an empty input list is rejected.
+	 */
+	public function test_empty_input_list_is_rejected(): void {
 		$this->expectException( InvalidArgumentException::class );
 		$this->model->generateEmbeddingResult( array() );
 	}

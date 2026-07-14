@@ -13,7 +13,7 @@ namespace Fueled\AiProviderForOllama\Models;
 use Fueled\AiProviderForOllama\Models\Traits\OllamaRequestOptionsTrait;
 use Fueled\AiProviderForOllama\Provider\OllamaProvider;
 use WordPress\AiClient\Common\Exception\InvalidArgumentException;
-use WordPress\AiClient\Messages\DTO\Message;
+use WordPress\AiClient\Messages\DTO\MessagePart;
 use WordPress\AiClient\Providers\ApiBasedImplementation\AbstractApiBasedModel;
 use WordPress\AiClient\Providers\Http\DTO\Request;
 use WordPress\AiClient\Providers\Http\DTO\Response;
@@ -47,15 +47,15 @@ class OllamaEmbeddingGenerationModel extends AbstractApiBasedModel implements Em
 	use OllamaRequestOptionsTrait;
 
 	/**
-	 * Generates embeddings from one or more prompts using the Ollama API.
+	 * Generates embeddings from one or more inputs using the Ollama API.
 	 *
 	 * @since x.x.x
 	 *
-	 * @param array<int, list<\WordPress\AiClient\Messages\DTO\Message>> $prompts Array of message lists to embed, one list per input.
+	 * @param list<\WordPress\AiClient\Messages\DTO\MessagePart> $input The inputs to embed, one embedding generated per input.
 	 * @return \WordPress\AiClient\Results\DTO\EmbeddingResult Result containing the generated embedding vectors.
 	 */
-	public function generateEmbeddingResult( array $prompts ): EmbeddingResult {
-		$params          = $this->prepareGenerateEmbeddingsParams( $prompts );
+	public function generateEmbeddingResult( array $input ): EmbeddingResult {
+		$params          = $this->prepareGenerateEmbeddingsParams( $input );
 		$request_options = $this->prepareRequestOptions( 60.0, 10.0 );
 
 		$request = new Request(
@@ -74,31 +74,31 @@ class OllamaEmbeddingGenerationModel extends AbstractApiBasedModel implements Em
 	}
 
 	/**
-	 * Prepares the given prompts and model configuration into API request parameters.
+	 * Prepares the given inputs and model configuration into API request parameters.
 	 *
 	 * @since x.x.x
 	 *
-	 * @param array<int, list<\WordPress\AiClient\Messages\DTO\Message>> $prompts The prompts to embed, one message list per input.
+	 * @param list<\WordPress\AiClient\Messages\DTO\MessagePart> $input The inputs to embed, one embedding generated per input.
 	 * @return array<string, mixed> The parameters for the API request.
-	 * @throws \WordPress\AiClient\Common\Exception\InvalidArgumentException If the prompts are invalid or a custom option conflicts.
+	 * @throws \WordPress\AiClient\Common\Exception\InvalidArgumentException If the inputs are invalid or a custom option conflicts.
 	 */
-	private function prepareGenerateEmbeddingsParams( array $prompts ): array {
-		if ( ! array_is_list( $prompts ) ) {
-			throw new InvalidArgumentException( 'Embedding input must be provided as a list of prompts.' );
+	private function prepareGenerateEmbeddingsParams( array $input ): array {
+		if ( ! array_is_list( $input ) ) {
+			throw new InvalidArgumentException( 'Embedding input must be provided as a list of message parts.' );
 		}
 
-		if ( empty( $prompts ) ) {
-			throw new InvalidArgumentException( 'The API requires at least one prompt.' );
+		if ( empty( $input ) ) {
+			throw new InvalidArgumentException( 'The API requires at least one input.' );
 		}
 
-		$input = array();
-		foreach ( $prompts as $messages ) {
-			$input[] = $this->preparePromptInput( $messages );
+		$texts = array();
+		foreach ( $input as $index => $part ) {
+			$texts[] = $this->preparePartInput( $part, $index );
 		}
 
 		$params = array(
 			'model' => $this->metadata()->getId(),
-			'input' => $input,
+			'input' => $texts,
 		);
 
 		$dimensions = $this->getConfig()->getDimensions();
@@ -132,52 +132,42 @@ class OllamaEmbeddingGenerationModel extends AbstractApiBasedModel implements Em
 	}
 
 	/**
-	 * Prepares a single prompt (a list of messages) into one embeddings input string.
+	 * Prepares a single input part into one embeddings input string.
 	 *
 	 * @since x.x.x
 	 *
-	 * @param list<\WordPress\AiClient\Messages\DTO\Message> $messages The messages that make up one embedding input.
-	 * @return string The prompt text.
-	 * @throws \WordPress\AiClient\Common\Exception\InvalidArgumentException If the messages are empty or not a list.
+	 * @param mixed $part  The message part that makes up one embedding input.
+	 * @param int   $index The index of the part within the input list, used for error messages.
+	 * @return string The embedding input text.
+	 * @throws \WordPress\AiClient\Common\Exception\InvalidArgumentException If the part is not a non-empty text message part.
 	 */
-	private function preparePromptInput( array $messages ): string {
-		if ( ! array_is_list( $messages ) || empty( $messages ) ) {
-			throw new InvalidArgumentException( 'Each embedding prompt must be a non-empty list of messages.' );
+	private function preparePartInput( $part, int $index ): string {
+		if ( ! $part instanceof MessagePart ) {
+			// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped
+			throw new InvalidArgumentException(
+				sprintf( 'Embedding input at index %d must be a MessagePart.', $index )
+			);
+			// phpcs:enable WordPress.Security.EscapeOutput.ExceptionNotEscaped
 		}
 
-		$text_parts = array();
-		foreach ( $messages as $message ) {
-			$text_parts[] = $this->prepareMessageInput( $message );
+		if ( ! $part->getType()->isText() ) {
+			// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped
+			throw new InvalidArgumentException(
+				sprintf( 'Ollama embedding input at index %d must be a text part.', $index )
+			);
+			// phpcs:enable WordPress.Security.EscapeOutput.ExceptionNotEscaped
 		}
 
-		return implode( "\n", $text_parts );
-	}
-
-	/**
-	 * Prepares a single message for the embeddings input parameter.
-	 *
-	 * @since x.x.x
-	 *
-	 * @param \WordPress\AiClient\Messages\DTO\Message $message The message for one embedding input.
-	 * @return string The prompt text.
-	 * @throws \WordPress\AiClient\Common\Exception\InvalidArgumentException If the message has no text content.
-	 */
-	private function prepareMessageInput( Message $message ): string {
-		$text_parts = array();
-		foreach ( $message->getParts() as $part ) {
-			$text = $part->getText();
-			if ( null === $text ) {
-				continue;
-			}
-
-			$text_parts[] = $text;
+		$text = $part->getText();
+		if ( null === $text || '' === trim( $text ) ) {
+			// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped
+			throw new InvalidArgumentException(
+				sprintf( 'Ollama embedding input at index %d must contain non-empty text.', $index )
+			);
+			// phpcs:enable WordPress.Security.EscapeOutput.ExceptionNotEscaped
 		}
 
-		if ( empty( $text_parts ) ) {
-			throw new InvalidArgumentException( 'The API requires text content to generate embeddings.' );
-		}
-
-		return implode( "\n", $text_parts );
+		return $text;
 	}
 
 	/**
