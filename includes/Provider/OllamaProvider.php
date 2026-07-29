@@ -19,6 +19,7 @@ use WordPress\AiClient\Providers\Enums\ProviderTypeEnum;
 use WordPress\AiClient\Providers\Http\Enums\RequestAuthenticationMethod;
 use WordPress\AiClient\Providers\Models\Contracts\ModelInterface;
 use WordPress\AiClient\Providers\Models\DTO\ModelMetadata;
+use WordPress\AiClient\Providers\Models\EmbeddingGeneration\Contracts\EmbeddingGenerationModelInterface;
 
 /**
  * Class for the Ollama provider.
@@ -63,7 +64,8 @@ class OllamaProvider extends AbstractApiProvider {
 				return new OllamaTextGenerationModel( $model_metadata, $provider_metadata );
 			}
 
-			if ( $capability->isEmbeddingGeneration() ) {
+			// The embedding contracts are unreleased in some SDK versions; the model class cannot load there.
+			if ( $capability->isEmbeddingGeneration() && interface_exists( EmbeddingGenerationModelInterface::class ) ) {
 				return new OllamaEmbeddingGenerationModel( $model_metadata, $provider_metadata );
 			}
 		}
