@@ -280,7 +280,9 @@ class OllamaSettings {
 		$models = $this->get_models();
 
 		if ( is_wp_error( $models ) ) {
-			wp_send_json_error( $models->get_error_message(), $models->get_error_code() );
+			// The HTTP status is stored as the WP_Error data; the code is a non-numeric slug.
+			$status_code = $models->get_error_data();
+			wp_send_json_error( $models->get_error_message(), is_int( $status_code ) ? $status_code : 500 );
 		}
 
 		wp_send_json_success( $models );
@@ -302,7 +304,7 @@ class OllamaSettings {
 	 *
 	 * @since 1.1.0
 	 *
-	 * @return \WP_Error|array<string, \Fueled\AiProviderForOllama\Settings\ModelMetadata> The models.
+	 * @return \WP_Error|list<\WordPress\AiClient\Providers\Models\DTO\ModelMetadata> The models.
 	 */
 	public function get_models() {
 		$provider_id = 'ollama';
