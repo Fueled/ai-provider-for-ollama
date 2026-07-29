@@ -280,7 +280,6 @@ class OllamaSettings {
 		$models = $this->get_models();
 
 		if ( is_wp_error( $models ) ) {
-			// The HTTP status is stored as the WP_Error data; the code is a non-numeric slug.
 			$status_code = $models->get_error_data();
 			wp_send_json_error( $models->get_error_message(), is_int( $status_code ) ? $status_code : 500 );
 		}
