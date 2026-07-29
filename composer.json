@@ -33,7 +33,6 @@
         "phpstan/phpstan": "^2.1.22",
         "slevomat/coding-standard": "^8.20",
 		    "szepeviktor/phpstan-wordpress": "^2.0.2",
-		    "wordpress/php-ai-client": "^1.4",
 		    "wp-coding-standards/wpcs": "^3.4.1",
 		    "wp-phpunit/wp-phpunit": "^6.5",
 		    "yoast/phpunit-polyfills": "^4.0"

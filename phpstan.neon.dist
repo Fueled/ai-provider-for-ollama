@@ -26,5 +26,17 @@ parameters:
 		analyse:
 			- tests/
 			- vendor/
+			# These files depend on the AI Client bundled with WordPress core. It cannot be installed
+			# via Composer for analysis: the bundled copy is PHP-Scoper-prefixed and its adapters
+			# implement the client contracts with WordPress\AiClientDependencies\Psr\* types, so an
+			# unprefixed Composer copy shadows it and fatals on incompatible signatures.
+			- includes/Plugin.php
+			- includes/Metadata/OllamaModelMetadataDirectory.php
+			- includes/Models/OllamaEmbeddingGenerationModel.php
+			- includes/Models/OllamaImageGenerationModel.php
+			- includes/Models/OllamaTextGenerationModel.php
+			- includes/Models/Traits/OllamaRequestOptionsTrait.php
+			- includes/Provider/OllamaProvider.php
+			- includes/Settings/OllamaSettings.php
 		analyseAndScan:
 			- node_modules (?)

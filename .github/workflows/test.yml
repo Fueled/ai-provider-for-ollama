@@ -166,7 +166,7 @@ jobs:
   # - Uploads code coverage report to Codecov.io (if coverage is enabled).
   # - Uploads HTML coverage report as an artifact (if coverage is enabled).
   phpunit:
-    name: Test PHP ${{ matrix.php }} WP ${{ matrix.wp }}${{ matrix.client && format( ' AI Client {0}', matrix.client ) || '' }}${{ matrix.coverage && ' with coverage' || '' }}
+    name: Test PHP ${{ matrix.php }} WP ${{ matrix.wp }}${{ matrix.coverage && ' with coverage' || '' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -174,25 +174,17 @@ jobs:
         php: [ '8.4', '8.3', '8.2', '8.1', '8.0', '7.4' ]
         wp: [ trunk ]
         coverage: [ false ]
-        # Empty means "use the version resolved from composer.json".
-        client: [ '' ]
         include:
           - php: '8.4'
             wp: trunk
             coverage: true
-            client: ''
-          # Oldest supported WordPress version (see "Requires at least" in plugin.php).
+          # Oldest supported WordPress version (see "Requires at least" in plugin.php). The AI Client
+          # version is whatever core bundles, so pinning WordPress is how the client is pinned:
+          # WordPress 7.0 ships 1.3.1, which has no embedding support, and therefore exercises the
+          # interface_exists() fallbacks in the provider and metadata directory.
           - php: '7.4'
             wp: '7.0'
             coverage: false
-            client: ''
-          # Oldest supported PHP AI Client. WordPress 7.0 bundles 1.3.1, which has no embedding
-          # support, so this job exercises the feature-detection fallbacks. Without it every job
-          # runs against the ^1.4 dev dependency, whose autoloader shadows the bundled copy.
-          - php: '8.4'
-            wp: trunk
-            coverage: false
-            client: '1.3.1'
     env:
       WP_ENV_PHP_VERSION: ${{ matrix.php }}
       WP_ENV_CORE: ${{ matrix.wp == 'trunk' && 'WordPress/WordPress' || format( 'https://wordpress.org/wordpress-{0}.zip', matrix.wp ) }}
@@ -225,17 +217,6 @@ jobs:
       - name: Install Composer dependencies
         uses: ramsey/composer-install@3cf229dc2919194e9e36783941438d17239e8520 # v3.1.1
 
-      # Pins the dev-installed PHP AI Client to the oldest supported version so the
-      # feature-detection fallbacks are exercised. Only composer.json in the runner is
-      # modified, and only for this job.
-      - name: Downgrade the PHP AI Client
-        if: ${{ matrix.client }}
-        env:
-          AI_CLIENT_VERSION: ${{ matrix.client }}
-        run: |
-          composer require --dev --no-interaction --with-all-dependencies \
-            "wordpress/php-ai-client:$AI_CLIENT_VERSION"
-
       - name: Setup Node
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
@@ -261,7 +242,6 @@ jobs:
         run: |
           npm run wp-env -- run cli php -- -v
           npm run wp-env -- run cli wp core version
-          composer show wordpress/php-ai-client | grep '^versions'
 
       - name: Run PHPUnit tests${{ matrix.coverage && ' with coverage report' || '' }}
         id: phpunit
