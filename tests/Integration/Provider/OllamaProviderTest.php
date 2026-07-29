@@ -225,6 +225,26 @@ class OllamaProviderTest extends TestCase {
 	}
 
 	/**
+	 * Tests that createModel() rejects the embeddingGeneration capability when the SDK lacks embedding support.
+	 */
+	public function test_create_model_throws_for_embedding_capability_without_sdk_support(): void {
+		if ( interface_exists( EmbeddingGenerationModelInterface::class ) ) {
+			$this->markTestSkipped( 'SDK supports embedding generation; the model class is instantiable.' );
+		}
+
+		$model_metadata = new ModelMetadata(
+			'nomic-embed-text',
+			'Nomic Embed Text',
+			array( CapabilityEnum::embeddingGeneration() ),
+			array()
+		);
+
+		$this->expectException( RuntimeException::class );
+		$this->expectExceptionMessage( 'Unsupported model capabilities: embedding_generation' );
+		$this->invoke_create_model( $model_metadata );
+	}
+
+	/**
 	 * Tests that createModel() prefers imageGeneration over textGeneration when both capabilities are present.
 	 */
 	public function test_create_model_prefers_image_generation_over_text_generation(): void {
