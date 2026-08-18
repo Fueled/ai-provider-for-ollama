@@ -178,6 +178,13 @@ jobs:
           - php: '8.4'
             wp: latest
             coverage: true
+          # Oldest supported WordPress version (see "Requires at least" in plugin.php). The AI Client
+          # version is whatever core bundles, so pinning WordPress is how the client is pinned:
+          # WordPress 7.0 ships 1.3.1, which has no embedding support, and therefore exercises the
+          # interface_exists() fallbacks in the provider and metadata directory.
+          - php: '7.4'
+            wp: '7.0'
+            coverage: false
     env:
       WP_ENV_PHP_VERSION: ${{ matrix.php }}
       WP_ENV_CORE: ${{ matrix.wp == 'trunk' && 'WordPress/WordPress' || format( 'https://wordpress.org/wordpress-{0}.zip', matrix.wp ) }}
