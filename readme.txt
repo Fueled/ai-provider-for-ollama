@@ -3,7 +3,7 @@ Contributors:      fueled, 10up
 Tags:              ai, ollama, llm, local-ai, connector
 Requires at least: 7.0
 Tested up to:      7.1
-Stable tag:        1.1.1
+Stable tag:        1.2.0
 Requires PHP:      7.4
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -63,6 +63,16 @@ By default, the provider connects to `http://localhost:11434`. You can change th
 1. Settings > Ollama screen showing available AI models and Host URL configuration.
 
 == Changelog ==
+
+= 1.2.0 - 2026-08-18 =
+
+**Added**
+
+- Support for generating embeddings (props [@dkotter](https://github.com/dkotter) via [#69](https://github.com/Fueled/ai-provider-for-ollama/pull/69)).
+
+**Changed**
+
+- Bumped WordPress tested-up-to version 7.1 (props [@jeffpaul](https://github.com/jeffpaul), [@dkotter](https://github.com/dkotter) via [#81](https://github.com/Fueled/ai-provider-for-ollama/pull/81)).
 
 = 1.1.1 - 2026-05-14 =
 

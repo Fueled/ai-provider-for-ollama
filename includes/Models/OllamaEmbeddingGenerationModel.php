@@ -3,7 +3,7 @@
  * Ollama embedding generation model.
  *
  * @package Fueled\AiProviderForOllama\Models
- * @since   x.x.x
+ * @since   1.2.0
  */
 
 declare( strict_types=1 );
@@ -32,7 +32,7 @@ use WordPress\AiClient\Results\DTO\TokenUsage;
  * batch of inputs and returns one vector per input. Works with any model
  * that reports the "embedding" capability (e.g. nomic-embed-text, mxbai-embed-large).
  *
- * @since x.x.x
+ * @since 1.2.0
  *
  * @phpstan-type ResponseData array{
  *     model?: string,
@@ -49,7 +49,7 @@ class OllamaEmbeddingGenerationModel extends AbstractApiBasedModel implements Em
 	/**
 	 * Generates embeddings from one or more inputs using the Ollama API.
 	 *
-	 * @since x.x.x
+	 * @since 1.2.0
 	 *
 	 * @param list<\WordPress\AiClient\Messages\DTO\MessagePart> $input The inputs to embed, one embedding generated per input.
 	 * @return \WordPress\AiClient\Results\DTO\EmbeddingResult Result containing the generated embedding vectors.
@@ -76,7 +76,7 @@ class OllamaEmbeddingGenerationModel extends AbstractApiBasedModel implements Em
 	/**
 	 * Prepares the given inputs and model configuration into API request parameters.
 	 *
-	 * @since x.x.x
+	 * @since 1.2.0
 	 *
 	 * @param list<\WordPress\AiClient\Messages\DTO\MessagePart> $input The inputs to embed, one embedding generated per input.
 	 * @return array<string, mixed> The parameters for the API request.
@@ -134,7 +134,7 @@ class OllamaEmbeddingGenerationModel extends AbstractApiBasedModel implements Em
 	/**
 	 * Prepares a single input part into one embeddings input string.
 	 *
-	 * @since x.x.x
+	 * @since 1.2.0
 	 *
 	 * @param mixed $part  The message part that makes up one embedding input.
 	 * @param int   $index The index of the part within the input list, used for error messages.
@@ -173,7 +173,7 @@ class OllamaEmbeddingGenerationModel extends AbstractApiBasedModel implements Em
 	/**
 	 * Parses an Ollama /api/embed response to an embedding result.
 	 *
-	 * @since x.x.x
+	 * @since 1.2.0
 	 *
 	 * @param \WordPress\AiClient\Providers\Http\DTO\Response $response The Ollama API response.
 	 * @return \WordPress\AiClient\Results\DTO\EmbeddingResult The parsed embedding result.
