@@ -63,6 +63,16 @@ By default, the provider connects to `http://localhost:11434`. You can change th
 
 == Changelog ==
 
+= 1.2.0 - 2026-08-18 =
+
+**Added**
+
+- Support for generating embeddings (props [@dkotter](https://github.com/dkotter) via [#69](https://github.com/Fueled/ai-provider-for-ollama/pull/69)).
+
+**Changed**
+
+- Bumped WordPress tested-up-to version 7.1 (props [@jeffpaul](https://github.com/jeffpaul), [@dkotter](https://github.com/dkotter) via [#81](https://github.com/Fueled/ai-provider-for-ollama/pull/81)).
+
 = 1.1.1 - 2026-05-14 =
 
 **Added**
