@@ -12,7 +12,7 @@ Ollama provider for the WordPress AI Client.
 
 == Description ==
 
-This plugin provides [Ollama](https://ollama.com/) integration for the WordPress AI Client. It lets WordPress sites use large language models running locally or on a remote Ollama instance for text and image generation and other AI capabilities.
+This plugin provides [Ollama](https://ollama.com/) integration for the WordPress AI Client. It lets WordPress sites use large language models running locally or on a remote Ollama instance for text, image, and embedding generation and other AI capabilities.
 
 Ollama exposes an [OpenAI-compatible API](https://ollama.com/blog/openai-compatibility), and this provider uses that API to communicate with any model you have pulled into Ollama (Llama, Mistral, Gemma, Phi, and many more).
 
@@ -20,6 +20,7 @@ Ollama exposes an [OpenAI-compatible API](https://ollama.com/blog/openai-compati
 
 * Text generation with any Ollama model
 * Image generation with supported models
+* Embedding generation with any embedding-capable Ollama model
 * Automatic model discovery from your Ollama instance
 * Function calling support
 * Structured output (JSON mode) support

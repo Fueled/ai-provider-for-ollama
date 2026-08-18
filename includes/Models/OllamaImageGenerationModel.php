@@ -55,7 +55,7 @@ class OllamaImageGenerationModel extends AbstractApiBasedModel implements ImageG
 	 *
 	 * @since 1.1.0
 	 *
-	 * @param array $prompt Array of messages containing the image generation prompt.
+	 * @param list<\WordPress\AiClient\Messages\DTO\Message> $prompt Array of messages containing the image generation prompt.
 	 * @return \WordPress\AiClient\Results\DTO\GenerativeAiResult Result containing the generated image.
 	 */
 	public function generateImageResult( array $prompt ): GenerativeAiResult {

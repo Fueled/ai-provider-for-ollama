@@ -24,6 +24,11 @@ interface AjaxResponse {
 	data: ModelMetadata[] | string;
 }
 
+interface ErrorResponse {
+	message?: unknown;
+	data?: unknown;
+}
+
 interface ModelMetadata {
 	id: string;
 	name: string;
@@ -157,6 +162,31 @@ function createCapabilityPill(
 }
 
 /**
+ * Gets a displayable error message from an API response.
+ *
+ * @param {unknown} error    The caught error.
+ * @param {string}  fallback The fallback error message.
+ * @return {string} The displayable error message.
+ * @since x.x.x
+ */
+function getErrorMessage( error: unknown, fallback: string ): string {
+	if ( error === null || typeof error !== 'object' ) {
+		return fallback;
+	}
+
+	const response = error as ErrorResponse;
+	if ( typeof response.data === 'string' ) {
+		return response.data;
+	}
+
+	if ( typeof response.message === 'string' ) {
+		return response.message;
+	}
+
+	return fallback;
+}
+
+/**
  * Loads and displays the available models in a list.
  *
  * @param {Config} config The configuration object.
@@ -181,13 +211,7 @@ async function loadModels( config: Config ): Promise< void > {
 			'Could not connect to load models.',
 			'ai-provider-for-ollama'
 		);
-		status.textContent =
-			error !== null &&
-			typeof error === 'object' &&
-			'message' in error &&
-			typeof ( error as { message: unknown } ).message === 'string'
-				? ( error as { message: string } ).message
-				: fallback;
+		status.textContent = getErrorMessage( error, fallback );
 		status.style.color = ERROR_COLOR;
 		return;
 	}
