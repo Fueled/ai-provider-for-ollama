@@ -14,6 +14,7 @@ use WordPress\AiClient\Providers\Http\Exception\ResponseException;
 use WordPress\AiClient\Providers\Http\Util\ResponseUtil;
 use WordPress\AiClient\Providers\Models\DTO\ModelMetadata;
 use WordPress\AiClient\Providers\Models\DTO\SupportedOption;
+use WordPress\AiClient\Providers\Models\EmbeddingGeneration\Contracts\EmbeddingGenerationModelInterface;
 use WordPress\AiClient\Providers\Models\Enums\CapabilityEnum;
 use WordPress\AiClient\Providers\Models\Enums\OptionEnum;
 
@@ -69,8 +70,9 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	/**
 	 * Builds a ModelMetadata object for a single model, or returns null if the model should be skipped.
 	 *
-	 * Skips embedding-only models (those whose capabilities array is non-empty and lacks 'completion').
-	 * Falls back to text-only generation when details are unavailable.
+	 * Maps embedding-capable models to embedding-generation metadata when the SDK supports it. Skips
+	 * other non-completion models (unless they generate images). Falls back to text-only generation
+	 * when details are unavailable.
 	 *
 	 * @since 1.0.0
 	 *
@@ -86,7 +88,19 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 		if ( null !== $details ) {
 			$model_capabilities = isset( $details['capabilities'] ) ? $details['capabilities'] : array();
 
-			// Skip embedding-only models, but keep image-generation models which may not report "completion".
+			$is_embedding_model = in_array( 'embedding', $model_capabilities, true )
+				&& ! in_array( 'completion', $model_capabilities, true );
+
+			if ( $is_embedding_model && ! $is_image_generation_model ) {
+				// The embedding contracts are unreleased in some SDK versions; preserve legacy exclusion there.
+				if ( ! interface_exists( EmbeddingGenerationModelInterface::class ) ) {
+					return null;
+				}
+
+				return $this->buildEmbeddingModelMetadata( $model_name );
+			}
+
+			// Skip other non-completion models, but keep image-generation models which may not report "completion".
 			if ( ! empty( $model_capabilities ) && ! in_array( 'completion', $model_capabilities, true ) && ! $is_image_generation_model ) {
 				return null;
 			}
@@ -157,6 +171,29 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 				CapabilityEnum::chatHistory(),
 			),
 			$options
+		);
+	}
+
+	/**
+	 * Builds embedding-generation metadata for a model.
+	 *
+	 * @since 1.2.0
+	 *
+	 * @param string $model_name The model name.
+	 * @return \WordPress\AiClient\Providers\Models\DTO\ModelMetadata The embedding model metadata.
+	 */
+	private function buildEmbeddingModelMetadata( string $model_name ): ModelMetadata {
+		return new ModelMetadata(
+			$model_name,
+			$model_name,
+			array(
+				CapabilityEnum::embeddingGeneration(),
+			),
+			array(
+				new SupportedOption( OptionEnum::inputModalities(), array( array( ModalityEnum::text() ) ) ),
+				new SupportedOption( OptionEnum::dimensions() ),
+				new SupportedOption( OptionEnum::customOptions() ),
+			)
 		);
 	}
 

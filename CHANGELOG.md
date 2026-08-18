@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased] - TBD
 
+## [1.2.0] - 2026-08-18
+### Added
+- Support for generating embeddings (props [@dkotter](https://github.com/dkotter) via [#69](https://github.com/Fueled/ai-provider-for-ollama/pull/69)).
+
+### Changed
+- Bumped WordPress tested-up-to version 7.1 (props [@jeffpaul](https://github.com/jeffpaul), [@dkotter](https://github.com/dkotter) via [#81](https://github.com/Fueled/ai-provider-for-ollama/pull/81)).
+
+### Developer
+- Bump `tmp` from 0.2.5 to 0.2.7 (props [@dkotter](https://github.com/dkotter) via [#65](https://github.com/Fueled/ai-provider-for-ollama/pull/65)).
+- Bump `shell-quote` from 1.8.3 to 1.10.0 (props [@dkotter](https://github.com/dkotter) via [#66](https://github.com/Fueled/ai-provider-for-ollama/pull/66), [#73](https://github.com/Fueled/ai-provider-for-ollama/pull/73)).
+- Bump `launch-editor` from 2.12.0 to 2.14.1 (props [@dkotter](https://github.com/dkotter) via [#67](https://github.com/Fueled/ai-provider-for-ollama/pull/67)).
+- Bump `form-data` from 4.0.5 to 4.0.6 (props [@dkotter](https://github.com/dkotter) via [#68](https://github.com/Fueled/ai-provider-for-ollama/pull/68)).
+- Bump `websocket-driver` from 0.7.4 to 0.7.5 (props [@dkotter](https://github.com/dkotter) via [#70](https://github.com/Fueled/ai-provider-for-ollama/pull/70)).
+- Bump `@nodable/entities` from 2.1.0 to 3.0.0 (props [@dkotter](https://github.com/dkotter) via [#71](https://github.com/Fueled/ai-provider-for-ollama/pull/71)).
+- Bump `axios` from 1.16.0 to 1.18.1 (props [@dkotter](https://github.com/dkotter) via [#72](https://github.com/Fueled/ai-provider-for-ollama/pull/72)).
+- Bump `immutable` from 5.1.5 to 5.1.9 (props [@dkotter](https://github.com/dkotter) via [#74](https://github.com/Fueled/ai-provider-for-ollama/pull/74)).
+- Bump `svgo` from 3.3.3 to 3.3.4 (props [@dkotter](https://github.com/dkotter) via [#75](https://github.com/Fueled/ai-provider-for-ollama/pull/75)).
+- Bump `fast-uri` from 3.1.3 to 3.1.5 (props [@dkotter](https://github.com/dkotter) via [#76](https://github.com/Fueled/ai-provider-for-ollama/pull/76)).
+- Bump `postcss` from 8.5.14 to 8.5.25 (props [@dkotter](https://github.com/dkotter) via [#76](https://github.com/Fueled/ai-provider-for-ollama/pull/76)).
+- Bump `brace-expansion` from 1.1.12 to 1.1.18 (props [@dkotter](https://github.com/dkotter) via [#77](https://github.com/Fueled/ai-provider-for-ollama/pull/77)).
+- Bump `ip-address` from 10.2.0 to 10.4.0 (props [@dkotter](https://github.com/dkotter) via [#78](https://github.com/Fueled/ai-provider-for-ollama/pull/78)).
+- Bump `wp-coding-standards/wpcs` from 3.3.0 to 3.4.1 (props [@dkotter](https://github.com/dkotter) via [#79](https://github.com/Fueled/ai-provider-for-ollama/pull/79)).
+- Bump `squizlabs/php_codesniffer` from 3.13.5 to 3.13.6 (props [@dkotter](https://github.com/dkotter) via [#79](https://github.com/Fueled/ai-provider-for-ollama/pull/79)).
+
 ## [1.1.1] - 2026-05-14
 ### Added
 - Ensure the AI plugin sees Ollama as a valid, connected provider within the status dashboard widget (props [@dkotter](https://github.com/dkotter), [@jeffpaul](https://github.com/jeffpaul) via [#55](https://github.com/Fueled/ai-provider-for-ollama/pull/55)).
@@ -82,6 +106,8 @@ First public release of the AI Provider for Ollama plugin. 🎉
 - Function calling and structured output support
 
 [Unreleased]: https://github.com/Fueled/ai-provider-for-ollama/compare/main...develop
+[1.2.0]: https://github.com/Fueled/ai-provider-for-ollama/compare/1.1.1...1.2.0
+[1.1.1]: https://github.com/Fueled/ai-provider-for-ollama/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/Fueled/ai-provider-for-ollama/compare/1.0.3...1.1.0
 [1.0.3]: https://github.com/Fueled/ai-provider-for-ollama/compare/1.0.2...1.0.3
 [1.0.2]: https://github.com/Fueled/ai-provider-for-ollama/compare/1.0.1...1.0.2

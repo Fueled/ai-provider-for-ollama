@@ -2,8 +2,8 @@
 Contributors:      fueled, 10up
 Tags:              ai, ollama, llm, local-ai, connector
 Requires at least: 7.0
-Tested up to:      7.0
-Stable tag:        1.1.1
+Tested up to:      7.1
+Stable tag:        1.2.0
 Requires PHP:      7.4
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -12,7 +12,7 @@ Ollama provider for the WordPress AI Client.
 
 == Description ==
 
-This plugin provides [Ollama](https://ollama.com/) integration for the WordPress AI Client. It lets WordPress sites use large language models running locally or on a remote Ollama instance for text and image generation and other AI capabilities.
+This plugin provides [Ollama](https://ollama.com/) integration for the WordPress AI Client. It lets WordPress sites use large language models running locally or on a remote Ollama instance for text, image, and embedding generation and other AI capabilities.
 
 Ollama exposes an [OpenAI-compatible API](https://ollama.com/blog/openai-compatibility), and this provider uses that API to communicate with any model you have pulled into Ollama (Llama, Mistral, Gemma, Phi, and many more).
 
@@ -20,6 +20,7 @@ Ollama exposes an [OpenAI-compatible API](https://ollama.com/blog/openai-compati
 
 * Text generation with any Ollama model
 * Image generation with supported models
+* Embedding generation with any embedding-capable Ollama model
 * Automatic model discovery from your Ollama instance
 * Function calling support
 * Structured output (JSON mode) support
@@ -62,6 +63,16 @@ By default, the provider connects to `http://localhost:11434`. You can change th
 1. Settings > Ollama screen showing available AI models and Host URL configuration.
 
 == Changelog ==
+
+= 1.2.0 - 2026-08-18 =
+
+**Added**
+
+- Support for generating embeddings (props [@dkotter](https://github.com/dkotter) via [#69](https://github.com/Fueled/ai-provider-for-ollama/pull/69)).
+
+**Changed**
+
+- Bumped WordPress tested-up-to version 7.1 (props [@jeffpaul](https://github.com/jeffpaul), [@dkotter](https://github.com/dkotter) via [#81](https://github.com/Fueled/ai-provider-for-ollama/pull/81)).
 
 = 1.1.1 - 2026-05-14 =
 
