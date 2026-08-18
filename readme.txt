@@ -2,7 +2,7 @@
 Contributors:      fueled, 10up
 Tags:              ai, ollama, llm, local-ai, connector
 Requires at least: 7.0
-Tested up to:      7.0
+Tested up to:      7.1
 Stable tag:        1.1.1
 Requires PHP:      7.4
 License:           GPL-2.0-or-later
