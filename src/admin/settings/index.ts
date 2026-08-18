@@ -167,7 +167,7 @@ function createCapabilityPill(
  * @param {unknown} error    The caught error.
  * @param {string}  fallback The fallback error message.
  * @return {string} The displayable error message.
- * @since x.x.x
+ * @since 1.2.0
  */
 function getErrorMessage( error: unknown, fallback: string ): string {
 	if ( error === null || typeof error !== 'object' ) {

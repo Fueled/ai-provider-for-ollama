@@ -177,7 +177,7 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	/**
 	 * Builds embedding-generation metadata for a model.
 	 *
-	 * @since x.x.x
+	 * @since 1.2.0
 	 *
 	 * @param string $model_name The model name.
 	 * @return \WordPress\AiClient\Providers\Models\DTO\ModelMetadata The embedding model metadata.
