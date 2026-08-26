@@ -30,10 +30,6 @@ trait OllamaRequestOptionsTrait {
 	 *  - ai_provider_for_ollama_request_timeout (float $timeout)
 	 *  - ai_provider_for_ollama_connect_timeout (float $timeout)
 	 *
-	 * Custom options take precedence over filter defaults. Filters are applied
-	 * after both the hard-coded default and any custom option value are resolved,
-	 * so a filter receives the most-specific value set so far.
-	 *
 	 * @since 1.1.0
 	 *
 	 * @param float $default_request_timeout Default request timeout in seconds.
