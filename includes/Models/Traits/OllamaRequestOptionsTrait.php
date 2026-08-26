@@ -26,6 +26,14 @@ trait OllamaRequestOptionsTrait {
 	 *  - ollama.request_timeout (seconds)
 	 *  - ollama.connect_timeout (seconds)
 	 *
+	 * The resolved timeout values can also be overridden using WordPress filters:
+	 *  - ai_provider_for_ollama_request_timeout (float $timeout)
+	 *  - ai_provider_for_ollama_connect_timeout (float $timeout)
+	 *
+	 * Custom options take precedence over filter defaults. Filters are applied
+	 * after both the hard-coded default and any custom option value are resolved,
+	 * so a filter receives the most-specific value set so far.
+	 *
 	 * @since 1.1.0
 	 *
 	 * @param float $default_request_timeout Default request timeout in seconds.
@@ -51,9 +59,51 @@ trait OllamaRequestOptionsTrait {
 			$request_timeout = (float) $custom_options['ollama.request_timeout'];
 		}
 
+		if ( function_exists( 'apply_filters' ) ) {
+			/**
+			 * Filters the request timeout for Ollama API requests.
+			 *
+			 * The value is resolved from the hard-coded default and any `ollama.request_timeout`
+			 * custom option before this filter is applied, so the filter always receives the
+			 * most-specific value that has been set so far.
+			 *
+			 * Example usage to set a 120-second timeout for all Ollama requests:
+			 *
+			 *     add_filter( 'ai_provider_for_ollama_request_timeout', function() {
+			 *         return 120.0;
+			 *     } );
+			 *
+			 * @since 1.3.0
+			 *
+			 * @param float $request_timeout The request timeout in seconds.
+			 */
+			$request_timeout = (float) apply_filters( 'ai_provider_for_ollama_request_timeout', $request_timeout );
+		}
+
 		$connect_timeout = $default_connect_timeout;
 		if ( isset( $custom_options['ollama.connect_timeout'] ) && is_numeric( $custom_options['ollama.connect_timeout'] ) ) {
 			$connect_timeout = (float) $custom_options['ollama.connect_timeout'];
+		}
+
+		if ( function_exists( 'apply_filters' ) ) {
+			/**
+			 * Filters the connection timeout for Ollama API requests.
+			 *
+			 * The value is resolved from the hard-coded default and any `ollama.connect_timeout`
+			 * custom option before this filter is applied, so the filter always receives the
+			 * most-specific value that has been set so far.
+			 *
+			 * Example usage to set a 20-second connect timeout for all Ollama requests:
+			 *
+			 *     add_filter( 'ai_provider_for_ollama_connect_timeout', function() {
+			 *         return 20.0;
+			 *     } );
+			 *
+			 * @since 1.3.0
+			 *
+			 * @param float $connect_timeout The connection timeout in seconds.
+			 */
+			$connect_timeout = (float) apply_filters( 'ai_provider_for_ollama_connect_timeout', $connect_timeout );
 		}
 
 		$request_options->setTimeout( $request_timeout );
