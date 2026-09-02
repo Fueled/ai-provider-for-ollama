@@ -38,7 +38,7 @@
     "@types/react-dom": "^18.3.7",
 		"@wordpress/e2e-test-utils-playwright": "^1.37.0",
     "@wordpress/env": "^10.39.0",
-    "@wordpress/scripts": "^31.5.0",
+    "@wordpress/scripts": "^34.2.0",
     "filenamify": "^7.0.1",
     "typescript": "^5.9.3",
     "webpack-remove-empty-scripts": "^1.1.1"
