@@ -1,5 +1,5 @@
 /**
- * ESLint flat config for the AI plugin.
+ * ESLint flat config for the AI Provider for Ollama plugin.
  *
  * @see https://eslint.org/docs/latest/use/configure/configuration-files
  */
