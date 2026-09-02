@@ -1,0 +1,129 @@
+/**
+ * ESLint flat config for the AI Provider for Ollama plugin.
+ *
+ * @see https://eslint.org/docs/latest/use/configure/configuration-files
+ */
+
+// @ts-ignore TS7016
+import wordpress from '@wordpress/eslint-plugin';
+
+export default [
+	// Global ignores — these directories and config files are skipped entirely.
+	{
+		ignores: [
+			'**/build/**',
+			'**/node_modules/**',
+			'**/vendor/**',
+			'**/tests/_output/**',
+			// Config files (ESLint does not auto-ignore flat config files).
+			'eslint.config.mjs',
+			'webpack.config.js',
+		],
+	},
+
+	// Base config.
+	...wordpress.configs.recommended,
+
+	// Project-specific customizations applied on top of the WP recommended set.
+	{
+		name: 'ai-provider-for-ollama/custom-rules',
+
+		rules: {
+			// --- React best practices ---
+			'react/jsx-boolean-value': 'error',
+			'react/jsx-curly-brace-presence': [
+				'error',
+				{ props: 'never', children: 'never' },
+			],
+
+			// --- WordPress-specific rules (not in recommended) ---
+			'@wordpress/dependency-group': 'error',
+			'@wordpress/data-no-store-string-literals': 'error',
+			'@wordpress/wp-global-usage': 'error',
+			'@wordpress/react-no-unsafe-timeout': 'error',
+			'@wordpress/components-no-missing-40px-size-prop': 'error',
+
+			// Override WP defaults.
+			'@wordpress/i18n-text-domain': [
+				'error',
+				{
+					allowedTextDomain: 'ai-provider-for-ollama',
+				},
+			],
+
+			// --- Import rules (override WP defaults: warn → error) ---
+			'import/default': 'error',
+			'import/named': 'error',
+			'import/no-extraneous-dependencies': [
+				'error',
+				{
+					devDependencies: [
+						'**/*.@(spec|test).@(j|t)s?(x)',
+						'**/@(webpack|jest).config.@(j|t)s',
+						'**/scripts/**',
+						'**/tests/**',
+						'.prettierrc.js',
+					],
+				},
+			],
+
+			// --- Restricted imports ---
+			'no-restricted-imports': [
+				'error',
+				{
+					paths: [
+						{
+							name: 'lodash',
+							message: 'Please use native functionality instead.',
+						},
+						{
+							name: 'classnames',
+							message:
+								"Please use `clsx` instead. It's a lighter and faster drop-in replacement for `classnames`.",
+						},
+						{
+							name: 'redux',
+							importNames: [ 'combineReducers' ],
+							message:
+								'Please use `combineReducers` from `@wordpress/data` instead.',
+						},
+					],
+				},
+			],
+
+			// --- Restricted syntax ---
+			'no-restricted-syntax': [
+				'error',
+				{
+					selector:
+						'JSXAttribute[name.name="id"][value.type="Literal"]',
+					message:
+						'Do not use string literals for IDs; use withInstanceId instead.',
+				},
+				{
+					selector:
+						'CallExpression[callee.object.name="Math"][callee.property.name="random"]',
+					message:
+						"Do not use Math.random() to generate unique IDs; use withInstanceId instead. (If you're not generating unique IDs: ignore this message.)",
+				},
+			],
+		},
+	},
+
+	// TypeScript-specific overrides.
+	{
+		name: 'ai-provider-for-ollama/typescript-overrides',
+		files: [ '**/*.ts?(x)' ],
+
+		rules: {
+			'@typescript-eslint/consistent-type-imports': [
+				'error',
+				{
+					prefer: 'type-imports',
+					disallowTypeAnnotations: false,
+				},
+			],
+			'jsdoc/require-param': 'off',
+		},
+	},
+];
