@@ -7,10 +7,17 @@ namespace Fueled\AiProviderForOllama\Tests\Integration\Metadata;
 use Fueled\AiProviderForOllama\Metadata\OllamaModelMetadataDirectory;
 use Fueled\AiProviderForOllama\Tests\Integration\Mocks\MockHttpTransporter;
 use PHPUnit\Framework\TestCase;
+use WordPress\AiClient\Messages\DTO\MessagePart;
+use WordPress\AiClient\Messages\DTO\UserMessage;
 use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
 use WordPress\AiClient\Providers\Http\DTO\Response;
 use WordPress\AiClient\Providers\Http\Exception\ResponseException;
+use WordPress\AiClient\Providers\Models\DTO\ModelConfig;
+use WordPress\AiClient\Providers\Models\DTO\ModelMetadata;
+use WordPress\AiClient\Providers\Models\DTO\ModelRequirements;
 use WordPress\AiClient\Providers\Models\EmbeddingGeneration\Contracts\EmbeddingGenerationModelInterface;
+use WordPress\AiClient\Providers\Models\Enums\CapabilityEnum;
+use WordPress\AiClient\Tools\DTO\FunctionDeclaration;
 
 /**
  * Tests for OllamaModelMetadataDirectory.
@@ -114,6 +121,38 @@ class OllamaModelMetadataDirectoryTest extends TestCase {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Returns the supported option names for a model.
+	 *
+	 * @param ModelMetadata $model Model metadata.
+	 * @return list<string> Option names.
+	 */
+	private function option_names( ModelMetadata $model ): array {
+		return array_map(
+			static function ( $opt ): string {
+				return (string) $opt->getName();
+			},
+			$model->getSupportedOptions()
+		);
+	}
+
+	/**
+	 * Returns IDs of models that meet the given requirements.
+	 *
+	 * @param list<ModelMetadata> $models Models to filter.
+	 * @param ModelRequirements   $requirements Requirements to check.
+	 * @return list<string> Matching model IDs, in original order.
+	 */
+	private function matching_model_ids( array $models, ModelRequirements $requirements ): array {
+		$ids = array();
+		foreach ( $models as $model ) {
+			if ( $requirements->areMetBy( $model ) ) {
+				$ids[] = $model->getId();
+			}
+		}
+		return $ids;
 	}
 
 	// -----------------------------------------------------------------------
@@ -285,6 +324,128 @@ class OllamaModelMetadataDirectoryTest extends TestCase {
 	}
 
 	// -----------------------------------------------------------------------
+	// Tools-detection tests
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Tests that a completion-only model does not advertise functionDeclarations.
+	 */
+	public function test_completion_only_model_does_not_advertise_function_declarations(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( 'gemma3:latest' ) ) );
+		$this->transporter->queue_response( $this->make_show_response( array( 'completion' ) ) );
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertCount( 1, $models );
+		$this->assertNotContains( 'functionDeclarations', $this->option_names( $models[0] ) );
+	}
+
+	/**
+	 * Tests that a model with the 'tools' capability advertises functionDeclarations.
+	 */
+	public function test_tools_capability_advertises_function_declarations(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( 'qwen2.5:3b' ) ) );
+		$this->transporter->queue_response( $this->make_show_response( array( 'completion', 'tools' ) ) );
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertCount( 1, $models );
+		$this->assertContains( 'functionDeclarations', $this->option_names( $models[0] ) );
+	}
+
+	/**
+	 * Tests that vision support does not imply functionDeclarations.
+	 */
+	public function test_vision_model_without_tools_does_not_advertise_function_declarations(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( 'gemma3:latest' ) ) );
+		$this->transporter->queue_response( $this->make_show_response( array( 'completion', 'vision' ) ) );
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertCount( 1, $models );
+		$this->assertNotContains( 'functionDeclarations', $this->option_names( $models[0] ) );
+	}
+
+	/**
+	 * Tests that a vision model can still advertise functionDeclarations when it also reports tools.
+	 */
+	public function test_vision_and_tools_model_advertises_function_declarations(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( 'qwen2.5-vl' ) ) );
+		$this->transporter->queue_response( $this->make_show_response( array( 'completion', 'vision', 'tools' ) ) );
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertCount( 1, $models );
+		$this->assertContains( 'functionDeclarations', $this->option_names( $models[0] ) );
+	}
+
+	/**
+	 * Tests that an empty capabilities array does not advertise functionDeclarations.
+	 */
+	public function test_empty_capabilities_do_not_advertise_function_declarations(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( 'llama3.2' ) ) );
+		$this->transporter->queue_response( $this->make_show_response( array() ) );
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertCount( 1, $models );
+		$this->assertNotContains( 'functionDeclarations', $this->option_names( $models[0] ) );
+	}
+
+	/**
+	 * Tests that a failed /api/show fallback does not advertise functionDeclarations.
+	 */
+	public function test_show_request_failure_does_not_advertise_function_declarations(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( 'llama3.2' ) ) );
+		$this->transporter->queue_response( $this->make_error_response() );
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertCount( 1, $models );
+		$this->assertNotContains( 'functionDeclarations', $this->option_names( $models[0] ) );
+	}
+
+	/**
+	 * Tests that a function-declarations requirement matches only tool-capable models.
+	 */
+	public function test_function_declarations_requirement_matches_only_tool_capable_models(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( 'gemma3:latest', 'qwen2.5:3b' ) ) );
+		$this->transporter->queue_response( $this->make_show_response( array( 'completion', 'vision' ) ) );
+		$this->transporter->queue_response( $this->make_show_response( array( 'completion', 'tools' ) ) );
+
+		$models   = $this->directory->listModelMetadata();
+		$messages = array(
+			new UserMessage(
+				array( new MessagePart( 'Improve the meta description of post 5.' ) )
+			),
+		);
+
+		$plain_requirements = ModelRequirements::fromPromptData(
+			CapabilityEnum::textGeneration(),
+			$messages,
+			new ModelConfig()
+		);
+		$this->assertSame(
+			array( 'gemma3:latest', 'qwen2.5:3b' ),
+			$this->matching_model_ids( $models, $plain_requirements )
+		);
+
+		$config = new ModelConfig();
+		$config->setFunctionDeclarations(
+			array( new FunctionDeclaration( 'update_post', 'Update a post', null ) )
+		);
+		$tool_requirements = ModelRequirements::fromPromptData(
+			CapabilityEnum::textGeneration(),
+			$messages,
+			$config
+		);
+		$this->assertSame(
+			array( 'qwen2.5:3b' ),
+			$this->matching_model_ids( $models, $tool_requirements )
+		);
+	}
+
+	// -----------------------------------------------------------------------
 	// Image-generation detection tests
 	// -----------------------------------------------------------------------
 
@@ -303,12 +464,7 @@ class OllamaModelMetadataDirectoryTest extends TestCase {
 
 		$this->assertCount( 1, $models );
 
-		$option_names = array_map(
-			static function ( $opt ): string {
-				return (string) $opt->getName();
-			},
-			$models[0]->getSupportedOptions()
-		);
+		$option_names = $this->option_names( $models[0] );
 
 		// Image-generation models get image/png mime type, not text options.
 		$output_mime_opt = $this->find_option( $models[0]->getSupportedOptions(), 'isOutputMimeType' );
@@ -443,12 +599,7 @@ class OllamaModelMetadataDirectoryTest extends TestCase {
 		$models = $this->directory->listModelMetadata();
 		$this->assertCount( 1, $models );
 
-		$option_names = array_map(
-			static function ( $opt ): string {
-				return (string) $opt->getName();
-			},
-			$models[0]->getSupportedOptions()
-		);
+		$option_names = $this->option_names( $models[0] );
 
 		$expected_options = array(
 			'systemInstruction',
@@ -461,7 +612,6 @@ class OllamaModelMetadataDirectoryTest extends TestCase {
 			'presencePenalty',
 			'outputMimeType',
 			'outputSchema',
-			'functionDeclarations',
 			'customOptions',
 		);
 

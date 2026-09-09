@@ -24,18 +24,18 @@
         "php": ">=7.4"
     },
     "require-dev": {
-		    "automattic/vipwpcs": "^3.1",
+        "automattic/vipwpcs": "^3.1",
         "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
-		    "phpcompatibility/phpcompatibility-wp": "^3.0.0-alpha",
-		    "phpstan/extension-installer": "^1.3",
+        "phpcompatibility/phpcompatibility-wp": "^3.0.0-alpha",
+        "phpstan/extension-installer": "^1.3",
         "phpstan/phpstan-deprecation-rules": "^2.0.3",
         "phpstan/phpstan-phpunit": "^2.0.3",
         "phpstan/phpstan": "^2.1.22",
         "slevomat/coding-standard": "^8.20",
-		    "szepeviktor/phpstan-wordpress": "^2.0.2",
-		    "wp-coding-standards/wpcs": "^3.4.1",
-		    "wp-phpunit/wp-phpunit": "^6.5",
-		    "yoast/phpunit-polyfills": "^4.0"
+        "szepeviktor/phpstan-wordpress": "^2.0.2",
+        "wp-coding-standards/wpcs": "^3.4.1",
+        "wp-phpunit/wp-phpunit": "^6.5",
+        "yoast/phpunit-polyfills": "^4.0"
     },
     "suggest": {
         "wordpress/php-ai-client": "Required. The core PHP AI Client SDK that this provider extends."
