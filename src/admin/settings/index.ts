@@ -62,6 +62,12 @@ const CAPABILITY_LABELS: Record< string, string > = {
 	chat_history: __( 'Chat history', 'ai-provider-for-ollama' ),
 };
 
+const PILL_MODIFIERS: Record< string, string > = {
+	vision: 'vision',
+	tools: 'tools',
+	image_generation: 'image-generation',
+};
+
 /**
  * Gets a display label for a capability value.
  *
@@ -107,6 +113,23 @@ function supportsVision( model: ModelMetadata ): boolean {
 }
 
 /**
+ * Checks if model advertises function declarations (tool calling).
+ *
+ * @param {ModelMetadata} model The model metadata.
+ * @return {boolean} Whether tool calling is supported.
+ * @since x.x.x
+ */
+function supportsTools( model: ModelMetadata ): boolean {
+	return Boolean(
+		model.supportedOptions?.some(
+			( option ) =>
+				option.name === 'functionDeclarations' ||
+				option.name === 'function_declarations'
+		)
+	);
+}
+
+/**
  * Gets displayable capabilities for a model.
  *
  * @param {ModelMetadata} model The model metadata.
@@ -131,6 +154,13 @@ function getModelDisplayCapabilities(
 		} );
 	}
 
+	if ( supportsTools( model ) ) {
+		capabilitiesMap.set( 'tools', {
+			key: 'tools',
+			label: __( 'Tools', 'ai-provider-for-ollama' ),
+		} );
+	}
+
 	return Array.from( capabilitiesMap.values() );
 }
 
@@ -148,13 +178,10 @@ function createCapabilityPill(
 	pill.className = 'ai-provider-for-ollama-capability-pill';
 	pill.textContent = capability.label;
 
-	if ( capability.key === 'vision' ) {
-		pill.classList.add( 'ai-provider-for-ollama-capability-pill--vision' );
-	}
-
-	if ( capability.key === 'image_generation' ) {
+	const modifier = PILL_MODIFIERS[ capability.key ];
+	if ( modifier ) {
 		pill.classList.add(
-			'ai-provider-for-ollama-capability-pill--image-generation'
+			`ai-provider-for-ollama-capability-pill--${ modifier }`
 		);
 	}
 
