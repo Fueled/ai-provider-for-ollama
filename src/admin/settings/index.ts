@@ -122,9 +122,7 @@ function supportsVision( model: ModelMetadata ): boolean {
 function supportsTools( model: ModelMetadata ): boolean {
 	return Boolean(
 		model.supportedOptions?.some(
-			( option ) =>
-				option.name === 'functionDeclarations' ||
-				option.name === 'function_declarations'
+			( option ) => option.name === 'functionDeclarations'
 		)
 	);
 }
