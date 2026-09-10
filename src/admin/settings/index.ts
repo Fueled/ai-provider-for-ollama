@@ -95,9 +95,7 @@ function getCapabilityLabel( capability: string ): string {
  */
 function supportsVision( model: ModelMetadata ): boolean {
 	const inputModalities = model.supportedOptions?.find(
-		( option ) =>
-			option.name === 'inputModalities' ||
-			option.name === 'input_modalities'
+		( option ) => option.name === 'inputModalities'
 	);
 	if (
 		! inputModalities ||
