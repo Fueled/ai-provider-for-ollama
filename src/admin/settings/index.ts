@@ -62,6 +62,12 @@ const CAPABILITY_LABELS: Record< string, string > = {
 	chat_history: __( 'Chat history', 'ai-provider-for-ollama' ),
 };
 
+const PILL_MODIFIERS: Record< string, string > = {
+	vision: 'vision',
+	tools: 'tools',
+	image_generation: 'image-generation',
+};
+
 /**
  * Gets a display label for a capability value.
  *
@@ -89,9 +95,7 @@ function getCapabilityLabel( capability: string ): string {
  */
 function supportsVision( model: ModelMetadata ): boolean {
 	const inputModalities = model.supportedOptions?.find(
-		( option ) =>
-			option.name === 'inputModalities' ||
-			option.name === 'input_modalities'
+		( option ) => option.name === 'inputModalities'
 	);
 	if (
 		! inputModalities ||
@@ -103,6 +107,21 @@ function supportsVision( model: ModelMetadata ): boolean {
 	return inputModalities.supportedValues.some(
 		( modalitySet ) =>
 			Array.isArray( modalitySet ) && modalitySet.includes( 'image' )
+	);
+}
+
+/**
+ * Checks if model advertises function declarations (tool calling).
+ *
+ * @param {ModelMetadata} model The model metadata.
+ * @return {boolean} Whether tool calling is supported.
+ * @since x.x.x
+ */
+function supportsTools( model: ModelMetadata ): boolean {
+	return Boolean(
+		model.supportedOptions?.some(
+			( option ) => option.name === 'functionDeclarations'
+		)
 	);
 }
 
@@ -131,6 +150,13 @@ function getModelDisplayCapabilities(
 		} );
 	}
 
+	if ( supportsTools( model ) ) {
+		capabilitiesMap.set( 'tools', {
+			key: 'tools',
+			label: __( 'Tools', 'ai-provider-for-ollama' ),
+		} );
+	}
+
 	return Array.from( capabilitiesMap.values() );
 }
 
@@ -148,13 +174,10 @@ function createCapabilityPill(
 	pill.className = 'ai-provider-for-ollama-capability-pill';
 	pill.textContent = capability.label;
 
-	if ( capability.key === 'vision' ) {
-		pill.classList.add( 'ai-provider-for-ollama-capability-pill--vision' );
-	}
-
-	if ( capability.key === 'image_generation' ) {
+	const modifier = PILL_MODIFIERS[ capability.key ];
+	if ( modifier ) {
 		pill.classList.add(
-			'ai-provider-for-ollama-capability-pill--image-generation'
+			`ai-provider-for-ollama-capability-pill--${ modifier }`
 		);
 	}
 

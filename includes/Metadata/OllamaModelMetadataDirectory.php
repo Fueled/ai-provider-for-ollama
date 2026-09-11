@@ -70,10 +70,6 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	/**
 	 * Builds a ModelMetadata object for a single model, or returns null if the model should be skipped.
 	 *
-	 * Maps embedding-capable models to embedding-generation metadata when the SDK supports it. Skips
-	 * other non-completion models (unless they generate images). Falls back to text-only generation
-	 * when details are unavailable.
-	 *
 	 * @since 1.0.0
 	 *
 	 * @param string $model_name The model name.
@@ -81,36 +77,37 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	 * @return \WordPress\AiClient\Providers\Models\DTO\ModelMetadata|null The model metadata, or null if the model should be excluded.
 	 */
 	private function buildModelMetadata( string $model_name, ?array $details ): ?ModelMetadata {
-		// Fallback when /api/show fails: assume text-only generation.
-		$has_vision                = false;
+		$model_capabilities        = $this->getModelCapabilities( $details );
 		$is_image_generation_model = $this->isImageGenerationModel( $model_name, $details );
 
-		if ( null !== $details ) {
-			$model_capabilities = isset( $details['capabilities'] ) ? $details['capabilities'] : array();
+		$is_embedding_model = in_array( 'embedding', $model_capabilities, true )
+			&& ! in_array( 'completion', $model_capabilities, true );
 
-			$is_embedding_model = in_array( 'embedding', $model_capabilities, true )
-				&& ! in_array( 'completion', $model_capabilities, true );
-
-			if ( $is_embedding_model && ! $is_image_generation_model ) {
-				// The embedding contracts are unreleased in some SDK versions; preserve legacy exclusion there.
-				if ( ! interface_exists( EmbeddingGenerationModelInterface::class ) ) {
-					return null;
-				}
-
-				return $this->buildEmbeddingModelMetadata( $model_name );
-			}
-
-			// Skip other non-completion models, but keep image-generation models which may not report "completion".
-			if ( ! empty( $model_capabilities ) && ! in_array( 'completion', $model_capabilities, true ) && ! $is_image_generation_model ) {
+		if ( $is_embedding_model && ! $is_image_generation_model ) {
+			// The embedding contracts are unreleased in some SDK versions.
+			if ( ! interface_exists( EmbeddingGenerationModelInterface::class ) ) {
 				return null;
 			}
 
-			// Check for vision support via capabilities array or details.families.
-			$has_vision = in_array( 'vision', $model_capabilities, true );
-			if ( ! $has_vision && isset( $details['details']['families'] ) ) {
-				$has_vision = in_array( 'clip', $details['details']['families'], true );
-			}
+			return $this->buildEmbeddingModelMetadata( $model_name );
 		}
+
+		// Skip other non-completion models, but keep image-generation models which may not report "completion".
+		if (
+			! empty( $model_capabilities ) &&
+			! in_array( 'completion', $model_capabilities, true ) &&
+			! $is_image_generation_model
+		) {
+			return null;
+		}
+
+		// Check for vision support via capabilities array or details.families.
+		$has_vision = in_array( 'vision', $model_capabilities, true );
+		if ( ! $has_vision && null !== $details && isset( $details['details']['families'] ) ) {
+			$has_vision = in_array( 'clip', $details['details']['families'], true );
+		}
+
+		$has_tools = in_array( 'tools', $model_capabilities, true );
 
 		if ( $has_vision ) {
 			$input_modalities_option = new SupportedOption(
@@ -157,11 +154,14 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 			new SupportedOption( OptionEnum::presencePenalty() ),
 			new SupportedOption( OptionEnum::outputMimeType(), array( 'text/plain', 'application/json' ) ),
 			new SupportedOption( OptionEnum::outputSchema() ),
-			new SupportedOption( OptionEnum::functionDeclarations() ),
 			new SupportedOption( OptionEnum::customOptions() ),
 			new SupportedOption( OptionEnum::outputModalities(), array( array( ModalityEnum::text() ) ) ),
 			$input_modalities_option,
 		);
+
+		if ( $has_tools ) {
+			$options[] = new SupportedOption( OptionEnum::functionDeclarations() );
+		}
 
 		return new ModelMetadata(
 			$model_name,
@@ -207,15 +207,31 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	 * @return bool True if the model appears to support image generation.
 	 */
 	private function isImageGenerationModel( string $model_name, ?array $details ): bool {
-
-		if ( null === $details || '' === $model_name ) {
+		if ( '' === $model_name ) {
 			return false;
 		}
 
-		$model_capabilities = isset( $details['capabilities'] ) && is_array( $details['capabilities'] )
-			? $details['capabilities']
-			: array();
-		return in_array( 'image', $model_capabilities, true );
+		return in_array( 'image', $this->getModelCapabilities( $details ), true );
+	}
+
+	/**
+	 * Returns capability strings from /api/show details.
+	 *
+	 * @since x.x.x
+	 *
+	 * @param ShowResponseData|null $details The response data from /api/show, or null on failure.
+	 * @return list<string> Capability strings, or an empty list when unavailable.
+	 */
+	private function getModelCapabilities( ?array $details ): array {
+		if (
+			null === $details
+			|| ! isset( $details['capabilities'] )
+			|| ! is_array( $details['capabilities'] )
+		) {
+			return array();
+		}
+
+		return $details['capabilities'];
 	}
 
 	/**
