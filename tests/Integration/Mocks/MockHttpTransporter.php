@@ -19,11 +19,11 @@ use WordPress\AiClient\Providers\Http\DTO\Response;
 class MockHttpTransporter implements HttpTransporterInterface {
 
 	/**
-	 * The last request that was sent.
+	 * Every request that was sent, in order.
 	 *
-	 * @var Request|null
+	 * @var list<Request>
 	 */
-	private ?Request $last_request = null;
+	private array $requests = array();
 
 	/**
 	 * The fallback response to return when the queue is empty.
@@ -43,7 +43,7 @@ class MockHttpTransporter implements HttpTransporterInterface {
 	 * {@inheritDoc}
 	 */
 	public function send( Request $request, ?RequestOptions $options = null ): Response {
-		$this->last_request = $request;
+		$this->requests[] = $request;
 
 		if ( ! empty( $this->responses_queue ) ) {
 			return array_shift( $this->responses_queue );
@@ -58,7 +58,25 @@ class MockHttpTransporter implements HttpTransporterInterface {
 	 * @return Request|null The last request, or null if none was sent.
 	 */
 	public function get_last_request(): ?Request {
-		return $this->last_request;
+		return empty( $this->requests ) ? null : $this->requests[ count( $this->requests ) - 1 ];
+	}
+
+	/**
+	 * Returns every request that was sent, in order.
+	 *
+	 * @return list<Request> The requests.
+	 */
+	public function get_requests(): array {
+		return $this->requests;
+	}
+
+	/**
+	 * Returns how many requests were sent.
+	 *
+	 * @return int The request count.
+	 */
+	public function get_request_count(): int {
+		return count( $this->requests );
 	}
 
 	/**
