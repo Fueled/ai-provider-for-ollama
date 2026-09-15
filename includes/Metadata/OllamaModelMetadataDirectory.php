@@ -56,9 +56,12 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	/**
 	 * Lists the models the Ollama host offers, as returned by /api/tags.
 	 *
-	 * The result is memoized for the lifetime of this instance, so callers that
-	 * need the raw listing as well as the assembled metadata pay for one request
-	 * between them.
+	 * This is the cheapest complete answer Ollama gives about itself: reaching it
+	 * proves the host is up, speaks Ollama, and accepted the credentials, which
+	 * is why {@see \Fueled\AiProviderForOllama\Provider\OllamaProviderAvailability}
+	 * uses it as its availability probe. The result is memoized for the lifetime
+	 * of this instance, so probing availability and then listing models costs one
+	 * request between them.
 	 *
 	 * @since x.x.x
 	 *
