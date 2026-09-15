@@ -64,17 +64,21 @@ class OllamaModelMetadataDirectoryTest extends TestCase {
 	// -----------------------------------------------------------------------
 
 	/**
-	 * Builds a fake /api/tags 200 response containing the given model names.
+	 * Builds a fake /api/tags 200 response.
 	 *
-	 * @param list<string> $model_names The model names to include.
+	 * Entries may be given as plain model names, or as full entry arrays to
+	 * cover the Ollama versions that report capabilities in the tag listing
+	 * itself.
+	 *
+	 * @param list<string|array<string, mixed>> $model_entries The entries to include.
 	 * @return Response
 	 */
-	private function make_tags_response( array $model_names ): Response {
+	private function make_tags_response( array $model_entries ): Response {
 		$models = array_map(
-			static function ( string $name ): array {
-				return array( 'name' => $name );
+			static function ( $entry ): array {
+				return is_array( $entry ) ? $entry : array( 'name' => $entry );
 			},
-			$model_names
+			$model_entries
 		);
 		$body = (string) json_encode( array( 'models' => $models ) );
 		return new Response( 200, array(), $body );
@@ -622,5 +626,96 @@ class OllamaModelMetadataDirectoryTest extends TestCase {
 				sprintf( 'Expected option "%s" to be present in model metadata', $expected )
 			);
 		}
+	}
+
+	// -----------------------------------------------------------------------
+	// Request-count tests
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Tests that capabilities reported by /api/tags remove the need for /api/show.
+	 */
+	public function test_capabilities_in_tags_avoid_the_per_model_request(): void {
+		$this->transporter->queue_response(
+			$this->make_tags_response(
+				array(
+					array(
+						'name'         => 'qwen2.5:3b',
+						'capabilities' => array( 'completion', 'tools' ),
+					),
+				)
+			)
+		);
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertSame( 1, $this->transporter->get_request_count(), 'Expected the tag listing to be the only request.' );
+		$this->assertCount( 1, $models );
+		$this->assertContains( 'functionDeclarations', $this->option_names( $models[0] ) );
+	}
+
+	/**
+	 * Tests that the clip family in a tag entry is enough to detect vision support.
+	 */
+	public function test_vision_is_detected_from_tags_without_the_per_model_request(): void {
+		$this->transporter->queue_response(
+			$this->make_tags_response(
+				array(
+					array(
+						'name'         => 'llava',
+						'capabilities' => array( 'completion' ),
+						'details'      => array( 'families' => array( 'llama', 'clip' ) ),
+					),
+				)
+			)
+		);
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertSame( 1, $this->transporter->get_request_count() );
+		$input_modalities_opt = $this->find_option( $models[0]->getSupportedOptions(), 'isInputModalities' );
+		$this->assertNotNull( $input_modalities_opt, 'Expected inputModalities supported option' );
+		$this->assertCount( 2, (array) $input_modalities_opt->getSupportedValues() );
+	}
+
+	/**
+	 * Tests that only the models whose tag entry omits capabilities are looked up.
+	 */
+	public function test_only_models_without_tags_capabilities_are_looked_up(): void {
+		$this->transporter->queue_response(
+			$this->make_tags_response(
+				array(
+					array(
+						'name'         => 'qwen2.5:3b',
+						'capabilities' => array( 'completion', 'tools' ),
+					),
+					array( 'name' => 'gemma3:latest' ),
+				)
+			)
+		);
+		$this->transporter->queue_response( $this->make_show_response( array( 'completion' ) ) );
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertSame( 2, $this->transporter->get_request_count(), 'Expected one tag listing plus one lookup.' );
+		$this->assertCount( 2, $models );
+
+		$lookup = $this->transporter->get_requests()[1];
+		$this->assertStringEndsWith( 'api/show', $lookup->getUri() );
+		$this->assertSame( array( 'model' => 'gemma3:latest' ), $lookup->getData() );
+	}
+
+	/**
+	 * Tests that listModelTags() fetches the tag listing only once per instance.
+	 */
+	public function test_model_tags_are_fetched_once_per_instance(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( 'llama3.2' ) ) );
+		$this->transporter->queue_response( $this->make_show_response( array( 'completion' ) ) );
+
+		$this->directory->listModelTags();
+		$this->directory->listModelTags();
+		$this->directory->listModelMetadata();
+
+		$this->assertSame( 2, $this->transporter->get_request_count(), 'Expected one tag listing and one lookup.' );
 	}
 }

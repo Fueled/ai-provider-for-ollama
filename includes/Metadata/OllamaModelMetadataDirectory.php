@@ -21,17 +21,70 @@ use WordPress\AiClient\Providers\Models\Enums\OptionEnum;
 /**
  * Class for the Ollama model metadata directory.
  *
+ * Building the model list needs one `GET /api/tags` request, plus the
+ * capabilities of each model listed. Recent Ollama versions report those
+ * capabilities in the tag listing itself, in which case no further request is
+ * made; otherwise they come from `POST /api/show`, one request per model.
+ *
  * @since 1.0.0
  *
- * @phpstan-type TagsResponseData array{
- *     models: list<array{name: string, details?: array{families?: list<string>}}>
+ * @phpstan-type TagsEntryData array{
+ *     name?: string,
+ *     capabilities?: list<string>,
+ *     details?: array{families?: list<string>|null}
  * }
  * @phpstan-type ShowResponseData array{
  *     capabilities?: list<string>,
- *     details?: array{families?: list<string>}
+ *     details?: array{families?: list<string>|null}
  * }
+ * @phpstan-type ModelDetails array{capabilities: list<string>, families: list<string>}
  */
 class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirectory {
+
+	/**
+	 * The model entries from /api/tags, once fetched.
+	 *
+	 * @since x.x.x
+	 *
+	 * @var list<TagsEntryData>|null
+	 */
+	private ?array $model_tags = null;
+
+	/**
+	 * Lists the models the Ollama host offers, as returned by /api/tags.
+	 *
+	 * The result is memoized for the lifetime of this instance, so callers that
+	 * need the raw listing as well as the assembled metadata pay for one request
+	 * between them.
+	 *
+	 * @since x.x.x
+	 *
+	 * @return list<TagsEntryData> The raw model entries.
+	 * @throws \WordPress\AiClient\Providers\Http\Exception\ResponseException If the host is unreachable or the response
+	 *                                                                       is not a model listing.
+	 */
+	public function listModelTags(): array {
+		if ( null !== $this->model_tags ) {
+			return $this->model_tags;
+		}
+
+		$request  = $this->createRequest( HttpMethodEnum::GET(), 'api/tags' );
+		$request  = $this->getRequestAuthentication()->authenticateRequest( $request );
+		$response = $this->getHttpTransporter()->send( $request );
+
+		ResponseUtil::throwIfNotSuccessful( $response );
+
+		$tags_data = $response->getData();
+		if ( ! isset( $tags_data['models'] ) || ! is_array( $tags_data['models'] ) ) {
+			throw ResponseException::fromMissingData( 'Ollama', 'models' );
+		}
+
+		/** @var list<TagsEntryData> $model_tags */
+		$model_tags       = array_values( array_filter( $tags_data['models'], 'is_array' ) );
+		$this->model_tags = $model_tags;
+
+		return $this->model_tags;
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -39,22 +92,16 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	 * @since 1.0.0
 	 */
 	protected function sendListModelsRequest(): array {
-		$request  = $this->createRequest( HttpMethodEnum::GET(), 'api/tags' );
-		$request  = $this->getRequestAuthentication()->authenticateRequest( $request );
-		$response = $this->getHttpTransporter()->send( $request );
-
-		ResponseUtil::throwIfNotSuccessful( $response );
-
-		/** @var TagsResponseData $tags_data */
-		$tags_data = $response->getData();
-		if ( ! isset( $tags_data['models'] ) ) {
-			throw ResponseException::fromMissingData( 'Ollama', 'models' );
-		}
-
 		$models_map = array();
-		foreach ( $tags_data['models'] as $model_entry ) {
+
+		foreach ( $this->listModelTags() as $model_entry ) {
+			if ( ! isset( $model_entry['name'] ) || ! is_string( $model_entry['name'] ) || '' === $model_entry['name'] ) {
+				continue;
+			}
+
 			$model_name = $model_entry['name'];
-			$metadata   = $this->buildModelMetadata( $model_name, $this->fetchModelDetails( $model_name ) );
+			$details    = $this->resolveModelDetails( $model_name, $model_entry );
+			$metadata   = $this->buildModelMetadata( $model_name, $details );
 			if ( null === $metadata ) {
 				continue;
 			}
@@ -68,17 +115,56 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	}
 
 	/**
+	 * Resolves the capability details of a single model, at the lowest cost available.
+	 *
+	 * The tag entry is preferred over a request to /api/show, which is only
+	 * needed on Ollama versions that leave capabilities out of the tag listing.
+	 *
+	 * @since x.x.x
+	 *
+	 * @param string        $model_name  The model name.
+	 * @param TagsEntryData $model_entry The model's entry from /api/tags.
+	 * @return ModelDetails|null The model details, or null when they could not be determined.
+	 */
+	private function resolveModelDetails( string $model_name, array $model_entry ): ?array {
+		$families = $this->readStringList( $model_entry['details']['families'] ?? null );
+
+		// Recent Ollama versions report capabilities in the tag listing, making the per-model request unnecessary.
+		$capabilities = $this->readStringList( $model_entry['capabilities'] ?? null );
+		if ( ! empty( $capabilities ) ) {
+			return array(
+				'capabilities' => $capabilities,
+				'families'     => $families,
+			);
+		}
+
+		$show_data = $this->fetchModelDetails( $model_name );
+		if ( null === $show_data ) {
+			return null;
+		}
+
+		$show_families = $this->readStringList( $show_data['details']['families'] ?? null );
+
+		return array(
+			'capabilities' => $this->readStringList( $show_data['capabilities'] ?? null ),
+			'families'     => empty( $show_families ) ? $families : $show_families,
+		);
+	}
+
+	/**
 	 * Builds a ModelMetadata object for a single model, or returns null if the model should be skipped.
 	 *
 	 * @since 1.0.0
 	 *
 	 * @param string $model_name The model name.
-	 * @param ShowResponseData|null $details The response data from /api/show, or null on failure.
+	 * @param ModelDetails|null $details The model's capability details, or null when they are unknown.
 	 * @return \WordPress\AiClient\Providers\Models\DTO\ModelMetadata|null The model metadata, or null if the model should be excluded.
 	 */
 	private function buildModelMetadata( string $model_name, ?array $details ): ?ModelMetadata {
-		$model_capabilities        = $this->getModelCapabilities( $details );
-		$is_image_generation_model = $this->isImageGenerationModel( $model_name, $details );
+		$model_capabilities = null !== $details ? $details['capabilities'] : array();
+		$model_families     = null !== $details ? $details['families'] : array();
+
+		$is_image_generation_model = in_array( 'image', $model_capabilities, true );
 
 		$is_embedding_model = in_array( 'embedding', $model_capabilities, true )
 			&& ! in_array( 'completion', $model_capabilities, true );
@@ -101,11 +187,9 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 			return null;
 		}
 
-		// Check for vision support via capabilities array or details.families.
-		$has_vision = in_array( 'vision', $model_capabilities, true );
-		if ( ! $has_vision && null !== $details && isset( $details['details']['families'] ) ) {
-			$has_vision = in_array( 'clip', $details['details']['families'], true );
-		}
+		// Check for vision support via the capabilities array or the model families.
+		$has_vision = in_array( 'vision', $model_capabilities, true )
+			|| in_array( 'clip', $model_families, true );
 
 		$has_tools = in_array( 'tools', $model_capabilities, true );
 
@@ -198,40 +282,22 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	}
 
 	/**
-	 * Determines whether a model is likely an image-generation model.
+	 * Reads a list of strings out of an API payload.
 	 *
-	 * @since 1.1.0
-	 *
-	 * @param string $model_name The model name.
-	 * @param ShowResponseData|null $details The optional model details.
-	 * @return bool True if the model appears to support image generation.
-	 */
-	private function isImageGenerationModel( string $model_name, ?array $details ): bool {
-		if ( '' === $model_name ) {
-			return false;
-		}
-
-		return in_array( 'image', $this->getModelCapabilities( $details ), true );
-	}
-
-	/**
-	 * Returns capability strings from /api/show details.
+	 * Ollama omits these keys on some versions and sends null for others, so
+	 * anything that is not a list of strings is read as "none given".
 	 *
 	 * @since x.x.x
 	 *
-	 * @param ShowResponseData|null $details The response data from /api/show, or null on failure.
-	 * @return list<string> Capability strings, or an empty list when unavailable.
+	 * @param mixed $value The raw value.
+	 * @return list<string> The strings it contained, if any.
 	 */
-	private function getModelCapabilities( ?array $details ): array {
-		if (
-			null === $details
-			|| ! isset( $details['capabilities'] )
-			|| ! is_array( $details['capabilities'] )
-		) {
+	private function readStringList( $value ): array {
+		if ( ! is_array( $value ) ) {
 			return array();
 		}
 
-		return $details['capabilities'];
+		return array_values( array_filter( $value, 'is_string' ) );
 	}
 
 	/**
@@ -251,7 +317,7 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 				HttpMethodEnum::POST(),
 				'api/show',
 				array( 'Content-Type' => 'application/json' ),
-				array( 'name' => $model_name )
+				array( 'model' => $model_name )
 			);
 			$request  = $this->getRequestAuthentication()->authenticateRequest( $request );
 			$response = $this->getHttpTransporter()->send( $request );
