@@ -9,10 +9,10 @@ use Fueled\AiProviderForOllama\Models\OllamaEmbeddingGenerationModel;
 use Fueled\AiProviderForOllama\Models\OllamaImageGenerationModel;
 use Fueled\AiProviderForOllama\Models\OllamaTextGenerationModel;
 use Fueled\AiProviderForOllama\Provider\OllamaProvider;
+use Fueled\AiProviderForOllama\Provider\OllamaProviderAvailability;
 use PHPUnit\Framework\TestCase;
 use WordPress\AiClient\Common\Exception\RuntimeException;
 use WordPress\AiClient\Providers\AbstractProvider;
-use WordPress\AiClient\Providers\ApiBasedImplementation\ListModelsApiBasedProviderAvailability;
 use WordPress\AiClient\Providers\Models\DTO\ModelMetadata;
 use WordPress\AiClient\Providers\Models\EmbeddingGeneration\Contracts\EmbeddingGenerationModelInterface;
 use WordPress\AiClient\Providers\Models\Enums\CapabilityEnum;
@@ -141,11 +141,11 @@ class OllamaProviderTest extends TestCase {
 	// -----------------------------------------------------------------------
 
 	/**
-	 * Tests that availability() returns a ListModelsApiBasedProviderAvailability instance.
+	 * Tests that availability() returns the provider's own availability check.
 	 */
-	public function test_availability_returns_list_models_api_based_provider_availability(): void {
+	public function test_availability_returns_ollama_provider_availability(): void {
 		$availability = OllamaProvider::availability();
-		$this->assertInstanceOf( ListModelsApiBasedProviderAvailability::class, $availability );
+		$this->assertInstanceOf( OllamaProviderAvailability::class, $availability );
 	}
 
 	/**
