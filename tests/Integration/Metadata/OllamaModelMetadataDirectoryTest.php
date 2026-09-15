@@ -4,7 +4,9 @@ declare( strict_types=1 );
 
 namespace Fueled\AiProviderForOllama\Tests\Integration\Metadata;
 
+use Fueled\AiProviderForOllama\Metadata\OllamaModelDetailsCache;
 use Fueled\AiProviderForOllama\Metadata\OllamaModelMetadataDirectory;
+use Fueled\AiProviderForOllama\Provider\OllamaProvider;
 use Fueled\AiProviderForOllama\Tests\Integration\Mocks\MockHttpTransporter;
 use PHPUnit\Framework\TestCase;
 use WordPress\AiClient\Messages\DTO\MessagePart;
@@ -47,16 +49,30 @@ class OllamaModelMetadataDirectoryTest extends TestCase {
 		parent::setUp();
 		putenv( 'OLLAMA_HOST=http://localhost:11434' );
 		$this->transporter = new MockHttpTransporter();
-		$this->directory   = new OllamaModelMetadataDirectory();
-		$this->directory->setHttpTransporter( $this->transporter );
-		$this->directory->setRequestAuthentication( new ApiKeyRequestAuthentication( '' ) );
-		$this->directory->invalidateCaches();
+		$this->directory   = $this->make_directory( $this->transporter );
+		OllamaModelDetailsCache::flush( OllamaProvider::url( '' ) );
 	}
 
 	protected function tearDown(): void {
 		$this->directory->invalidateCaches();
+		OllamaModelDetailsCache::flush( OllamaProvider::url( '' ) );
 		putenv( 'OLLAMA_HOST' );
 		parent::tearDown();
+	}
+
+	/**
+	 * Builds a directory wired up to the given transporter.
+	 *
+	 * @param MockHttpTransporter $transporter The transporter to use.
+	 * @return OllamaModelMetadataDirectory
+	 */
+	private function make_directory( MockHttpTransporter $transporter ): OllamaModelMetadataDirectory {
+		$directory = new OllamaModelMetadataDirectory();
+		$directory->setHttpTransporter( $transporter );
+		$directory->setRequestAuthentication( new ApiKeyRequestAuthentication( '' ) );
+		$directory->invalidateCaches();
+
+		return $directory;
 	}
 
 	// -----------------------------------------------------------------------
@@ -717,5 +733,109 @@ class OllamaModelMetadataDirectoryTest extends TestCase {
 		$this->directory->listModelMetadata();
 
 		$this->assertSame( 2, $this->transporter->get_request_count(), 'Expected one tag listing and one lookup.' );
+	}
+
+	// -----------------------------------------------------------------------
+	// Caching tests
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Tests that details looked up once are reused by a later listing.
+	 */
+	public function test_cached_details_are_reused_by_a_later_listing(): void {
+		$tags = array(
+			array(
+				'name'   => 'qwen2.5:3b',
+				'digest' => 'sha256:aaa',
+			),
+		);
+
+		$this->transporter->queue_response( $this->make_tags_response( $tags ) );
+		$this->transporter->queue_response( $this->make_show_response( array( 'completion', 'tools' ) ) );
+		$this->directory->listModelMetadata();
+		$this->assertSame( 2, $this->transporter->get_request_count() );
+
+		$later_transporter = new MockHttpTransporter();
+		$later_transporter->queue_response( $this->make_tags_response( $tags ) );
+		$models = $this->make_directory( $later_transporter )->listModelMetadata();
+
+		$this->assertSame( 1, $later_transporter->get_request_count(), 'Expected the cached details to remove the lookup.' );
+		$this->assertCount( 1, $models );
+		$this->assertContains( 'functionDeclarations', $this->option_names( $models[0] ) );
+	}
+
+	/**
+	 * Tests that re-pulling a model, which changes its digest, looks it up again.
+	 */
+	public function test_a_changed_digest_looks_the_model_up_again(): void {
+		$this->transporter->queue_response(
+			$this->make_tags_response(
+				array(
+					array(
+						'name'   => 'qwen2.5:3b',
+						'digest' => 'sha256:aaa',
+					),
+				)
+			)
+		);
+		$this->transporter->queue_response( $this->make_show_response( array( 'completion', 'tools' ) ) );
+		$this->directory->listModelMetadata();
+
+		$later_transporter = new MockHttpTransporter();
+		$later_transporter->queue_response(
+			$this->make_tags_response(
+				array(
+					array(
+						'name'   => 'qwen2.5:3b',
+						'digest' => 'sha256:bbb',
+					),
+				)
+			)
+		);
+		$later_transporter->queue_response( $this->make_show_response( array( 'completion' ) ) );
+		$models = $this->make_directory( $later_transporter )->listModelMetadata();
+
+		$this->assertSame( 2, $later_transporter->get_request_count() );
+		$this->assertNotContains( 'functionDeclarations', $this->option_names( $models[0] ) );
+	}
+
+	/**
+	 * Tests that a host which reports no digest is looked up every time.
+	 */
+	public function test_models_without_a_digest_are_not_cached(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( 'llama3.2' ) ) );
+		$this->transporter->queue_response( $this->make_show_response( array( 'completion', 'tools' ) ) );
+		$this->directory->listModelMetadata();
+
+		$later_transporter = new MockHttpTransporter();
+		$later_transporter->queue_response( $this->make_tags_response( array( 'llama3.2' ) ) );
+		$later_transporter->queue_response( $this->make_show_response( array( 'completion', 'tools' ) ) );
+		$this->make_directory( $later_transporter )->listModelMetadata();
+
+		$this->assertSame( 2, $later_transporter->get_request_count() );
+	}
+
+	/**
+	 * Tests that a failed lookup is retried rather than cached.
+	 */
+	public function test_a_failed_lookup_is_not_cached(): void {
+		$tags = array(
+			array(
+				'name'   => 'qwen2.5:3b',
+				'digest' => 'sha256:aaa',
+			),
+		);
+
+		$this->transporter->queue_response( $this->make_tags_response( $tags ) );
+		$this->transporter->queue_response( $this->make_error_response() );
+		$this->directory->listModelMetadata();
+
+		$later_transporter = new MockHttpTransporter();
+		$later_transporter->queue_response( $this->make_tags_response( $tags ) );
+		$later_transporter->queue_response( $this->make_show_response( array( 'completion', 'tools' ) ) );
+		$models = $this->make_directory( $later_transporter )->listModelMetadata();
+
+		$this->assertSame( 2, $later_transporter->get_request_count() );
+		$this->assertContains( 'functionDeclarations', $this->option_names( $models[0] ) );
 	}
 }

@@ -24,12 +24,15 @@ use WordPress\AiClient\Providers\Models\Enums\OptionEnum;
  * Building the model list needs one `GET /api/tags` request, plus the
  * capabilities of each model listed. Recent Ollama versions report those
  * capabilities in the tag listing itself, in which case no further request is
- * made; otherwise they come from `POST /api/show`, one request per model.
+ * made; otherwise they come from `POST /api/show`, and the answers are cached
+ * per model digest by {@see \Fueled\AiProviderForOllama\Metadata\OllamaModelDetailsCache},
+ * so that later requests also get away with the single tag listing.
  *
  * @since 1.0.0
  *
  * @phpstan-type TagsEntryData array{
  *     name?: string,
+ *     digest?: string,
  *     capabilities?: list<string>,
  *     details?: array{families?: list<string>|null}
  * }
@@ -92,7 +95,9 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	 * @since 1.0.0
 	 */
 	protected function sendListModelsRequest(): array {
-		$models_map = array();
+		$details_cache  = OllamaModelDetailsCache::load( OllamaProvider::url( '' ) );
+		$digests_in_use = array();
+		$models_map     = array();
 
 		foreach ( $this->listModelTags() as $model_entry ) {
 			if ( ! isset( $model_entry['name'] ) || ! is_string( $model_entry['name'] ) || '' === $model_entry['name'] ) {
@@ -100,7 +105,7 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 			}
 
 			$model_name = $model_entry['name'];
-			$details    = $this->resolveModelDetails( $model_name, $model_entry );
+			$details    = $this->resolveModelDetails( $model_name, $model_entry, $details_cache, $digests_in_use );
 			$metadata   = $this->buildModelMetadata( $model_name, $details );
 			if ( null === $metadata ) {
 				continue;
@@ -108,6 +113,8 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 
 			$models_map[ $model_name ] = $metadata;
 		}
+
+		$details_cache->save( $digests_in_use );
 
 		ksort( $models_map );
 
@@ -117,16 +124,24 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	/**
 	 * Resolves the capability details of a single model, at the lowest cost available.
 	 *
-	 * The tag entry is preferred over a request to /api/show, which is only
-	 * needed on Ollama versions that leave capabilities out of the tag listing.
+	 * In order of preference: the tag entry itself, the cache, and finally a
+	 * request to /api/show. A failed request is left uncached, so a momentary
+	 * error cannot pin a model's capabilities for the life of the cache.
 	 *
 	 * @since x.x.x
 	 *
 	 * @param string        $model_name  The model name.
 	 * @param TagsEntryData $model_entry The model's entry from /api/tags.
+	 * @param \Fueled\AiProviderForOllama\Metadata\OllamaModelDetailsCache $details_cache The cache of details fetched for earlier listings.
+	 * @param list<string>  $digests_in_use Digests resolved from the cache so far, appended to by reference.
 	 * @return ModelDetails|null The model details, or null when they could not be determined.
 	 */
-	private function resolveModelDetails( string $model_name, array $model_entry ): ?array {
+	private function resolveModelDetails(
+		string $model_name,
+		array $model_entry,
+		OllamaModelDetailsCache $details_cache,
+		array &$digests_in_use
+	): ?array {
 		$families = $this->readStringList( $model_entry['details']['families'] ?? null );
 
 		// Recent Ollama versions report capabilities in the tag listing, making the per-model request unnecessary.
@@ -138,17 +153,35 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 			);
 		}
 
+		// The digest identifies the model's content, so an entry stays valid until the model itself changes.
+		$digest = isset( $model_entry['digest'] ) && is_string( $model_entry['digest'] ) ? $model_entry['digest'] : '';
+
+		if ( '' !== $digest ) {
+			$cached_details = $details_cache->get( $digest );
+			if ( null !== $cached_details ) {
+				$digests_in_use[] = $digest;
+
+				return $cached_details;
+			}
+		}
+
 		$show_data = $this->fetchModelDetails( $model_name );
 		if ( null === $show_data ) {
 			return null;
 		}
 
 		$show_families = $this->readStringList( $show_data['details']['families'] ?? null );
-
-		return array(
+		$details       = array(
 			'capabilities' => $this->readStringList( $show_data['capabilities'] ?? null ),
 			'families'     => empty( $show_families ) ? $families : $show_families,
 		);
+
+		if ( '' !== $digest ) {
+			$details_cache->set( $digest, $details );
+			$digests_in_use[] = $digest;
+		}
+
+		return $details;
 	}
 
 	/**
