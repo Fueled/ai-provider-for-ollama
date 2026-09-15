@@ -9,6 +9,7 @@ use WordPress\AiClient\Files\Enums\FileTypeEnum;
 use WordPress\AiClient\Messages\Enums\ModalityEnum;
 use WordPress\AiClient\Providers\ApiBasedImplementation\AbstractApiBasedModelMetadataDirectory;
 use WordPress\AiClient\Providers\Http\DTO\Request;
+use WordPress\AiClient\Providers\Http\DTO\RequestOptions;
 use WordPress\AiClient\Providers\Http\Enums\HttpMethodEnum;
 use WordPress\AiClient\Providers\Http\Exception\ResponseException;
 use WordPress\AiClient\Providers\Http\Util\ResponseUtil;
@@ -43,6 +44,24 @@ use WordPress\AiClient\Providers\Models\Enums\OptionEnum;
  * @phpstan-type ModelDetails array{capabilities: list<string>, families: list<string>}
  */
 class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirectory {
+
+	/**
+	 * Default timeout for model discovery requests, in seconds.
+	 *
+	 * @since x.x.x
+	 *
+	 * @var float
+	 */
+	private const DEFAULT_DISCOVERY_REQUEST_TIMEOUT = 10.0;
+
+	/**
+	 * Default connection timeout for model discovery requests, in seconds.
+	 *
+	 * @since x.x.x
+	 *
+	 * @var float
+	 */
+	private const DEFAULT_DISCOVERY_CONNECT_TIMEOUT = 3.0;
 
 	/**
 	 * The model entries from /api/tags, once fetched.
@@ -133,10 +152,10 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	 *
 	 * @since x.x.x
 	 *
-	 * @param string        $model_name  The model name.
-	 * @param TagsEntryData $model_entry The model's entry from /api/tags.
+	 * @param string                  $model_name     The model name.
+	 * @param TagsEntryData           $model_entry    The model's entry from /api/tags.
 	 * @param \Fueled\AiProviderForOllama\Metadata\OllamaModelDetailsCache $details_cache The cache of details fetched for earlier listings.
-	 * @param list<string>  $digests_in_use Digests resolved from the cache so far, appended to by reference.
+	 * @param list<string>            $digests_in_use Digests resolved from the cache so far, appended to by reference.
 	 * @return ModelDetails|null The model details, or null when they could not be determined.
 	 */
 	private function resolveModelDetails(
@@ -384,7 +403,53 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 			$method,
 			OllamaProvider::url( $path ),
 			$headers,
-			$data
+			$data,
+			$this->discoveryRequestOptions()
 		);
+	}
+
+	/**
+	 * Builds the request options used for model discovery.
+	 *
+	 * Discovery runs while the admin waits for a screen to render, so it gets
+	 * its own, tighter budget rather than the generous timeouts a generation
+	 * request is allowed to take.
+	 *
+	 * @since x.x.x
+	 *
+	 * @return \WordPress\AiClient\Providers\Http\DTO\RequestOptions The prepared request options.
+	 */
+	private function discoveryRequestOptions(): RequestOptions {
+		$request_timeout = self::DEFAULT_DISCOVERY_REQUEST_TIMEOUT;
+		$connect_timeout = self::DEFAULT_DISCOVERY_CONNECT_TIMEOUT;
+
+		if ( function_exists( 'apply_filters' ) ) {
+			/**
+			 * Filters the request timeout for Ollama model discovery requests.
+			 *
+			 * Applies to the `/api/tags` and `/api/show` requests behind the connection
+			 * check and the model list, not to text, image, or embedding generation.
+			 *
+			 * @since x.x.x
+			 *
+			 * @param float $request_timeout The request timeout in seconds.
+			 */
+			$request_timeout = (float) apply_filters( 'ai_provider_for_ollama_discovery_request_timeout', $request_timeout );
+
+			/**
+			 * Filters the connection timeout for Ollama model discovery requests.
+			 *
+			 * @since x.x.x
+			 *
+			 * @param float $connect_timeout The connection timeout in seconds.
+			 */
+			$connect_timeout = (float) apply_filters( 'ai_provider_for_ollama_discovery_connect_timeout', $connect_timeout );
+		}
+
+		$request_options = new RequestOptions();
+		$request_options->setTimeout( $request_timeout );
+		$request_options->setConnectTimeout( $connect_timeout );
+
+		return $request_options;
 	}
 }

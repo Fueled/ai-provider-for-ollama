@@ -722,6 +722,23 @@ class OllamaModelMetadataDirectoryTest extends TestCase {
 	}
 
 	/**
+	 * Tests that discovery requests carry a bounded timeout.
+	 */
+	public function test_discovery_requests_are_given_a_timeout(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( 'llama3.2' ) ) );
+		$this->transporter->queue_response( $this->make_show_response( array( 'completion' ) ) );
+
+		$this->directory->listModelMetadata();
+
+		foreach ( $this->transporter->get_requests() as $request ) {
+			$options = $request->getOptions();
+			$this->assertNotNull( $options, 'Expected request options on every discovery request.' );
+			$this->assertNotNull( $options->getTimeout() );
+			$this->assertNotNull( $options->getConnectTimeout() );
+		}
+	}
+
+	/**
 	 * Tests that listModelTags() fetches the tag listing only once per instance.
 	 */
 	public function test_model_tags_are_fetched_once_per_instance(): void {
