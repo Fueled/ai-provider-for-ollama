@@ -718,7 +718,13 @@ class OllamaModelMetadataDirectoryTest extends TestCase {
 
 		$lookup = $this->transporter->get_requests()[1];
 		$this->assertStringEndsWith( 'api/show', $lookup->getUri() );
-		$this->assertSame( array( 'model' => 'gemma3:latest' ), $lookup->getData() );
+		$this->assertSame(
+			array(
+				'model' => 'gemma3:latest',
+				'name'  => 'gemma3:latest',
+			),
+			$lookup->getData()
+		);
 	}
 
 	/**
@@ -750,6 +756,44 @@ class OllamaModelMetadataDirectoryTest extends TestCase {
 		$this->directory->listModelMetadata();
 
 		$this->assertSame( 2, $this->transporter->get_request_count(), 'Expected one tag listing and one lookup.' );
+	}
+
+	/**
+	 * Tests that invalidateCaches() drops the tag listing so the next call refetches.
+	 */
+	public function test_invalidate_caches_refetches_model_tags(): void {
+		$this->transporter->queue_response(
+			$this->make_tags_response(
+				array(
+					array(
+						'name'         => 'llama3.2',
+						'capabilities' => array( 'completion' ),
+					),
+				)
+			)
+		);
+
+		$this->directory->listModelMetadata();
+		$this->assertSame( 1, $this->transporter->get_request_count() );
+
+		$this->directory->invalidateCaches();
+
+		$this->transporter->queue_response(
+			$this->make_tags_response(
+				array(
+					array(
+						'name'         => 'qwen2.5:3b',
+						'capabilities' => array( 'completion', 'tools' ),
+					),
+				)
+			)
+		);
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertSame( 2, $this->transporter->get_request_count(), 'Expected a second tag listing after invalidateCaches().' );
+		$this->assertCount( 1, $models );
+		$this->assertSame( 'qwen2.5:3b', $models[0]->getId() );
 	}
 
 	// -----------------------------------------------------------------------
