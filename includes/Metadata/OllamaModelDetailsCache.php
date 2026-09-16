@@ -18,18 +18,6 @@ namespace Fueled\AiProviderForOllama\Metadata;
  * cache keeps those answers between requests, which is what keeps the model
  * listing down to a single request on such servers.
  *
- * Two properties make it safe to keep entries for a long time:
- *
- * - Entries are keyed by the model digest, which changes whenever the model is
- *   re-pulled, so a changed model invalidates its own entry.
- * - The store is keyed by host, so pointing the provider at a different Ollama
- *   instance misses rather than reads another instance's answers.
- *
- * The store is a WordPress transient, which lives in the options table and
- * therefore survives between requests even on sites without a persistent
- * object cache. Outside WordPress the cache is inert and the directory simply
- * asks Ollama every time, as it did before.
- *
  * @since x.x.x
  *
  * @phpstan-type ModelDetails array{capabilities: list<string>, families: list<string>}
@@ -136,9 +124,6 @@ final class OllamaModelDetailsCache {
 	/**
 	 * Builds the transient name for a host.
 	 *
-	 * The host is fingerprinted rather than embedded, so that the name stays a
-	 * short, valid option name whatever the URL looks like.
-	 *
 	 * @since x.x.x
 	 *
 	 * @param string $host The Ollama base URL.
@@ -175,9 +160,6 @@ final class OllamaModelDetailsCache {
 	/**
 	 * Persists the store, dropping entries for models the host no longer offers.
 	 *
-	 * Nothing is written when the outcome matches what was read, so a steady
-	 * state costs no database writes.
-	 *
 	 * @since x.x.x
 	 *
 	 * @param list<string> $digests_in_use Digests seen in the current model listing.
@@ -206,8 +188,6 @@ final class OllamaModelDetailsCache {
 
 	/**
 	 * Discards anything that does not look like details this class wrote.
-	 *
-	 * The transient is ordinary option data, so it is treated as untrusted.
 	 *
 	 * @since x.x.x
 	 *

@@ -20,17 +20,6 @@ use WordPress\AiClient\Providers\Contracts\ProviderAvailabilityInterface;
  * working Ollama?" — with the single `GET /api/tags` request that answering it
  * requires.
  *
- * The SDK's {@see \WordPress\AiClient\Providers\ApiBasedImplementation\ListModelsApiBasedProviderAvailability}
- * answers it by listing every model instead. For Ollama that is far from free:
- * servers that do not report capabilities in `/api/tags` need one `/api/show`
- * request per model, so a yes/no reachability check turned into dozens of
- * sequential round trips — slow enough that ordinary latency variance made it
- * time out and report a perfectly healthy provider as not connected.
- *
- * The tag listing is memoized by the directory for the duration of the
- * request, so checking availability and then listing models costs one request
- * between them rather than one each.
- *
  * @since x.x.x
  */
 class OllamaProviderAvailability implements ProviderAvailabilityInterface {

@@ -22,13 +22,6 @@ use WordPress\AiClient\Providers\Models\Enums\OptionEnum;
 /**
  * Class for the Ollama model metadata directory.
  *
- * Building the model list needs one `GET /api/tags` request, plus the
- * capabilities of each model listed. Recent Ollama versions report those
- * capabilities in the tag listing itself, in which case no further request is
- * made; otherwise they come from `POST /api/show`, and the answers are cached
- * per model digest by {@see \Fueled\AiProviderForOllama\Metadata\OllamaModelDetailsCache},
- * so that later requests also get away with the single tag listing.
- *
  * @since 1.0.0
  *
  * @phpstan-type TagsEntryData array{
@@ -74,13 +67,6 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 
 	/**
 	 * Lists the models the Ollama host offers, as returned by /api/tags.
-	 *
-	 * This is the cheapest complete answer Ollama gives about itself: reaching it
-	 * proves the host is up, speaks Ollama, and accepted the credentials, which
-	 * is why {@see \Fueled\AiProviderForOllama\Provider\OllamaProviderAvailability}
-	 * uses it as its availability probe. The result is memoized for the lifetime
-	 * of this instance, so probing availability and then listing models costs one
-	 * request between them.
 	 *
 	 * @since x.x.x
 	 *
@@ -157,8 +143,7 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	 * Resolves the capability details of a single model, at the lowest cost available.
 	 *
 	 * In order of preference: the tag entry itself, the cache, and finally a
-	 * request to /api/show. A failed request is left uncached, so a momentary
-	 * error cannot pin a model's capabilities for the life of the cache.
+	 * request to /api/show.
 	 *
 	 * @since x.x.x
 	 *
@@ -423,10 +408,6 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 
 	/**
 	 * Builds the request options used for model discovery.
-	 *
-	 * Discovery runs while the admin waits for a screen to render, so it gets
-	 * its own, tighter budget rather than the generous timeouts a generation
-	 * request is allowed to take.
 	 *
 	 * @since x.x.x
 	 *
