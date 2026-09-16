@@ -114,6 +114,16 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @since x.x.x
+	 */
+	public function invalidateCaches(): void {
+		$this->model_tags = null;
+		parent::invalidateCaches();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @since 1.0.0
 	 */
 	protected function sendListModelsRequest(): array {
@@ -372,7 +382,10 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 				HttpMethodEnum::POST(),
 				'api/show',
 				array( 'Content-Type' => 'application/json' ),
-				array( 'model' => $model_name )
+				array(
+					'model' => $model_name,
+					'name'  => $model_name,
+				)
 			);
 			$request  = $this->getRequestAuthentication()->authenticateRequest( $request );
 			$response = $this->getHttpTransporter()->send( $request );
