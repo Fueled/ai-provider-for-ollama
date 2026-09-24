@@ -596,6 +596,35 @@ class OllamaModelMetadataDirectoryTest extends TestCase {
 	}
 
 	/**
+	 * Tests that when the models key contains a non-array value, a ResponseException is thrown.
+	 *
+	 * @dataProvider data_non_array_models_values
+	 *
+	 * @param mixed $non_array_value The invalid models value.
+	 */
+	public function test_missing_models_key_with_non_array_value_throws_exception( $non_array_value ): void {
+		$this->transporter->set_response_to_return(
+			new Response( 200, array(), (string) json_encode( array( 'models' => $non_array_value ) ) )
+		);
+
+		$this->expectException( ResponseException::class );
+		$this->directory->listModelMetadata();
+	}
+
+	/**
+	 * Data provider of non-array models values.
+	 *
+	 * @return array<string, array{0: mixed}>
+	 */
+	public function data_non_array_models_values(): array {
+		return array(
+			'string value'  => array( 'llama3.2' ),
+			'integer value' => array( 12345 ),
+			'boolean false' => array( false ),
+		);
+	}
+
+	/**
 	 * Tests that a failed /api/tags request propagates the exception.
 	 */
 	public function test_failed_tags_request_throws_exception(): void {
@@ -742,6 +771,52 @@ class OllamaModelMetadataDirectoryTest extends TestCase {
 			$this->assertNotNull( $options->getTimeout() );
 			$this->assertNotNull( $options->getConnectTimeout() );
 		}
+	}
+
+	/**
+	 * Tests that the ai_provider_for_ollama_discovery_request_timeout filter overrides the default request timeout.
+	 */
+	public function test_discovery_request_timeout_filter_overrides_timeout(): void {
+		add_filter(
+			'ai_provider_for_ollama_discovery_request_timeout',
+			static function () {
+				return 25.0;
+			}
+		);
+
+		$this->transporter->queue_response( $this->make_tags_response( array( 'llama3.2' ) ) );
+		$this->directory->listModelTags();
+
+		remove_all_filters( 'ai_provider_for_ollama_discovery_request_timeout' );
+
+		$last_request = $this->transporter->get_last_request();
+		$this->assertNotNull( $last_request );
+		$options = $last_request->getOptions();
+		$this->assertNotNull( $options );
+		$this->assertSame( 25.0, $options->getTimeout() );
+	}
+
+	/**
+	 * Tests that the ai_provider_for_ollama_discovery_connect_timeout filter overrides the default connect timeout.
+	 */
+	public function test_discovery_connect_timeout_filter_overrides_connect_timeout(): void {
+		add_filter(
+			'ai_provider_for_ollama_discovery_connect_timeout',
+			static function () {
+				return 8.0;
+			}
+		);
+
+		$this->transporter->queue_response( $this->make_tags_response( array( 'llama3.2' ) ) );
+		$this->directory->listModelTags();
+
+		remove_all_filters( 'ai_provider_for_ollama_discovery_connect_timeout' );
+
+		$last_request = $this->transporter->get_last_request();
+		$this->assertNotNull( $last_request );
+		$options = $last_request->getOptions();
+		$this->assertNotNull( $options );
+		$this->assertSame( 8.0, $options->getConnectTimeout() );
 	}
 
 	/**
