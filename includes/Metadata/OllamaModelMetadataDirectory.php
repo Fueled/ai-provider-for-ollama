@@ -113,9 +113,10 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	 * @since 1.0.0
 	 */
 	protected function sendListModelsRequest(): array {
-		$details_cache  = OllamaModelDetailsCache::load( OllamaProvider::url( '' ) );
-		$digests_in_use = array();
-		$models_map     = array();
+		$details_cache   = OllamaModelDetailsCache::load( OllamaProvider::url( '' ) );
+		$digests_in_use  = array();
+		$models_map      = array();
+		$decision_models = array();
 
 		foreach ( $this->listModelTags() as $model_entry ) {
 			if ( ! isset( $model_entry['name'] ) || ! is_string( $model_entry['name'] ) || '' === $model_entry['name'] ) {
@@ -129,14 +130,50 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 				continue;
 			}
 
+			if ( null !== $details && in_array( 'decision', $details['capabilities'], true ) ) {
+				$decision_models[ $model_name ] = $metadata;
+				continue;
+			}
+
 			$models_map[ $model_name ] = $metadata;
 		}
 
 		$details_cache->save( $digests_in_use );
 
 		ksort( $models_map );
+		ksort( $decision_models );
 
-		return $models_map;
+		// Put Decision models last so they are not picked by default.
+		return $models_map + $decision_models;
+	}
+
+	/**
+	 * Lists the models that support decisions via the /v1/systemone endpoint.
+	 *
+	 * @since x.x.x
+	 *
+	 * @return list<string> The model IDs, sorted.
+	 * @throws \WordPress\AiClient\Providers\Http\Exception\ResponseException If the host is unreachable or the response
+	 *                                                                       is not a model listing.
+	 */
+	public function listDecisionModelIds(): array {
+		$model_ids = array();
+
+		foreach ( $this->listModelTags() as $model_entry ) {
+			if ( ! isset( $model_entry['name'] ) || ! is_string( $model_entry['name'] ) || '' === $model_entry['name'] ) {
+				continue;
+			}
+
+			if ( ! in_array( 'decision', $this->readStringList( $model_entry['capabilities'] ?? null ), true ) ) {
+				continue;
+			}
+
+			$model_ids[] = $model_entry['name'];
+		}
+
+		sort( $model_ids );
+
+		return $model_ids;
 	}
 
 	/**
