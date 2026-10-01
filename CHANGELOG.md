@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 **Note that this version bumps the PHP minimum supported version from 7.4 to 8.2.**
 
 ### Changed
-- Bump PHP minimum supported version to 8.2 and test against PHP 8.2 through 8.5.
+- Bump PHP minimum supported version to 8.2 and test against PHP 8.2 through 8.5 (props [@gsarig](https://github.com/gsarig) via [#105](https://github.com/Fueled/ai-provider-for-ollama/pull/105)).
 
 ## [1.2.0] - 2026-08-18
 ### Added
