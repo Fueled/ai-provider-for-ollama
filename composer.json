@@ -21,7 +21,7 @@
         "source": "https://github.com/fueled/ai-provider-for-ollama"
     },
     "require": {
-        "php": ">=7.4"
+        "php": ">=8.2"
     },
     "require-dev": {
         "automattic/vipwpcs": "^3.1",
@@ -55,7 +55,7 @@
         },
         "optimize-autoloader": true,
         "platform": {
-            "php": "7.4"
+            "php": "8.2.0"
         },
         "sort-packages": true
     },

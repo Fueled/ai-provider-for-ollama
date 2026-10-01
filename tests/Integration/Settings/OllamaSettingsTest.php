@@ -50,7 +50,6 @@ class OllamaSettingsTest extends \WP_UnitTestCase {
 	private function reset_registry(): void {
 		$ai_client_reflection = new \ReflectionClass( AiClient::class );
 		$registry_prop        = $ai_client_reflection->getProperty( 'defaultRegistry' );
-		$registry_prop->setAccessible( true );
 		$registry_prop->setValue( null, null );
 	}
 

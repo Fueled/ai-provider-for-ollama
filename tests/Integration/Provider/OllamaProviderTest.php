@@ -55,7 +55,6 @@ class OllamaProviderTest extends TestCase {
 		$reflection = new \ReflectionClass( AbstractProvider::class );
 		foreach ( array( 'metadataCache', 'availabilityCache', 'modelMetadataDirectoryCache' ) as $prop_name ) {
 			$prop = $reflection->getProperty( $prop_name );
-			$prop->setAccessible( true );
 			$prop->setValue( null, array() );
 		}
 	}
@@ -173,7 +172,6 @@ class OllamaProviderTest extends TestCase {
 	 */
 	private function invoke_create_model( ModelMetadata $model_metadata ): \WordPress\AiClient\Providers\Models\Contracts\ModelInterface {
 		$method = new \ReflectionMethod( OllamaProvider::class, 'createModel' );
-		$method->setAccessible( true );
 		return $method->invoke( null, $model_metadata, OllamaProvider::metadata() );
 	}
 
