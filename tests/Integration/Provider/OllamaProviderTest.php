@@ -5,14 +5,19 @@ declare( strict_types=1 );
 namespace Fueled\AiProviderForOllama\Tests\Integration\Provider;
 
 use Fueled\AiProviderForOllama\Metadata\OllamaModelMetadataDirectory;
+use Fueled\AiProviderForOllama\Models\OllamaDecisionModel;
 use Fueled\AiProviderForOllama\Models\OllamaEmbeddingGenerationModel;
 use Fueled\AiProviderForOllama\Models\OllamaImageGenerationModel;
 use Fueled\AiProviderForOllama\Models\OllamaTextGenerationModel;
 use Fueled\AiProviderForOllama\Provider\OllamaProvider;
 use Fueled\AiProviderForOllama\Provider\OllamaProviderAvailability;
+use Fueled\AiProviderForOllama\Tests\Integration\Mocks\MockHttpTransporter;
 use PHPUnit\Framework\TestCase;
 use WordPress\AiClient\Common\Exception\RuntimeException;
 use WordPress\AiClient\Providers\AbstractProvider;
+use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
+use WordPress\AiClient\Providers\Http\DTO\Response;
+use WordPress\AiClient\Providers\Models\DTO\ModelConfig;
 use WordPress\AiClient\Providers\Models\DTO\ModelMetadata;
 use WordPress\AiClient\Providers\Models\EmbeddingGeneration\Contracts\EmbeddingGenerationModelInterface;
 use WordPress\AiClient\Providers\Models\Enums\CapabilityEnum;
@@ -273,5 +278,65 @@ class OllamaProviderTest extends TestCase {
 
 		$this->expectException( RuntimeException::class );
 		$this->invoke_create_model( $model_metadata );
+	}
+
+	// -----------------------------------------------------------------------
+	// Decision model tests
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Tests that decisionModel() builds a decision model with the registry's dependencies bound.
+	 */
+	public function test_decision_model_returns_bound_model(): void {
+		$config = new ModelConfig();
+		$config->setCustomOptions( array( 'keep_alive' => '10m' ) );
+
+		$model = OllamaProvider::decisionModel( 'nimble', $config );
+
+		$this->assertInstanceOf( OllamaDecisionModel::class, $model );
+		$this->assertSame( 'nimble', $model->metadata()->getId() );
+		$this->assertSame( 'ollama', $model->providerMetadata()->getId() );
+		$this->assertSame( array( 'keep_alive' => '10m' ), $model->getConfig()->getCustomOptions() );
+
+		// Both throw when unset, so reaching them proves the registry bound them.
+		$this->assertNotNull( $model->getHttpTransporter() );
+		$this->assertNotNull( $model->getRequestAuthentication() );
+	}
+
+	/**
+	 * Tests that decisionModelIds() lists decision models from the provider's metadata directory.
+	 */
+	public function test_decision_model_ids_lists_decision_models(): void {
+		putenv( 'OLLAMA_HOST=http://localhost:11434' );
+
+		$transporter = new MockHttpTransporter();
+		$transporter->queue_response(
+			new Response(
+				200,
+				array(),
+				(string) json_encode(
+					array(
+						'models' => array(
+							array(
+								'name'         => 'tev1:latest',
+								'capabilities' => array( 'decision', 'completion' ),
+							),
+							array(
+								'name'         => 'qwen2.5:3b',
+								'capabilities' => array( 'completion' ),
+							),
+						),
+					)
+				)
+			)
+		);
+
+		/** @var OllamaModelMetadataDirectory $directory */
+		$directory = OllamaProvider::modelMetadataDirectory();
+		$directory->setHttpTransporter( $transporter );
+		$directory->setRequestAuthentication( new ApiKeyRequestAuthentication( '' ) );
+		$directory->invalidateCaches();
+
+		$this->assertSame( array( 'tev1:latest' ), OllamaProvider::decisionModelIds() );
 	}
 }

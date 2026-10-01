@@ -5,6 +5,7 @@ declare( strict_types=1 );
 namespace Fueled\AiProviderForOllama\Provider;
 
 use Fueled\AiProviderForOllama\Metadata\OllamaModelMetadataDirectory;
+use Fueled\AiProviderForOllama\Models\OllamaDecisionModel;
 use Fueled\AiProviderForOllama\Models\OllamaEmbeddingGenerationModel;
 use Fueled\AiProviderForOllama\Models\OllamaImageGenerationModel;
 use Fueled\AiProviderForOllama\Models\OllamaTextGenerationModel;
@@ -17,8 +18,11 @@ use WordPress\AiClient\Providers\DTO\ProviderMetadata;
 use WordPress\AiClient\Providers\Enums\ProviderTypeEnum;
 use WordPress\AiClient\Providers\Http\Enums\RequestAuthenticationMethod;
 use WordPress\AiClient\Providers\Models\Contracts\ModelInterface;
+use WordPress\AiClient\Providers\Models\DTO\ModelConfig;
 use WordPress\AiClient\Providers\Models\DTO\ModelMetadata;
+use WordPress\AiClient\Providers\Models\DTO\SupportedOption;
 use WordPress\AiClient\Providers\Models\EmbeddingGeneration\Contracts\EmbeddingGenerationModelInterface;
+use WordPress\AiClient\Providers\Models\Enums\OptionEnum;
 
 /**
  * Class for the Ollama provider.
@@ -26,6 +30,62 @@ use WordPress\AiClient\Providers\Models\EmbeddingGeneration\Contracts\EmbeddingG
  * @since 1.0.0
  */
 class OllamaProvider extends AbstractApiProvider {
+
+	/**
+	 * Returns a decision model, ready to answer questions.
+	 *
+	 * The AI Client has no decision capability, so decision models cannot be
+	 * resolved through the registry the way other models are.
+	 *
+	 * Example:
+	 *
+	 *     $result = OllamaProvider::decisionModel( 'tev1' )->decide(
+	 *         $comment_text,
+	 *         array( 'spam' => DecisionQuestion::noul( 'Is this comment spam?' ) )
+	 *     );
+	 *
+	 * @since x.x.x
+	 *
+	 * @param string                                                  $model_id     The model ID, such as "nimble".
+	 * @param \WordPress\AiClient\Providers\Models\DTO\ModelConfig|null $model_config Optional. Model configuration,
+	 *                                                                              for custom options. Default null.
+	 * @return \Fueled\AiProviderForOllama\Models\OllamaDecisionModel The decision model.
+	 */
+	public static function decisionModel( string $model_id, ?ModelConfig $model_config = null ): OllamaDecisionModel {
+		$model_metadata = new ModelMetadata(
+			$model_id,
+			$model_id,
+			array(),
+			array( new SupportedOption( OptionEnum::customOptions() ) )
+		);
+
+		$model = new OllamaDecisionModel( $model_metadata, static::metadata() );
+		if ( null !== $model_config ) {
+			$model->setConfig( $model_config );
+		}
+
+		$registry = AiClient::defaultRegistry();
+		if ( $registry->hasProvider( static::class ) ) {
+			$registry->bindModelDependencies( $model );
+		}
+
+		return $model;
+	}
+
+	/**
+	 * Lists the models on the Ollama host that support decisions.
+	 *
+	 * @since x.x.x
+	 *
+	 * @return list<string> The model IDs, sorted.
+	 * @throws \WordPress\AiClient\Providers\Http\Exception\ResponseException If the host is unreachable.
+	 */
+	public static function decisionModelIds(): array {
+		/** @var \Fueled\AiProviderForOllama\Metadata\OllamaModelMetadataDirectory $model_metadata_directory */
+		$model_metadata_directory = static::modelMetadataDirectory();
+
+		return $model_metadata_directory->listDecisionModelIds();
+	}
 
 	/**
 	 * {@inheritDoc}

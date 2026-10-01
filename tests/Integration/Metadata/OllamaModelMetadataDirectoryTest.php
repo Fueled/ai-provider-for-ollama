@@ -974,4 +974,89 @@ class OllamaModelMetadataDirectoryTest extends TestCase {
 		$this->assertSame( 2, $later_transporter->get_request_count() );
 		$this->assertContains( 'functionDeclarations', $this->option_names( $models[0] ) );
 	}
+
+	// -----------------------------------------------------------------------
+	// Decision model tests
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Tests that decision models stay listed for text generation but sort after the other models.
+	 */
+	public function test_decision_models_are_listed_after_other_models(): void {
+		$this->transporter->queue_response(
+			$this->make_tags_response(
+				array(
+					array(
+						'name'         => 'tev1:latest',
+						'capabilities' => array( 'decision', 'tools', 'thinking', 'completion' ),
+					),
+					array(
+						'name'         => 'qwen2.5:3b',
+						'capabilities' => array( 'completion', 'tools' ),
+					),
+					array(
+						'name'         => 'gemma3:latest',
+						'capabilities' => array( 'completion', 'vision' ),
+					),
+				)
+			)
+		);
+
+		$models = $this->directory->listModelMetadata();
+
+		$ids = array_map(
+			static function ( ModelMetadata $model ): string {
+				return $model->getId();
+			},
+			$models
+		);
+		$this->assertSame( array( 'gemma3:latest', 'qwen2.5:3b', 'tev1:latest' ), $ids );
+		$this->assertTrue( $models[2]->getSupportedCapabilities()[0]->isTextGeneration() );
+	}
+
+	/**
+	 * Tests that decision models without the completion capability are not offered for text generation.
+	 */
+	public function test_decision_only_models_are_not_listed(): void {
+		$this->transporter->queue_response(
+			$this->make_tags_response(
+				array(
+					array(
+						'name'         => 'nimble:latest',
+						'capabilities' => array( 'decision' ),
+					),
+				)
+			)
+		);
+
+		$this->assertSame( array(), $this->directory->listModelMetadata() );
+	}
+
+	/**
+	 * Tests that listDecisionModelIds() returns only models reporting the decision capability, sorted.
+	 */
+	public function test_list_decision_model_ids_returns_decision_models_sorted(): void {
+		$this->transporter->queue_response(
+			$this->make_tags_response(
+				array(
+					array(
+						'name'         => 'tev1:latest',
+						'capabilities' => array( 'decision', 'completion' ),
+					),
+					array(
+						'name'         => 'qwen2.5:3b',
+						'capabilities' => array( 'completion', 'tools' ),
+					),
+					array(
+						'name'         => 'nimble:latest',
+						'capabilities' => array( 'decision' ),
+					),
+					'legacy-model',
+				)
+			)
+		);
+
+		$this->assertSame( array( 'nimble:latest', 'tev1:latest' ), $this->directory->listDecisionModelIds() );
+		$this->assertSame( 1, $this->transporter->get_request_count(), 'Expected the tag listing to be the only request.' );
+	}
 }

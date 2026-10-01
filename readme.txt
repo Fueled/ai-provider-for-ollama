@@ -21,6 +21,7 @@ Ollama exposes an [OpenAI-compatible API](https://ollama.com/blog/openai-compati
 * Text generation with any Ollama model
 * Image generation with supported models
 * Embedding generation with any embedding-capable Ollama model
+* Typed decisions (choice, yes/no probability, and score) with local decision models such as nimble and tev1
 * Automatic model discovery from your Ollama instance
 * Function calling support
 * Structured output (JSON mode) support
