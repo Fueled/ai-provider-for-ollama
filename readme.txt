@@ -4,7 +4,7 @@ Tags:              ai, ollama, llm, local-ai, connector
 Requires at least: 7.0
 Tested up to:      7.1
 Stable tag:        1.2.0
-Requires PHP:      7.4
+Requires PHP:      8.2
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -29,7 +29,7 @@ Ollama exposes an [OpenAI-compatible API](https://ollama.com/blog/openai-compati
 
 **Requirements:**
 
-* PHP 7.4 or higher
+* PHP 8.2 or higher
 * WordPress 7.0 or higher
 * Ollama running locally or on a remote server (like Ollama Cloud)
 
