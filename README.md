@@ -114,6 +114,12 @@ $result->getAnswer( 'tone' )->getScore();            // 1.7, from 0 (first level
 
 `OllamaProvider::decisionModelIds()` lists the models on your Ollama host that support decisions. A request takes up to 64 questions; choice and score questions take 2 to 26 options or levels. Invalid requests throw an `InvalidArgumentException` before anything is sent.
 
+## Frequently Asked Questions
+
+### Where do I report security bugs found in this plugin?
+
+Please report security bugs found in the source code of the AI Provider for Ollama plugin through the [Patchstack Vulnerability Disclosure  Program](https://patchstack.com/database/vdp/b715f2ba-e67f-437c-9398-cb523702a7ad). The Patchstack team will assist you with verification, CVE assignment, and notify the developers of this plugin.
+
 ## Support Level
 
 **Active:** Fueled is actively working on this, and we expect to continue work for the foreseeable future including keeping tested up to the most recent version of WordPress.  Bug reports, feature requests, questions, and pull requests are welcome.
