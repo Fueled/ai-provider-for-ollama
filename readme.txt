@@ -59,6 +59,10 @@ By default, the provider connects to `http://localhost:11434`. You can change th
 1. Set the `OLLAMA_HOST` environment variable (takes precedence).
 2. Go to **Settings > Ollama** in the WordPress admin and enter your host URL.
 
+= Where do I report security bugs found in this plugin? =
+
+Please report security bugs found in the source code of the AI Provider for Ollama plugin through the [Patchstack Vulnerability Disclosure  Program](https://patchstack.com/database/vdp/b715f2ba-e67f-437c-9398-cb523702a7ad). The Patchstack team will assist you with verification, CVE assignment, and notify the developers of this plugin.
+
 == Screenshots ==
 
 1. Settings > Ollama screen showing available AI models and Host URL configuration.
