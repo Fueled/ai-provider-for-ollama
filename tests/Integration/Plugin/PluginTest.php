@@ -63,14 +63,12 @@ class PluginTest extends \WP_UnitTestCase {
 		// Reset the singleton registry.
 		$ai_client_reflection = new \ReflectionClass( AiClient::class );
 		$registry_prop        = $ai_client_reflection->getProperty( 'defaultRegistry' );
-		$registry_prop->setAccessible( true );
 		$registry_prop->setValue( null, null );
 
 		// Clear AbstractProvider static caches so providers re-create fresh instances.
 		$provider_reflection = new \ReflectionClass( AbstractProvider::class );
 		foreach ( array( 'metadataCache', 'availabilityCache', 'modelMetadataDirectoryCache' ) as $prop_name ) {
 			$prop = $provider_reflection->getProperty( $prop_name );
-			$prop->setAccessible( true );
 			$prop->setValue( null, array() );
 		}
 	}
