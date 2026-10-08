@@ -3,7 +3,7 @@
  * An answer from a decision model.
  *
  * @package Fueled\AiProviderForOllama\Decisions
- * @since   x.x.x
+ * @since   1.3.0
  */
 
 declare( strict_types=1 );
@@ -22,14 +22,14 @@ use WordPress\AiClient\Providers\Http\Exception\ResponseException;
  *  - noul:   getProbability(). Ollama reports no separate confidence; the probability is it.
  *  - score:  getScore(), getProbabilities(), getConfidence(), getLegend().
  *
- * @since x.x.x
+ * @since 1.3.0
  */
 class DecisionAnswer {
 
 	/**
 	 * The question type.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @var \Fueled\AiProviderForOllama\Decisions\DecisionTypeEnum
 	 */
@@ -38,7 +38,7 @@ class DecisionAnswer {
 	/**
 	 * The answer value: the option key for choice, a probability for noul, a position for score.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @var string|float
 	 */
@@ -47,7 +47,7 @@ class DecisionAnswer {
 	/**
 	 * The probability of each option or level.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @var array<string, float>
 	 */
@@ -56,7 +56,7 @@ class DecisionAnswer {
 	/**
 	 * How concentrated the distribution is, from 0 to 1, or null for noul answers.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @var float|null
 	 */
@@ -65,7 +65,7 @@ class DecisionAnswer {
 	/**
 	 * The score level descriptions, keyed by level index.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @var array<string, string>
 	 */
@@ -74,7 +74,7 @@ class DecisionAnswer {
 	/**
 	 * Constructor.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @param \Fueled\AiProviderForOllama\Decisions\DecisionTypeEnum $type          The question type.
 	 * @param string|float                                           $value         The answer value.
@@ -99,7 +99,7 @@ class DecisionAnswer {
 	/**
 	 * Creates an answer from the API data for one question.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @param \Fueled\AiProviderForOllama\Decisions\DecisionTypeEnum $type The type of the question asked.
 	 * @param mixed                                                  $data The answer data from the response.
@@ -148,7 +148,7 @@ class DecisionAnswer {
 	/**
 	 * Returns the question type.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @return \Fueled\AiProviderForOllama\Decisions\DecisionTypeEnum The question type.
 	 */
@@ -159,7 +159,7 @@ class DecisionAnswer {
 	/**
 	 * Returns the raw answer value.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @return string|float The option key for choice, a probability for noul, a position for score.
 	 */
@@ -170,7 +170,7 @@ class DecisionAnswer {
 	/**
 	 * Returns the most probable option of a choice answer.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @return string|null The option key, or null if this is not a choice answer.
 	 */
@@ -181,7 +181,7 @@ class DecisionAnswer {
 	/**
 	 * Returns the probability that the statement of a noul answer is true.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @return float|null The probability from 0 to 1, or null if this is not a noul answer.
 	 */
@@ -192,7 +192,7 @@ class DecisionAnswer {
 	/**
 	 * Returns the probability-weighted position of a score answer.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @return float|null The position from 0 to one less than the number of levels, or null if
 	 *                    this is not a score answer.
@@ -204,7 +204,7 @@ class DecisionAnswer {
 	/**
 	 * Returns the probability of each option (choice) or level index (score).
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @return array<string, float> The probabilities, empty for noul answers.
 	 */
@@ -215,7 +215,7 @@ class DecisionAnswer {
 	/**
 	 * Returns how concentrated the distribution of a choice or score answer is.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @return float|null The confidence from 0 to 1, or null for noul answers.
 	 */
@@ -226,7 +226,7 @@ class DecisionAnswer {
 	/**
 	 * Returns the level descriptions of a score answer, keyed by level index.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @return array<string, string> The legend, empty for other answers.
 	 */
@@ -237,7 +237,7 @@ class DecisionAnswer {
 	/**
 	 * Checks whether the answer is confident enough to act on.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @param float $threshold The minimum confidence, from 0 to 1.
 	 * @return bool True if the answer meets the threshold.
@@ -253,7 +253,7 @@ class DecisionAnswer {
 	/**
 	 * Returns the answer as an array, in the shape of the API response.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @return array<string, mixed> The answer data.
 	 */
@@ -280,7 +280,7 @@ class DecisionAnswer {
 	/**
 	 * Reads a number between 0 and 1 from answer data.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @param array<mixed> $data  The answer data.
 	 * @param string       $key   The key to read.
@@ -304,7 +304,7 @@ class DecisionAnswer {
 	/**
 	 * Reads the probability distribution from answer data.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @param array<mixed> $data The answer data.
 	 * @param string       $path Where the answer sits in the response, for error messages.

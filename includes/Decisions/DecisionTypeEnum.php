@@ -3,7 +3,7 @@
  * Enum for decision question types.
  *
  * @package Fueled\AiProviderForOllama\Decisions
- * @since   x.x.x
+ * @since   1.3.0
  */
 
 declare( strict_types=1 );
@@ -15,7 +15,7 @@ use WordPress\AiClient\Common\AbstractEnum;
 /**
  * Enum for the question types a decision model answers.
  *
- * @since x.x.x
+ * @since 1.3.0
  *
  * @method static self choice() Creates an instance for the CHOICE type.
  * @method static self noul() Creates an instance for the NOUL type.

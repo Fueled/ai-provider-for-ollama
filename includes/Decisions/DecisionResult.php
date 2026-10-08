@@ -3,7 +3,7 @@
  * The result of a decision request.
  *
  * @package Fueled\AiProviderForOllama\Decisions
- * @since   x.x.x
+ * @since   1.3.0
  */
 
 declare( strict_types=1 );
@@ -18,14 +18,14 @@ use WordPress\AiClient\Results\DTO\TokenUsage;
 /**
  * Class for the answers a decision model gave to a set of questions.
  *
- * @since x.x.x
+ * @since 1.3.0
  */
 class DecisionResult {
 
 	/**
 	 * The model that answered.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @var string
 	 */
@@ -34,7 +34,7 @@ class DecisionResult {
 	/**
 	 * The answers, keyed by question name.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @var array<string, \Fueled\AiProviderForOllama\Decisions\DecisionAnswer>
 	 */
@@ -43,7 +43,7 @@ class DecisionResult {
 	/**
 	 * The token usage.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @var \WordPress\AiClient\Results\DTO\TokenUsage
 	 */
@@ -52,7 +52,7 @@ class DecisionResult {
 	/**
 	 * Constructor.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @param string                                                                $model_id    The model that answered.
 	 * @param array<string, \Fueled\AiProviderForOllama\Decisions\DecisionAnswer> $answers     The answers, keyed by question name.
@@ -67,7 +67,7 @@ class DecisionResult {
 	/**
 	 * Returns the model that answered.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @return string The model ID.
 	 */
@@ -78,7 +78,7 @@ class DecisionResult {
 	/**
 	 * Returns every answer, keyed by question name.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @return array<string, \Fueled\AiProviderForOllama\Decisions\DecisionAnswer> The answers.
 	 */
@@ -89,7 +89,7 @@ class DecisionResult {
 	/**
 	 * Checks whether there is an answer for the given question.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @param string $name The question name.
 	 * @return bool True if the question was answered.
@@ -101,7 +101,7 @@ class DecisionResult {
 	/**
 	 * Returns the answer to the given question.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @param string $name The question name.
 	 * @return \Fueled\AiProviderForOllama\Decisions\DecisionAnswer The answer.
@@ -119,7 +119,7 @@ class DecisionResult {
 	/**
 	 * Returns the token usage.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @return \WordPress\AiClient\Results\DTO\TokenUsage The token usage.
 	 */
@@ -130,7 +130,7 @@ class DecisionResult {
 	/**
 	 * Returns the result as an array, in the shape of the API response.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @return array{model: string, answers: array<string, array<string, mixed>>, usage: array{input_tokens: int, output_tokens: int}} The result data.
 	 */

@@ -3,7 +3,7 @@
  * Persistent cache for per-model details fetched from Ollama.
  *
  * @package Fueled\AiProviderForOllama\Metadata
- * @since   x.x.x
+ * @since   1.3.0
  */
 
 declare( strict_types=1 );
@@ -18,7 +18,7 @@ namespace Fueled\AiProviderForOllama\Metadata;
  * cache keeps those answers between requests, which is what keeps the model
  * listing down to a single request on such servers.
  *
- * @since x.x.x
+ * @since 1.3.0
  *
  * @phpstan-type ModelDetails array{capabilities: list<string>, families: list<string>}
  */
@@ -27,7 +27,7 @@ final class OllamaModelDetailsCache {
 	/**
 	 * Prefix for the transient holding a host's cached model details.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @var string
 	 */
@@ -39,7 +39,7 @@ final class OllamaModelDetailsCache {
 	 * Deliberately long: the digest key, not the TTL, is what invalidates an
 	 * entry whose model has changed.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @var int
 	 */
@@ -48,7 +48,7 @@ final class OllamaModelDetailsCache {
 	/**
 	 * The transient name this store reads from and writes to.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @var string
 	 */
@@ -57,7 +57,7 @@ final class OllamaModelDetailsCache {
 	/**
 	 * Cached details, keyed by model digest.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @var array<string, ModelDetails>
 	 */
@@ -66,7 +66,7 @@ final class OllamaModelDetailsCache {
 	/**
 	 * The entries as they were read, to detect whether a write is needed.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @var array<string, ModelDetails>
 	 */
@@ -75,7 +75,7 @@ final class OllamaModelDetailsCache {
 	/**
 	 * Constructor.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @param string                      $transient_name The transient name to use.
 	 * @param array<string, ModelDetails> $entries        The entries read from the transient.
@@ -89,7 +89,7 @@ final class OllamaModelDetailsCache {
 	/**
 	 * Loads the store for the given Ollama host.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @param string $host The Ollama base URL the details belong to.
 	 * @return self The store, empty when nothing is cached or when WordPress is unavailable.
@@ -109,7 +109,7 @@ final class OllamaModelDetailsCache {
 	/**
 	 * Discards everything cached for the given Ollama host.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @param string $host The Ollama base URL whose details should be forgotten.
 	 */
@@ -124,7 +124,7 @@ final class OllamaModelDetailsCache {
 	/**
 	 * Builds the transient name for a host.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @param string $host The Ollama base URL.
 	 * @return string The transient name.
@@ -136,7 +136,7 @@ final class OllamaModelDetailsCache {
 	/**
 	 * Returns the cached details for a model digest.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @param string $digest The model digest.
 	 * @return ModelDetails|null The cached details, or null when the digest is unknown.
@@ -148,7 +148,7 @@ final class OllamaModelDetailsCache {
 	/**
 	 * Caches the details for a model digest.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @param string       $digest  The model digest.
 	 * @param ModelDetails $details The details to cache.
@@ -160,7 +160,7 @@ final class OllamaModelDetailsCache {
 	/**
 	 * Persists the store, dropping entries for models the host no longer offers.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @param list<string> $digests_in_use Digests seen in the current model listing.
 	 */
@@ -189,7 +189,7 @@ final class OllamaModelDetailsCache {
 	/**
 	 * Discards anything that does not look like details this class wrote.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @param array<mixed> $stored The raw transient value.
 	 * @return array<string, ModelDetails> The usable entries.
@@ -214,7 +214,7 @@ final class OllamaModelDetailsCache {
 	/**
 	 * Coerces a stored value into a list of strings.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @param mixed $value The stored value.
 	 * @return list<string> The strings it contained, if any.
