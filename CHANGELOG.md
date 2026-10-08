@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased] - TBD
 
-## [1.3.0] - 2026-10-13
+## [1.3.0] - 2026-10-08
 ### Added
 - Support for Jev-style decision models ([#103](https://github.com/Fueled/ai-provider-for-ollama/pull/103)).
 - `ai_provider_for_ollama_request_timeout` and `ai_provider_for_ollama_connect_timeout` filters to override Ollama request and connect timeouts ([#89](https://github.com/Fueled/ai-provider-for-ollama/pull/89)).
