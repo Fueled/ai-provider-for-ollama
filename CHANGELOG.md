@@ -4,6 +4,35 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased] - TBD
 
+## [1.3.0] - 2026-10-13
+### Added
+- Support for Jev-style decision models ([#103](https://github.com/Fueled/ai-provider-for-ollama/pull/103)).
+- `ai_provider_for_ollama_request_timeout` and `ai_provider_for_ollama_connect_timeout` filters to override Ollama request and connect timeouts ([#89](https://github.com/Fueled/ai-provider-for-ollama/pull/89)).
+
+### Changed
+- Optimized Ollama model discovery and availability checks by caching model details, reducing redundant `/api/show` requests, and adding separate timeouts for discovery requests ([#100](https://github.com/Fueled/ai-provider-for-ollama/pull/100)).
+
+### Fixed
+- Ensure we only declare function calling support on models that advertise support for tools ([#94](https://github.com/Fueled/ai-provider-for-ollama/pull/94)).
+
+### Developer
+- Add WordPress Playground blueprint file ([#88](https://github.com/Fueled/ai-provider-for-ollama/pull/88)).
+- Add Patchstack security reporting item to FAQ ([#107](https://github.com/Fueled/ai-provider-for-ollama/pull/107)).
+- Add unit test coverage for `DecisionResult` and `OllamaModelDetailsCache` ([#108](https://github.com/Fueled/ai-provider-for-ollama/pull/108)).
+- Bump `adm-zip` from 0.5.16 to 0.6.1 ([#90](https://github.com/Fueled/ai-provider-for-ollama/pull/90), [#99](https://github.com/Fueled/ai-provider-for-ollama/pull/99)).
+- Bump `brace-expansion` from 1.1.18 to 1.1.21 ([#106](https://github.com/Fueled/ai-provider-for-ollama/pull/106)).
+- Bump `browserslist` from 4.28.1 to 4.28.8 ([#91](https://github.com/Fueled/ai-provider-for-ollama/pull/91)).
+- Bump `fast-uri` from 3.1.5 to 3.1.7 ([#92](https://github.com/Fueled/ai-provider-for-ollama/pull/92)).
+- Bump `http-cache-semantics` from 4.2.0 to 4.3.0 ([#106](https://github.com/Fueled/ai-provider-for-ollama/pull/106)).
+- Bump `http-proxy-middleware` from 2.0.9 to 2.0.10 ([#96](https://github.com/Fueled/ai-provider-for-ollama/pull/96)).
+- Bump `js-yaml` from 3.14.2 to 3.15.2 ([#96](https://github.com/Fueled/ai-provider-for-ollama/pull/96)).
+- Bump `linkify-it` from 3.0.3 to 5.0.2 ([#104](https://github.com/Fueled/ai-provider-for-ollama/pull/104)).
+- Bump `markdown-it` from 12.3.2 to 14.3.2 ([#104](https://github.com/Fueled/ai-provider-for-ollama/pull/104)).
+- Bump `minimatch` from 9.0.5 to 9.0.9 ([#104](https://github.com/Fueled/ai-provider-for-ollama/pull/104)).
+- Bump `postcss-selector-parser` from 6.1.2 to 6.1.4 and from 7.1.1 to 7.1.5 ([#91](https://github.com/Fueled/ai-provider-for-ollama/pull/91)).
+- Bump `svgo` from 3.3.4 to 3.3.5 ([#96](https://github.com/Fueled/ai-provider-for-ollama/pull/96)).
+- Removes `extract-zip` ([#97](https://github.com/Fueled/ai-provider-for-ollama/pull/97)).
+
 ## [1.2.0] - 2026-08-18
 ### Added
 - Support for generating embeddings (props [@dkotter](https://github.com/dkotter) via [#69](https://github.com/Fueled/ai-provider-for-ollama/pull/69)).
@@ -106,6 +135,7 @@ First public release of the AI Provider for Ollama plugin. 🎉
 - Function calling and structured output support
 
 [Unreleased]: https://github.com/Fueled/ai-provider-for-ollama/compare/main...develop
+[1.3.0]: https://github.com/Fueled/ai-provider-for-ollama/compare/1.2.0...1.3.0
 [1.2.0]: https://github.com/Fueled/ai-provider-for-ollama/compare/1.1.1...1.2.0
 [1.1.1]: https://github.com/Fueled/ai-provider-for-ollama/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/Fueled/ai-provider-for-ollama/compare/1.0.3...1.1.0

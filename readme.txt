@@ -69,6 +69,21 @@ Please report security bugs found in the source code of the AI Provider for Olla
 
 == Changelog ==
 
+= 1.3.0 - 2026-10-13 =
+
+**Added**
+
+- Support for Jev-style decision models ([#103](https://github.com/Fueled/ai-provider-for-ollama/pull/103)).
+- `ai_provider_for_ollama_request_timeout` and `ai_provider_for_ollama_connect_timeout` filters to override Ollama request and connect timeouts ([#89](https://github.com/Fueled/ai-provider-for-ollama/pull/89)).
+
+**Changed**
+
+- Optimized Ollama model discovery and availability checks by caching model details, reducing redundant `/api/show` requests, and adding separate timeouts for discovery requests ([#100](https://github.com/Fueled/ai-provider-for-ollama/pull/100)).
+
+**Fixed**
+
+- Ensure we only declare function calling support on models that advertise support for tools ([#94](https://github.com/Fueled/ai-provider-for-ollama/pull/94)).
+
 = 1.2.0 - 2026-08-18 =
 
 **Added**
@@ -95,29 +110,7 @@ Please report security bugs found in the source code of the AI Provider for Olla
 * **Changed:** Increase the standard timeout to be 60 seconds for text generation (props [@dkotter](https://github.com/dkotter), [@jeffpaul](https://github.com/jeffpaul) via [#49](https://github.com/Fueled/ai-provider-for-ollama/pull/49)).
 * **Fixed:** Properly parse structured outputs (props [@dkotter](https://github.com/dkotter), [@jeffpaul](https://github.com/jeffpaul) via [#49](https://github.com/Fueled/ai-provider-for-ollama/pull/49)).
 
-= 1.0.3 - 2026-03-25 =
-
-* **Changed:** Removed AI Client dependency FAQ entry (props [@raftaar1191](https://github.com/raftaar1191) via [#29](https://github.com/Fueled/ai-provider-for-ollama/pull/29)).
-* **Fixed:** Ensure the vendor directory ends up in our final release (props [@soderlind](https://github.com/soderlind), [@dkotter](https://github.com/dkotter) via [#31](https://github.com/Fueled/ai-provider-for-ollama/pull/31)).
-
-= 1.0.2 - 2026-03-23 =
-
-* **Changed:** Updated plugin display name and slug per WPORG feedback (props [@dkotter](https://github.com/dkotter), [@jeffpaul](https://github.com/jeffpaul) via [#25](https://github.com/Fueled/ai-provider-for-ollama/pull/25)).
-
-= 1.0.1 - 2026-03-20 =
-
-* **Added:** Support for the provider description and logo path (props [@jeffpaul](https://github.com/jeffpaul), [@dkotter](https://github.com/dkotter) via [#13](https://github.com/Fueled/ai-provider-for-ollama/pull/13)).
-* **Changed:** Display name and slug to meet WPORG Plugin team requirements (props [@jeffpaul](https://github.com/jeffpaul), [@dkotter](https://github.com/dkotter) via [#22](https://github.com/Fueled/ai-provider-for-ollama/pull/22)).
-* **Changed:** Update menu name from Ollama Settings to Ollama (props [@jeffpaul](https://github.com/jeffpaul), [@dkotter](https://github.com/dkotter) via [#19](https://github.com/Fueled/ai-provider-for-ollama/pull/19)).
-* **Fixed:** Ensure we properly check if the provider is connected rather than defaulting to always showing as connected (props [@raftaar1191](https://github.com/raftaar1191), [@dkotter](https://github.com/dkotter) via [#17](https://github.com/Fueled/ai-provider-for-ollama/pull/17)).
-
-= 1.0.0 - 2026-03-05 =
-
-* Initial release
-* Text generation with Ollama models via the OpenAI-compatible API
-* Automatic model discovery from the Ollama instance
-* Settings page for host URL and default model
-* Function calling and structured output support
+[View historical changelog details here](https://github.com/Fueled/ai-provider-for-ollama/blob/develop/CHANGELOG.md).
 
 == Upgrade Notice ==
 
