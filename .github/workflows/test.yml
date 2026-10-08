@@ -168,6 +168,8 @@ jobs:
   phpunit:
     name: Test PHP ${{ matrix.php }} WP ${{ matrix.wp }}${{ matrix.coverage && ' with coverage' || '' }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
