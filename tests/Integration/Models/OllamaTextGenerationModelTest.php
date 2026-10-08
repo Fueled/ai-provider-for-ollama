@@ -217,4 +217,87 @@ class OllamaTextGenerationModelTest extends TestCase {
 		$this->assertSame( 90.0, $request->getOptions()->getTimeout() );
 		$this->assertSame( 6.0, $request->getOptions()->getConnectTimeout() );
 	}
+
+	/**
+	 * Tests that the ai_provider_for_ollama_request_timeout filter overrides the default timeout.
+	 */
+	public function test_request_timeout_filter_overrides_default_timeout(): void {
+		add_filter(
+			'ai_provider_for_ollama_request_timeout',
+			static function () {
+				return 120.0;
+			}
+		);
+
+		$request = $this->model->expose_create_request(
+			HttpMethodEnum::POST(),
+			'chat/completions',
+			array(),
+			array()
+		);
+
+		remove_all_filters( 'ai_provider_for_ollama_request_timeout' );
+
+		$this->assertNotNull( $request->getOptions() );
+		$this->assertSame( 120.0, $request->getOptions()->getTimeout() );
+	}
+
+	/**
+	 * Tests that the ai_provider_for_ollama_connect_timeout filter overrides the default connect timeout.
+	 */
+	public function test_connect_timeout_filter_overrides_default_connect_timeout(): void {
+		add_filter(
+			'ai_provider_for_ollama_connect_timeout',
+			static function () {
+				return 30.0;
+			}
+		);
+
+		$request = $this->model->expose_create_request(
+			HttpMethodEnum::POST(),
+			'chat/completions',
+			array(),
+			array()
+		);
+
+		remove_all_filters( 'ai_provider_for_ollama_connect_timeout' );
+
+		$this->assertNotNull( $request->getOptions() );
+		$this->assertSame( 30.0, $request->getOptions()->getConnectTimeout() );
+	}
+
+	/**
+	 * Tests that a custom option value is passed to the request timeout filter.
+	 */
+	public function test_request_timeout_filter_receives_custom_option_value(): void {
+		$this->model->setConfig(
+			ModelConfig::fromArray(
+				array(
+					'customOptions' => array(
+						'ollama.request_timeout' => 45,
+					),
+				)
+			)
+		);
+
+		$filter_received_value = null;
+		add_filter(
+			'ai_provider_for_ollama_request_timeout',
+			static function ( $timeout ) use ( &$filter_received_value ) {
+				$filter_received_value = $timeout;
+				return $timeout;
+			}
+		);
+
+		$this->model->expose_create_request(
+			HttpMethodEnum::POST(),
+			'chat/completions',
+			array(),
+			array()
+		);
+
+		remove_all_filters( 'ai_provider_for_ollama_request_timeout' );
+
+		$this->assertSame( 45.0, $filter_received_value );
+	}
 }

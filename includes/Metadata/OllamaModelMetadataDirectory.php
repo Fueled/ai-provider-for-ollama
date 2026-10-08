@@ -9,6 +9,7 @@ use WordPress\AiClient\Files\Enums\FileTypeEnum;
 use WordPress\AiClient\Messages\Enums\ModalityEnum;
 use WordPress\AiClient\Providers\ApiBasedImplementation\AbstractApiBasedModelMetadataDirectory;
 use WordPress\AiClient\Providers\Http\DTO\Request;
+use WordPress\AiClient\Providers\Http\DTO\RequestOptions;
 use WordPress\AiClient\Providers\Http\Enums\HttpMethodEnum;
 use WordPress\AiClient\Providers\Http\Exception\ResponseException;
 use WordPress\AiClient\Providers\Http\Util\ResponseUtil;
@@ -23,15 +24,88 @@ use WordPress\AiClient\Providers\Models\Enums\OptionEnum;
  *
  * @since 1.0.0
  *
- * @phpstan-type TagsResponseData array{
- *     models: list<array{name: string, details?: array{families?: list<string>}}>
+ * @phpstan-type TagsEntryData array{
+ *     name?: string,
+ *     digest?: string,
+ *     capabilities?: list<string>,
+ *     details?: array{families?: list<string>|null}
  * }
  * @phpstan-type ShowResponseData array{
  *     capabilities?: list<string>,
- *     details?: array{families?: list<string>}
+ *     details?: array{families?: list<string>|null}
  * }
+ * @phpstan-type ModelDetails array{capabilities: list<string>, families: list<string>}
  */
 class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirectory {
+
+	/**
+	 * Default timeout for model discovery requests, in seconds.
+	 *
+	 * @since 1.3.0
+	 *
+	 * @var float
+	 */
+	private const DEFAULT_DISCOVERY_REQUEST_TIMEOUT = 10.0;
+
+	/**
+	 * Default connection timeout for model discovery requests, in seconds.
+	 *
+	 * @since 1.3.0
+	 *
+	 * @var float
+	 */
+	private const DEFAULT_DISCOVERY_CONNECT_TIMEOUT = 3.0;
+
+	/**
+	 * The model entries from /api/tags, once fetched.
+	 *
+	 * @since 1.3.0
+	 *
+	 * @var list<TagsEntryData>|null
+	 */
+	private ?array $model_tags = null;
+
+	/**
+	 * Lists the models the Ollama host offers, as returned by /api/tags.
+	 *
+	 * @since 1.3.0
+	 *
+	 * @return list<TagsEntryData> The raw model entries.
+	 * @throws \WordPress\AiClient\Providers\Http\Exception\ResponseException If the host is unreachable or the response
+	 *                                                                       is not a model listing.
+	 */
+	public function listModelTags(): array {
+		if ( null !== $this->model_tags ) {
+			return $this->model_tags;
+		}
+
+		$request  = $this->createRequest( HttpMethodEnum::GET(), 'api/tags' );
+		$request  = $this->getRequestAuthentication()->authenticateRequest( $request );
+		$response = $this->getHttpTransporter()->send( $request );
+
+		ResponseUtil::throwIfNotSuccessful( $response );
+
+		$tags_data = $response->getData();
+		if ( ! isset( $tags_data['models'] ) || ! is_array( $tags_data['models'] ) ) {
+			throw ResponseException::fromMissingData( 'Ollama', 'models' );
+		}
+
+		/** @var list<TagsEntryData> $model_tags */
+		$model_tags       = array_values( array_filter( $tags_data['models'], 'is_array' ) );
+		$this->model_tags = $model_tags;
+
+		return $this->model_tags;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @since 1.3.0
+	 */
+	public function invalidateCaches(): void {
+		$this->model_tags = null;
+		parent::invalidateCaches();
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -39,78 +113,172 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	 * @since 1.0.0
 	 */
 	protected function sendListModelsRequest(): array {
-		$request  = $this->createRequest( HttpMethodEnum::GET(), 'api/tags' );
-		$request  = $this->getRequestAuthentication()->authenticateRequest( $request );
-		$response = $this->getHttpTransporter()->send( $request );
+		$details_cache   = OllamaModelDetailsCache::load( OllamaProvider::url( '' ) );
+		$digests_in_use  = array();
+		$models_map      = array();
+		$decision_models = array();
 
-		ResponseUtil::throwIfNotSuccessful( $response );
+		foreach ( $this->listModelTags() as $model_entry ) {
+			if ( ! isset( $model_entry['name'] ) || ! is_string( $model_entry['name'] ) || '' === $model_entry['name'] ) {
+				continue;
+			}
 
-		/** @var TagsResponseData $tags_data */
-		$tags_data = $response->getData();
-		if ( ! isset( $tags_data['models'] ) ) {
-			throw ResponseException::fromMissingData( 'Ollama', 'models' );
-		}
-
-		$models_map = array();
-		foreach ( $tags_data['models'] as $model_entry ) {
 			$model_name = $model_entry['name'];
-			$metadata   = $this->buildModelMetadata( $model_name, $this->fetchModelDetails( $model_name ) );
+			$details    = $this->resolveModelDetails( $model_name, $model_entry, $details_cache, $digests_in_use );
+			$metadata   = $this->buildModelMetadata( $model_name, $details );
 			if ( null === $metadata ) {
+				continue;
+			}
+
+			if ( null !== $details && in_array( 'decision', $details['capabilities'], true ) ) {
+				$decision_models[ $model_name ] = $metadata;
 				continue;
 			}
 
 			$models_map[ $model_name ] = $metadata;
 		}
 
-		ksort( $models_map );
+		$details_cache->save( $digests_in_use );
 
-		return $models_map;
+		ksort( $models_map );
+		ksort( $decision_models );
+
+		// Put Decision models last so they are not picked by default.
+		return $models_map + $decision_models;
+	}
+
+	/**
+	 * Lists the models that support decisions via the /v1/systemone endpoint.
+	 *
+	 * @since 1.3.0
+	 *
+	 * @return list<string> The model IDs, sorted.
+	 * @throws \WordPress\AiClient\Providers\Http\Exception\ResponseException If the host is unreachable or the response
+	 *                                                                       is not a model listing.
+	 */
+	public function listDecisionModelIds(): array {
+		$model_ids = array();
+
+		foreach ( $this->listModelTags() as $model_entry ) {
+			if ( ! isset( $model_entry['name'] ) || ! is_string( $model_entry['name'] ) || '' === $model_entry['name'] ) {
+				continue;
+			}
+
+			if ( ! in_array( 'decision', $this->readStringList( $model_entry['capabilities'] ?? null ), true ) ) {
+				continue;
+			}
+
+			$model_ids[] = $model_entry['name'];
+		}
+
+		sort( $model_ids );
+
+		return $model_ids;
+	}
+
+	/**
+	 * Resolves the capability details of a single model, at the lowest cost available.
+	 *
+	 * In order of preference: the tag entry itself, the cache, and finally a
+	 * request to /api/show.
+	 *
+	 * @since 1.3.0
+	 *
+	 * @param string                  $model_name     The model name.
+	 * @param TagsEntryData           $model_entry    The model's entry from /api/tags.
+	 * @param \Fueled\AiProviderForOllama\Metadata\OllamaModelDetailsCache $details_cache The cache of details fetched for earlier listings.
+	 * @param list<string>            $digests_in_use Digests resolved from the cache so far, appended to by reference.
+	 * @return ModelDetails|null The model details, or null when they could not be determined.
+	 */
+	private function resolveModelDetails(
+		string $model_name,
+		array $model_entry,
+		OllamaModelDetailsCache $details_cache,
+		array &$digests_in_use
+	): ?array {
+		$families = $this->readStringList( $model_entry['details']['families'] ?? null );
+
+		// Recent Ollama versions report capabilities in the tag listing, making the per-model request unnecessary.
+		$capabilities = $this->readStringList( $model_entry['capabilities'] ?? null );
+		if ( ! empty( $capabilities ) ) {
+			return array(
+				'capabilities' => $capabilities,
+				'families'     => $families,
+			);
+		}
+
+		// The digest identifies the model's content, so an entry stays valid until the model itself changes.
+		$digest = isset( $model_entry['digest'] ) && is_string( $model_entry['digest'] ) ? $model_entry['digest'] : '';
+
+		if ( '' !== $digest ) {
+			$cached_details = $details_cache->get( $digest );
+			if ( null !== $cached_details ) {
+				$digests_in_use[] = $digest;
+
+				return $cached_details;
+			}
+		}
+
+		$show_data = $this->fetchModelDetails( $model_name );
+		if ( null === $show_data ) {
+			return null;
+		}
+
+		$show_families = $this->readStringList( $show_data['details']['families'] ?? null );
+		$details       = array(
+			'capabilities' => $this->readStringList( $show_data['capabilities'] ?? null ),
+			'families'     => empty( $show_families ) ? $families : $show_families,
+		);
+
+		if ( '' !== $digest ) {
+			$details_cache->set( $digest, $details );
+			$digests_in_use[] = $digest;
+		}
+
+		return $details;
 	}
 
 	/**
 	 * Builds a ModelMetadata object for a single model, or returns null if the model should be skipped.
 	 *
-	 * Maps embedding-capable models to embedding-generation metadata when the SDK supports it. Skips
-	 * other non-completion models (unless they generate images). Falls back to text-only generation
-	 * when details are unavailable.
-	 *
 	 * @since 1.0.0
 	 *
 	 * @param string $model_name The model name.
-	 * @param ShowResponseData|null $details The response data from /api/show, or null on failure.
+	 * @param ModelDetails|null $details The model's capability details, or null when they are unknown.
 	 * @return \WordPress\AiClient\Providers\Models\DTO\ModelMetadata|null The model metadata, or null if the model should be excluded.
 	 */
 	private function buildModelMetadata( string $model_name, ?array $details ): ?ModelMetadata {
-		// Fallback when /api/show fails: assume text-only generation.
-		$has_vision                = false;
-		$is_image_generation_model = $this->isImageGenerationModel( $model_name, $details );
+		$model_capabilities = null !== $details ? $details['capabilities'] : array();
+		$model_families     = null !== $details ? $details['families'] : array();
 
-		if ( null !== $details ) {
-			$model_capabilities = isset( $details['capabilities'] ) ? $details['capabilities'] : array();
+		$is_image_generation_model = in_array( 'image', $model_capabilities, true );
 
-			$is_embedding_model = in_array( 'embedding', $model_capabilities, true )
-				&& ! in_array( 'completion', $model_capabilities, true );
+		$is_embedding_model = in_array( 'embedding', $model_capabilities, true )
+			&& ! in_array( 'completion', $model_capabilities, true );
 
-			if ( $is_embedding_model && ! $is_image_generation_model ) {
-				// The embedding contracts are unreleased in some SDK versions; preserve legacy exclusion there.
-				if ( ! interface_exists( EmbeddingGenerationModelInterface::class ) ) {
-					return null;
-				}
-
-				return $this->buildEmbeddingModelMetadata( $model_name );
-			}
-
-			// Skip other non-completion models, but keep image-generation models which may not report "completion".
-			if ( ! empty( $model_capabilities ) && ! in_array( 'completion', $model_capabilities, true ) && ! $is_image_generation_model ) {
+		if ( $is_embedding_model && ! $is_image_generation_model ) {
+			// The embedding contracts are unreleased in some SDK versions.
+			if ( ! interface_exists( EmbeddingGenerationModelInterface::class ) ) {
 				return null;
 			}
 
-			// Check for vision support via capabilities array or details.families.
-			$has_vision = in_array( 'vision', $model_capabilities, true );
-			if ( ! $has_vision && isset( $details['details']['families'] ) ) {
-				$has_vision = in_array( 'clip', $details['details']['families'], true );
-			}
+			return $this->buildEmbeddingModelMetadata( $model_name );
 		}
+
+		// Skip other non-completion models, but keep image-generation models which may not report "completion".
+		if (
+			! empty( $model_capabilities ) &&
+			! in_array( 'completion', $model_capabilities, true ) &&
+			! $is_image_generation_model
+		) {
+			return null;
+		}
+
+		// Check for vision support via the capabilities array or the model families.
+		$has_vision = in_array( 'vision', $model_capabilities, true )
+			|| in_array( 'clip', $model_families, true );
+
+		$has_tools = in_array( 'tools', $model_capabilities, true );
 
 		if ( $has_vision ) {
 			$input_modalities_option = new SupportedOption(
@@ -157,11 +325,14 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 			new SupportedOption( OptionEnum::presencePenalty() ),
 			new SupportedOption( OptionEnum::outputMimeType(), array( 'text/plain', 'application/json' ) ),
 			new SupportedOption( OptionEnum::outputSchema() ),
-			new SupportedOption( OptionEnum::functionDeclarations() ),
 			new SupportedOption( OptionEnum::customOptions() ),
 			new SupportedOption( OptionEnum::outputModalities(), array( array( ModalityEnum::text() ) ) ),
 			$input_modalities_option,
 		);
+
+		if ( $has_tools ) {
+			$options[] = new SupportedOption( OptionEnum::functionDeclarations() );
+		}
 
 		return new ModelMetadata(
 			$model_name,
@@ -198,24 +369,22 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	}
 
 	/**
-	 * Determines whether a model is likely an image-generation model.
+	 * Reads a list of strings out of an API payload.
 	 *
-	 * @since 1.1.0
+	 * Ollama omits these keys on some versions and sends null for others, so
+	 * anything that is not a list of strings is read as "none given".
 	 *
-	 * @param string $model_name The model name.
-	 * @param ShowResponseData|null $details The optional model details.
-	 * @return bool True if the model appears to support image generation.
+	 * @since 1.3.0
+	 *
+	 * @param mixed $value The raw value.
+	 * @return list<string> The strings it contained, if any.
 	 */
-	private function isImageGenerationModel( string $model_name, ?array $details ): bool {
-
-		if ( null === $details || '' === $model_name ) {
-			return false;
+	private function readStringList( $value ): array {
+		if ( ! is_array( $value ) ) {
+			return array();
 		}
 
-		$model_capabilities = isset( $details['capabilities'] ) && is_array( $details['capabilities'] )
-			? $details['capabilities']
-			: array();
-		return in_array( 'image', $model_capabilities, true );
+		return array_values( array_filter( $value, 'is_string' ) );
 	}
 
 	/**
@@ -235,7 +404,10 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 				HttpMethodEnum::POST(),
 				'api/show',
 				array( 'Content-Type' => 'application/json' ),
-				array( 'name' => $model_name )
+				array(
+					'model' => $model_name,
+					'name'  => $model_name,
+				)
 			);
 			$request  = $this->getRequestAuthentication()->authenticateRequest( $request );
 			$response = $this->getHttpTransporter()->send( $request );
@@ -266,7 +438,49 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 			$method,
 			OllamaProvider::url( $path ),
 			$headers,
-			$data
+			$data,
+			$this->discoveryRequestOptions()
 		);
+	}
+
+	/**
+	 * Builds the request options used for model discovery.
+	 *
+	 * @since 1.3.0
+	 *
+	 * @return \WordPress\AiClient\Providers\Http\DTO\RequestOptions The prepared request options.
+	 */
+	private function discoveryRequestOptions(): RequestOptions {
+		$request_timeout = self::DEFAULT_DISCOVERY_REQUEST_TIMEOUT;
+		$connect_timeout = self::DEFAULT_DISCOVERY_CONNECT_TIMEOUT;
+
+		if ( function_exists( 'apply_filters' ) ) {
+			/**
+			 * Filters the request timeout for Ollama model discovery requests.
+			 *
+			 * Applies to the `/api/tags` and `/api/show` requests behind the connection
+			 * check and the model list, not to text, image, or embedding generation.
+			 *
+			 * @since 1.3.0
+			 *
+			 * @param float $request_timeout The request timeout in seconds.
+			 */
+			$request_timeout = (float) apply_filters( 'ai_provider_for_ollama_discovery_request_timeout', $request_timeout );
+
+			/**
+			 * Filters the connection timeout for Ollama model discovery requests.
+			 *
+			 * @since 1.3.0
+			 *
+			 * @param float $connect_timeout The connection timeout in seconds.
+			 */
+			$connect_timeout = (float) apply_filters( 'ai_provider_for_ollama_discovery_connect_timeout', $connect_timeout );
+		}
+
+		$request_options = new RequestOptions();
+		$request_options->setTimeout( $request_timeout );
+		$request_options->setConnectTimeout( $connect_timeout );
+
+		return $request_options;
 	}
 }

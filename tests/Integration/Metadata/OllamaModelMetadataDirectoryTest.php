@@ -4,13 +4,22 @@ declare( strict_types=1 );
 
 namespace Fueled\AiProviderForOllama\Tests\Integration\Metadata;
 
+use Fueled\AiProviderForOllama\Metadata\OllamaModelDetailsCache;
 use Fueled\AiProviderForOllama\Metadata\OllamaModelMetadataDirectory;
+use Fueled\AiProviderForOllama\Provider\OllamaProvider;
 use Fueled\AiProviderForOllama\Tests\Integration\Mocks\MockHttpTransporter;
 use PHPUnit\Framework\TestCase;
+use WordPress\AiClient\Messages\DTO\MessagePart;
+use WordPress\AiClient\Messages\DTO\UserMessage;
 use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
 use WordPress\AiClient\Providers\Http\DTO\Response;
 use WordPress\AiClient\Providers\Http\Exception\ResponseException;
+use WordPress\AiClient\Providers\Models\DTO\ModelConfig;
+use WordPress\AiClient\Providers\Models\DTO\ModelMetadata;
+use WordPress\AiClient\Providers\Models\DTO\ModelRequirements;
 use WordPress\AiClient\Providers\Models\EmbeddingGeneration\Contracts\EmbeddingGenerationModelInterface;
+use WordPress\AiClient\Providers\Models\Enums\CapabilityEnum;
+use WordPress\AiClient\Tools\DTO\FunctionDeclaration;
 
 /**
  * Tests for OllamaModelMetadataDirectory.
@@ -40,16 +49,30 @@ class OllamaModelMetadataDirectoryTest extends TestCase {
 		parent::setUp();
 		putenv( 'OLLAMA_HOST=http://localhost:11434' );
 		$this->transporter = new MockHttpTransporter();
-		$this->directory   = new OllamaModelMetadataDirectory();
-		$this->directory->setHttpTransporter( $this->transporter );
-		$this->directory->setRequestAuthentication( new ApiKeyRequestAuthentication( '' ) );
-		$this->directory->invalidateCaches();
+		$this->directory   = $this->make_directory( $this->transporter );
+		OllamaModelDetailsCache::flush( OllamaProvider::url( '' ) );
 	}
 
 	protected function tearDown(): void {
 		$this->directory->invalidateCaches();
+		OllamaModelDetailsCache::flush( OllamaProvider::url( '' ) );
 		putenv( 'OLLAMA_HOST' );
 		parent::tearDown();
+	}
+
+	/**
+	 * Builds a directory wired up to the given transporter.
+	 *
+	 * @param MockHttpTransporter $transporter The transporter to use.
+	 * @return OllamaModelMetadataDirectory
+	 */
+	private function make_directory( MockHttpTransporter $transporter ): OllamaModelMetadataDirectory {
+		$directory = new OllamaModelMetadataDirectory();
+		$directory->setHttpTransporter( $transporter );
+		$directory->setRequestAuthentication( new ApiKeyRequestAuthentication( '' ) );
+		$directory->invalidateCaches();
+
+		return $directory;
 	}
 
 	// -----------------------------------------------------------------------
@@ -57,17 +80,21 @@ class OllamaModelMetadataDirectoryTest extends TestCase {
 	// -----------------------------------------------------------------------
 
 	/**
-	 * Builds a fake /api/tags 200 response containing the given model names.
+	 * Builds a fake /api/tags 200 response.
 	 *
-	 * @param list<string> $model_names The model names to include.
+	 * Entries may be given as plain model names, or as full entry arrays to
+	 * cover the Ollama versions that report capabilities in the tag listing
+	 * itself.
+	 *
+	 * @param list<string|array<string, mixed>> $model_entries The entries to include.
 	 * @return Response
 	 */
-	private function make_tags_response( array $model_names ): Response {
+	private function make_tags_response( array $model_entries ): Response {
 		$models = array_map(
-			static function ( string $name ): array {
-				return array( 'name' => $name );
+			static function ( $entry ): array {
+				return is_array( $entry ) ? $entry : array( 'name' => $entry );
 			},
-			$model_names
+			$model_entries
 		);
 		$body = (string) json_encode( array( 'models' => $models ) );
 		return new Response( 200, array(), $body );
@@ -114,6 +141,38 @@ class OllamaModelMetadataDirectoryTest extends TestCase {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Returns the supported option names for a model.
+	 *
+	 * @param ModelMetadata $model Model metadata.
+	 * @return list<string> Option names.
+	 */
+	private function option_names( ModelMetadata $model ): array {
+		return array_map(
+			static function ( $opt ): string {
+				return (string) $opt->getName();
+			},
+			$model->getSupportedOptions()
+		);
+	}
+
+	/**
+	 * Returns IDs of models that meet the given requirements.
+	 *
+	 * @param list<ModelMetadata> $models Models to filter.
+	 * @param ModelRequirements   $requirements Requirements to check.
+	 * @return list<string> Matching model IDs, in original order.
+	 */
+	private function matching_model_ids( array $models, ModelRequirements $requirements ): array {
+		$ids = array();
+		foreach ( $models as $model ) {
+			if ( $requirements->areMetBy( $model ) ) {
+				$ids[] = $model->getId();
+			}
+		}
+		return $ids;
 	}
 
 	// -----------------------------------------------------------------------
@@ -285,6 +344,128 @@ class OllamaModelMetadataDirectoryTest extends TestCase {
 	}
 
 	// -----------------------------------------------------------------------
+	// Tools-detection tests
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Tests that a completion-only model does not advertise functionDeclarations.
+	 */
+	public function test_completion_only_model_does_not_advertise_function_declarations(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( 'gemma3:latest' ) ) );
+		$this->transporter->queue_response( $this->make_show_response( array( 'completion' ) ) );
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertCount( 1, $models );
+		$this->assertNotContains( 'functionDeclarations', $this->option_names( $models[0] ) );
+	}
+
+	/**
+	 * Tests that a model with the 'tools' capability advertises functionDeclarations.
+	 */
+	public function test_tools_capability_advertises_function_declarations(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( 'qwen2.5:3b' ) ) );
+		$this->transporter->queue_response( $this->make_show_response( array( 'completion', 'tools' ) ) );
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertCount( 1, $models );
+		$this->assertContains( 'functionDeclarations', $this->option_names( $models[0] ) );
+	}
+
+	/**
+	 * Tests that vision support does not imply functionDeclarations.
+	 */
+	public function test_vision_model_without_tools_does_not_advertise_function_declarations(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( 'gemma3:latest' ) ) );
+		$this->transporter->queue_response( $this->make_show_response( array( 'completion', 'vision' ) ) );
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertCount( 1, $models );
+		$this->assertNotContains( 'functionDeclarations', $this->option_names( $models[0] ) );
+	}
+
+	/**
+	 * Tests that a vision model can still advertise functionDeclarations when it also reports tools.
+	 */
+	public function test_vision_and_tools_model_advertises_function_declarations(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( 'qwen2.5-vl' ) ) );
+		$this->transporter->queue_response( $this->make_show_response( array( 'completion', 'vision', 'tools' ) ) );
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertCount( 1, $models );
+		$this->assertContains( 'functionDeclarations', $this->option_names( $models[0] ) );
+	}
+
+	/**
+	 * Tests that an empty capabilities array does not advertise functionDeclarations.
+	 */
+	public function test_empty_capabilities_do_not_advertise_function_declarations(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( 'llama3.2' ) ) );
+		$this->transporter->queue_response( $this->make_show_response( array() ) );
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertCount( 1, $models );
+		$this->assertNotContains( 'functionDeclarations', $this->option_names( $models[0] ) );
+	}
+
+	/**
+	 * Tests that a failed /api/show fallback does not advertise functionDeclarations.
+	 */
+	public function test_show_request_failure_does_not_advertise_function_declarations(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( 'llama3.2' ) ) );
+		$this->transporter->queue_response( $this->make_error_response() );
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertCount( 1, $models );
+		$this->assertNotContains( 'functionDeclarations', $this->option_names( $models[0] ) );
+	}
+
+	/**
+	 * Tests that a function-declarations requirement matches only tool-capable models.
+	 */
+	public function test_function_declarations_requirement_matches_only_tool_capable_models(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( 'gemma3:latest', 'qwen2.5:3b' ) ) );
+		$this->transporter->queue_response( $this->make_show_response( array( 'completion', 'vision' ) ) );
+		$this->transporter->queue_response( $this->make_show_response( array( 'completion', 'tools' ) ) );
+
+		$models   = $this->directory->listModelMetadata();
+		$messages = array(
+			new UserMessage(
+				array( new MessagePart( 'Improve the meta description of post 5.' ) )
+			),
+		);
+
+		$plain_requirements = ModelRequirements::fromPromptData(
+			CapabilityEnum::textGeneration(),
+			$messages,
+			new ModelConfig()
+		);
+		$this->assertSame(
+			array( 'gemma3:latest', 'qwen2.5:3b' ),
+			$this->matching_model_ids( $models, $plain_requirements )
+		);
+
+		$config = new ModelConfig();
+		$config->setFunctionDeclarations(
+			array( new FunctionDeclaration( 'update_post', 'Update a post', null ) )
+		);
+		$tool_requirements = ModelRequirements::fromPromptData(
+			CapabilityEnum::textGeneration(),
+			$messages,
+			$config
+		);
+		$this->assertSame(
+			array( 'qwen2.5:3b' ),
+			$this->matching_model_ids( $models, $tool_requirements )
+		);
+	}
+
+	// -----------------------------------------------------------------------
 	// Image-generation detection tests
 	// -----------------------------------------------------------------------
 
@@ -303,12 +484,7 @@ class OllamaModelMetadataDirectoryTest extends TestCase {
 
 		$this->assertCount( 1, $models );
 
-		$option_names = array_map(
-			static function ( $opt ): string {
-				return (string) $opt->getName();
-			},
-			$models[0]->getSupportedOptions()
-		);
+		$option_names = $this->option_names( $models[0] );
 
 		// Image-generation models get image/png mime type, not text options.
 		$output_mime_opt = $this->find_option( $models[0]->getSupportedOptions(), 'isOutputMimeType' );
@@ -420,6 +596,35 @@ class OllamaModelMetadataDirectoryTest extends TestCase {
 	}
 
 	/**
+	 * Tests that when the models key contains a non-array value, a ResponseException is thrown.
+	 *
+	 * @dataProvider data_non_array_models_values
+	 *
+	 * @param mixed $non_array_value The invalid models value.
+	 */
+	public function test_missing_models_key_with_non_array_value_throws_exception( $non_array_value ): void {
+		$this->transporter->set_response_to_return(
+			new Response( 200, array(), (string) json_encode( array( 'models' => $non_array_value ) ) )
+		);
+
+		$this->expectException( ResponseException::class );
+		$this->directory->listModelMetadata();
+	}
+
+	/**
+	 * Data provider of non-array models values.
+	 *
+	 * @return array<string, array{0: mixed}>
+	 */
+	public function data_non_array_models_values(): array {
+		return array(
+			'string value'  => array( 'llama3.2' ),
+			'integer value' => array( 12345 ),
+			'boolean false' => array( false ),
+		);
+	}
+
+	/**
 	 * Tests that a failed /api/tags request propagates the exception.
 	 */
 	public function test_failed_tags_request_throws_exception(): void {
@@ -443,12 +648,7 @@ class OllamaModelMetadataDirectoryTest extends TestCase {
 		$models = $this->directory->listModelMetadata();
 		$this->assertCount( 1, $models );
 
-		$option_names = array_map(
-			static function ( $opt ): string {
-				return (string) $opt->getName();
-			},
-			$models[0]->getSupportedOptions()
-		);
+		$option_names = $this->option_names( $models[0] );
 
 		$expected_options = array(
 			'systemInstruction',
@@ -461,7 +661,6 @@ class OllamaModelMetadataDirectoryTest extends TestCase {
 			'presencePenalty',
 			'outputMimeType',
 			'outputSchema',
-			'functionDeclarations',
 			'customOptions',
 		);
 
@@ -472,5 +671,392 @@ class OllamaModelMetadataDirectoryTest extends TestCase {
 				sprintf( 'Expected option "%s" to be present in model metadata', $expected )
 			);
 		}
+	}
+
+	// -----------------------------------------------------------------------
+	// Request-count tests
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Tests that capabilities reported by /api/tags remove the need for /api/show.
+	 */
+	public function test_capabilities_in_tags_avoid_the_per_model_request(): void {
+		$this->transporter->queue_response(
+			$this->make_tags_response(
+				array(
+					array(
+						'name'         => 'qwen2.5:3b',
+						'capabilities' => array( 'completion', 'tools' ),
+					),
+				)
+			)
+		);
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertSame( 1, $this->transporter->get_request_count(), 'Expected the tag listing to be the only request.' );
+		$this->assertCount( 1, $models );
+		$this->assertContains( 'functionDeclarations', $this->option_names( $models[0] ) );
+	}
+
+	/**
+	 * Tests that the clip family in a tag entry is enough to detect vision support.
+	 */
+	public function test_vision_is_detected_from_tags_without_the_per_model_request(): void {
+		$this->transporter->queue_response(
+			$this->make_tags_response(
+				array(
+					array(
+						'name'         => 'llava',
+						'capabilities' => array( 'completion' ),
+						'details'      => array( 'families' => array( 'llama', 'clip' ) ),
+					),
+				)
+			)
+		);
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertSame( 1, $this->transporter->get_request_count() );
+		$input_modalities_opt = $this->find_option( $models[0]->getSupportedOptions(), 'isInputModalities' );
+		$this->assertNotNull( $input_modalities_opt, 'Expected inputModalities supported option' );
+		$this->assertCount( 2, (array) $input_modalities_opt->getSupportedValues() );
+	}
+
+	/**
+	 * Tests that only the models whose tag entry omits capabilities are looked up.
+	 */
+	public function test_only_models_without_tags_capabilities_are_looked_up(): void {
+		$this->transporter->queue_response(
+			$this->make_tags_response(
+				array(
+					array(
+						'name'         => 'qwen2.5:3b',
+						'capabilities' => array( 'completion', 'tools' ),
+					),
+					array( 'name' => 'gemma3:latest' ),
+				)
+			)
+		);
+		$this->transporter->queue_response( $this->make_show_response( array( 'completion' ) ) );
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertSame( 2, $this->transporter->get_request_count(), 'Expected one tag listing plus one lookup.' );
+		$this->assertCount( 2, $models );
+
+		$lookup = $this->transporter->get_requests()[1];
+		$this->assertStringEndsWith( 'api/show', $lookup->getUri() );
+		$this->assertSame(
+			array(
+				'model' => 'gemma3:latest',
+				'name'  => 'gemma3:latest',
+			),
+			$lookup->getData()
+		);
+	}
+
+	/**
+	 * Tests that discovery requests carry a bounded timeout.
+	 */
+	public function test_discovery_requests_are_given_a_timeout(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( 'llama3.2' ) ) );
+		$this->transporter->queue_response( $this->make_show_response( array( 'completion' ) ) );
+
+		$this->directory->listModelMetadata();
+
+		foreach ( $this->transporter->get_requests() as $request ) {
+			$options = $request->getOptions();
+			$this->assertNotNull( $options, 'Expected request options on every discovery request.' );
+			$this->assertNotNull( $options->getTimeout() );
+			$this->assertNotNull( $options->getConnectTimeout() );
+		}
+	}
+
+	/**
+	 * Tests that the ai_provider_for_ollama_discovery_request_timeout filter overrides the default request timeout.
+	 */
+	public function test_discovery_request_timeout_filter_overrides_timeout(): void {
+		add_filter(
+			'ai_provider_for_ollama_discovery_request_timeout',
+			static function () {
+				return 25.0;
+			}
+		);
+
+		$this->transporter->queue_response( $this->make_tags_response( array( 'llama3.2' ) ) );
+		$this->directory->listModelTags();
+
+		remove_all_filters( 'ai_provider_for_ollama_discovery_request_timeout' );
+
+		$last_request = $this->transporter->get_last_request();
+		$this->assertNotNull( $last_request );
+		$options = $last_request->getOptions();
+		$this->assertNotNull( $options );
+		$this->assertSame( 25.0, $options->getTimeout() );
+	}
+
+	/**
+	 * Tests that the ai_provider_for_ollama_discovery_connect_timeout filter overrides the default connect timeout.
+	 */
+	public function test_discovery_connect_timeout_filter_overrides_connect_timeout(): void {
+		add_filter(
+			'ai_provider_for_ollama_discovery_connect_timeout',
+			static function () {
+				return 8.0;
+			}
+		);
+
+		$this->transporter->queue_response( $this->make_tags_response( array( 'llama3.2' ) ) );
+		$this->directory->listModelTags();
+
+		remove_all_filters( 'ai_provider_for_ollama_discovery_connect_timeout' );
+
+		$last_request = $this->transporter->get_last_request();
+		$this->assertNotNull( $last_request );
+		$options = $last_request->getOptions();
+		$this->assertNotNull( $options );
+		$this->assertSame( 8.0, $options->getConnectTimeout() );
+	}
+
+	/**
+	 * Tests that listModelTags() fetches the tag listing only once per instance.
+	 */
+	public function test_model_tags_are_fetched_once_per_instance(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( 'llama3.2' ) ) );
+		$this->transporter->queue_response( $this->make_show_response( array( 'completion' ) ) );
+
+		$this->directory->listModelTags();
+		$this->directory->listModelTags();
+		$this->directory->listModelMetadata();
+
+		$this->assertSame( 2, $this->transporter->get_request_count(), 'Expected one tag listing and one lookup.' );
+	}
+
+	/**
+	 * Tests that invalidateCaches() drops the tag listing so the next call refetches.
+	 */
+	public function test_invalidate_caches_refetches_model_tags(): void {
+		$this->transporter->queue_response(
+			$this->make_tags_response(
+				array(
+					array(
+						'name'         => 'llama3.2',
+						'capabilities' => array( 'completion' ),
+					),
+				)
+			)
+		);
+
+		$this->directory->listModelMetadata();
+		$this->assertSame( 1, $this->transporter->get_request_count() );
+
+		$this->directory->invalidateCaches();
+
+		$this->transporter->queue_response(
+			$this->make_tags_response(
+				array(
+					array(
+						'name'         => 'qwen2.5:3b',
+						'capabilities' => array( 'completion', 'tools' ),
+					),
+				)
+			)
+		);
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertSame( 2, $this->transporter->get_request_count(), 'Expected a second tag listing after invalidateCaches().' );
+		$this->assertCount( 1, $models );
+		$this->assertSame( 'qwen2.5:3b', $models[0]->getId() );
+	}
+
+	// -----------------------------------------------------------------------
+	// Caching tests
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Tests that details looked up once are reused by a later listing.
+	 */
+	public function test_cached_details_are_reused_by_a_later_listing(): void {
+		$tags = array(
+			array(
+				'name'   => 'qwen2.5:3b',
+				'digest' => 'sha256:aaa',
+			),
+		);
+
+		$this->transporter->queue_response( $this->make_tags_response( $tags ) );
+		$this->transporter->queue_response( $this->make_show_response( array( 'completion', 'tools' ) ) );
+		$this->directory->listModelMetadata();
+		$this->assertSame( 2, $this->transporter->get_request_count() );
+
+		$later_transporter = new MockHttpTransporter();
+		$later_transporter->queue_response( $this->make_tags_response( $tags ) );
+		$models = $this->make_directory( $later_transporter )->listModelMetadata();
+
+		$this->assertSame( 1, $later_transporter->get_request_count(), 'Expected the cached details to remove the lookup.' );
+		$this->assertCount( 1, $models );
+		$this->assertContains( 'functionDeclarations', $this->option_names( $models[0] ) );
+	}
+
+	/**
+	 * Tests that re-pulling a model, which changes its digest, looks it up again.
+	 */
+	public function test_a_changed_digest_looks_the_model_up_again(): void {
+		$this->transporter->queue_response(
+			$this->make_tags_response(
+				array(
+					array(
+						'name'   => 'qwen2.5:3b',
+						'digest' => 'sha256:aaa',
+					),
+				)
+			)
+		);
+		$this->transporter->queue_response( $this->make_show_response( array( 'completion', 'tools' ) ) );
+		$this->directory->listModelMetadata();
+
+		$later_transporter = new MockHttpTransporter();
+		$later_transporter->queue_response(
+			$this->make_tags_response(
+				array(
+					array(
+						'name'   => 'qwen2.5:3b',
+						'digest' => 'sha256:bbb',
+					),
+				)
+			)
+		);
+		$later_transporter->queue_response( $this->make_show_response( array( 'completion' ) ) );
+		$models = $this->make_directory( $later_transporter )->listModelMetadata();
+
+		$this->assertSame( 2, $later_transporter->get_request_count() );
+		$this->assertNotContains( 'functionDeclarations', $this->option_names( $models[0] ) );
+	}
+
+	/**
+	 * Tests that a host which reports no digest is looked up every time.
+	 */
+	public function test_models_without_a_digest_are_not_cached(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( 'llama3.2' ) ) );
+		$this->transporter->queue_response( $this->make_show_response( array( 'completion', 'tools' ) ) );
+		$this->directory->listModelMetadata();
+
+		$later_transporter = new MockHttpTransporter();
+		$later_transporter->queue_response( $this->make_tags_response( array( 'llama3.2' ) ) );
+		$later_transporter->queue_response( $this->make_show_response( array( 'completion', 'tools' ) ) );
+		$this->make_directory( $later_transporter )->listModelMetadata();
+
+		$this->assertSame( 2, $later_transporter->get_request_count() );
+	}
+
+	/**
+	 * Tests that a failed lookup is retried rather than cached.
+	 */
+	public function test_a_failed_lookup_is_not_cached(): void {
+		$tags = array(
+			array(
+				'name'   => 'qwen2.5:3b',
+				'digest' => 'sha256:aaa',
+			),
+		);
+
+		$this->transporter->queue_response( $this->make_tags_response( $tags ) );
+		$this->transporter->queue_response( $this->make_error_response() );
+		$this->directory->listModelMetadata();
+
+		$later_transporter = new MockHttpTransporter();
+		$later_transporter->queue_response( $this->make_tags_response( $tags ) );
+		$later_transporter->queue_response( $this->make_show_response( array( 'completion', 'tools' ) ) );
+		$models = $this->make_directory( $later_transporter )->listModelMetadata();
+
+		$this->assertSame( 2, $later_transporter->get_request_count() );
+		$this->assertContains( 'functionDeclarations', $this->option_names( $models[0] ) );
+	}
+
+	// -----------------------------------------------------------------------
+	// Decision model tests
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Tests that decision models stay listed for text generation but sort after the other models.
+	 */
+	public function test_decision_models_are_listed_after_other_models(): void {
+		$this->transporter->queue_response(
+			$this->make_tags_response(
+				array(
+					array(
+						'name'         => 'tev1:latest',
+						'capabilities' => array( 'decision', 'tools', 'thinking', 'completion' ),
+					),
+					array(
+						'name'         => 'qwen2.5:3b',
+						'capabilities' => array( 'completion', 'tools' ),
+					),
+					array(
+						'name'         => 'gemma3:latest',
+						'capabilities' => array( 'completion', 'vision' ),
+					),
+				)
+			)
+		);
+
+		$models = $this->directory->listModelMetadata();
+
+		$ids = array_map(
+			static function ( ModelMetadata $model ): string {
+				return $model->getId();
+			},
+			$models
+		);
+		$this->assertSame( array( 'gemma3:latest', 'qwen2.5:3b', 'tev1:latest' ), $ids );
+		$this->assertTrue( $models[2]->getSupportedCapabilities()[0]->isTextGeneration() );
+	}
+
+	/**
+	 * Tests that decision models without the completion capability are not offered for text generation.
+	 */
+	public function test_decision_only_models_are_not_listed(): void {
+		$this->transporter->queue_response(
+			$this->make_tags_response(
+				array(
+					array(
+						'name'         => 'nimble:latest',
+						'capabilities' => array( 'decision' ),
+					),
+				)
+			)
+		);
+
+		$this->assertSame( array(), $this->directory->listModelMetadata() );
+	}
+
+	/**
+	 * Tests that listDecisionModelIds() returns only models reporting the decision capability, sorted.
+	 */
+	public function test_list_decision_model_ids_returns_decision_models_sorted(): void {
+		$this->transporter->queue_response(
+			$this->make_tags_response(
+				array(
+					array(
+						'name'         => 'tev1:latest',
+						'capabilities' => array( 'decision', 'completion' ),
+					),
+					array(
+						'name'         => 'qwen2.5:3b',
+						'capabilities' => array( 'completion', 'tools' ),
+					),
+					array(
+						'name'         => 'nimble:latest',
+						'capabilities' => array( 'decision' ),
+					),
+					'legacy-model',
+				)
+			)
+		);
+
+		$this->assertSame( array( 'nimble:latest', 'tev1:latest' ), $this->directory->listDecisionModelIds() );
+		$this->assertSame( 1, $this->transporter->get_request_count(), 'Expected the tag listing to be the only request.' );
 	}
 }

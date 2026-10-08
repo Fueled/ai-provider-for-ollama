@@ -2,7 +2,7 @@
 
 ![AI Provider for Ollama](https://github.com/Fueled/ai-provider-for-ollama/blob/develop/.wordpress-org/banner-1544x500.png)
 
-[![Support Level](https://img.shields.io/badge/support-active-green.svg)](#support-level) [![Release Version](https://img.shields.io/github/release/Fueled/ai-provider-for-ollama.svg)](https://github.com/Fueled/ai-provider-for-ollama/releases/latest) ![WordPress Plugin Required PHP Version](https://img.shields.io/wordpress/plugin/required-php/ai-provider-for-ollama) ![WordPress Plugin: Required WP Version](https://img.shields.io/wordpress/plugin/wp-version/ai-provider-for-ollama) ![WordPress Plugin: Tested WP Version](https://img.shields.io/wordpress/plugin/tested/ai-provider-for-ollama) [![GPLv2 License](https://img.shields.io/github/license/Fueled/ai-provider-for-ollama.svg)](https://github.com/Fueled/ai-provider-for-ollama/blob/develop/LICENSE.md)
+[![Support Level](https://img.shields.io/badge/support-active-green.svg)](#support-level) [![Release Version](https://img.shields.io/github/release/Fueled/ai-provider-for-ollama.svg)](https://github.com/Fueled/ai-provider-for-ollama/releases/latest) ![WordPress Plugin Required PHP Version](https://img.shields.io/wordpress/plugin/required-php/ai-provider-for-ollama) ![WordPress Plugin: Required WP Version](https://img.shields.io/wordpress/plugin/wp-version/ai-provider-for-ollama) ![WordPress Plugin: Tested WP Version](https://img.shields.io/wordpress/plugin/tested/ai-provider-for-ollama) [![GPLv2 License](https://img.shields.io/github/license/Fueled/ai-provider-for-ollama.svg)](https://github.com/Fueled/ai-provider-for-ollama/blob/develop/LICENSE.md) [![WordPress Playground Demo](https://img.shields.io/wordpress/plugin/v/ai-provider-for-ollama?logo=wordpress&logoColor=FFFFFF&label=Live%20Demo&labelColor=3858E9&color=3858E9)](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Fueled/ai-provider-for-ollama/trunk/.wordpress-org/blueprints/blueprint.json)
 
 [![Test](https://github.com/Fueled/ai-provider-for-ollama/actions/workflows/test.yml/badge.svg)](https://github.com/Fueled/ai-provider-for-ollama/actions/workflows/test.yml) [![Plugin Check](https://github.com/Fueled/ai-provider-for-ollama/actions/workflows/plugin-check.yml/badge.svg)](https://github.com/Fueled/ai-provider-for-ollama/actions/workflows/plugin-check.yml) [![Dependency Review](https://github.com/Fueled/ai-provider-for-ollama/actions/workflows/dependency-review.yml/badge.svg)](https://github.com/Fueled/ai-provider-for-ollama/actions/workflows/dependency-review.yml)
 
@@ -79,6 +79,46 @@ $result = AiClient::prompt('Hello!')
     ->usingProvider('ollama')
     ->generateText();
 ```
+
+### Decisions (Ollama 0.35+)
+
+Decision models such as `nimble` and `tev1` answer typed questions about a piece of content and return a choice, a probability, or a score with its probability distribution, instead of generated text. They run through Ollama's [System One API](https://docs.ollama.com/api/systemone) on local models only.
+
+The AI Client has no decision capability yet, so these models are used through the provider directly rather than `wp_ai_client_prompt()`:
+
+```php
+use Fueled\AiProviderForOllama\Decisions\DecisionQuestion;
+use Fueled\AiProviderForOllama\Provider\OllamaProvider;
+
+$result = OllamaProvider::decisionModel( 'tev1' )->decide(
+    array( 'comment' => $comment->comment_content ),
+    array(
+        'spam'  => DecisionQuestion::noul( 'Is this comment spam?' ),
+        'route' => DecisionQuestion::choice(
+            'How should a moderator handle it?',
+            array(
+                'approve' => 'Relevant and civil',
+                'hold'    => 'Needs a human look',
+                'trash'   => 'Abusive or off-topic',
+            )
+        ),
+        'tone'  => DecisionQuestion::score( 'How civil is it?', array( 'Hostile', 'Neutral', 'Friendly' ) ),
+    )
+);
+
+$result->getAnswer( 'spam' )->getProbability();      // 0.03
+$result->getAnswer( 'route' )->getChoice();          // 'approve'
+$result->getAnswer( 'route' )->isConfident( 0.9 );   // Gate automatic actions on confidence.
+$result->getAnswer( 'tone' )->getScore();            // 1.7, from 0 (first level) to 2 (last level).
+```
+
+`OllamaProvider::decisionModelIds()` lists the models on your Ollama host that support decisions. A request takes up to 64 questions; choice and score questions take 2 to 26 options or levels. Invalid requests throw an `InvalidArgumentException` before anything is sent.
+
+## Frequently Asked Questions
+
+### Where do I report security bugs found in this plugin?
+
+Please report security bugs found in the source code of the AI Provider for Ollama plugin through the [Patchstack Vulnerability Disclosure  Program](https://patchstack.com/database/vdp/b715f2ba-e67f-437c-9398-cb523702a7ad). The Patchstack team will assist you with verification, CVE assignment, and notify the developers of this plugin.
 
 ## Support Level
 
