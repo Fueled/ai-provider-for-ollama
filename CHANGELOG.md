@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Developer
 - Add WordPress Playground blueprint file ([#88](https://github.com/Fueled/ai-provider-for-ollama/pull/88)).
 - Add Patchstack security reporting item to FAQ ([#107](https://github.com/Fueled/ai-provider-for-ollama/pull/107)).
+- Expand test coverage for Ollama provider availability and model discovery, including network failures, HTTP error responses, malformed payload handling, and discovery timeout filter overrides ([#101](https://github.com/Fueled/ai-provider-for-ollama/pull/101)).
 - Add unit test coverage for `DecisionResult` and `OllamaModelDetailsCache` ([#108](https://github.com/Fueled/ai-provider-for-ollama/pull/108)).
 - Bump `adm-zip` from 0.5.16 to 0.6.1 ([#90](https://github.com/Fueled/ai-provider-for-ollama/pull/90), [#99](https://github.com/Fueled/ai-provider-for-ollama/pull/99)).
 - Bump `brace-expansion` from 1.1.18 to 1.1.21 ([#106](https://github.com/Fueled/ai-provider-for-ollama/pull/106)).
