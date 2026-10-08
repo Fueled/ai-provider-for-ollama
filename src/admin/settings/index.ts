@@ -115,7 +115,7 @@ function supportsVision( model: ModelMetadata ): boolean {
  *
  * @param {ModelMetadata} model The model metadata.
  * @return {boolean} Whether tool calling is supported.
- * @since x.x.x
+ * @since 1.3.0
  */
 function supportsTools( model: ModelMetadata ): boolean {
 	return Boolean(

@@ -3,7 +3,7 @@
  * Availability check for the Ollama provider.
  *
  * @package Fueled\AiProviderForOllama\Provider
- * @since   x.x.x
+ * @since   1.3.0
  */
 
 declare( strict_types=1 );
@@ -20,14 +20,14 @@ use WordPress\AiClient\Providers\Contracts\ProviderAvailabilityInterface;
  * working Ollama?" — with the single `GET /api/tags` request that answering it
  * requires.
  *
- * @since x.x.x
+ * @since 1.3.0
  */
 class OllamaProviderAvailability implements ProviderAvailabilityInterface {
 
 	/**
 	 * The model metadata directory to use for checking availability.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @var \Fueled\AiProviderForOllama\Metadata\OllamaModelMetadataDirectory
 	 */
@@ -36,7 +36,7 @@ class OllamaProviderAvailability implements ProviderAvailabilityInterface {
 	/**
 	 * Constructor.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @param \Fueled\AiProviderForOllama\Metadata\OllamaModelMetadataDirectory $model_metadata_directory The model
 	 *                                                                                                   metadata
@@ -49,7 +49,7 @@ class OllamaProviderAvailability implements ProviderAvailabilityInterface {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 */
 	public function isConfigured(): bool {
 		try {

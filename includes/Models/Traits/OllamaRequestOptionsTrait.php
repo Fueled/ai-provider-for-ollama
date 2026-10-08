@@ -69,7 +69,7 @@ trait OllamaRequestOptionsTrait {
 			 *         return 120.0;
 			 *     } );
 			 *
-			 * @since x.x.x
+			 * @since 1.3.0
 			 *
 			 * @param float $request_timeout The request timeout in seconds.
 			 */
@@ -95,7 +95,7 @@ trait OllamaRequestOptionsTrait {
 			 *         return 20.0;
 			 *     } );
 			 *
-			 * @since x.x.x
+			 * @since 1.3.0
 			 *
 			 * @param float $connect_timeout The connection timeout in seconds.
 			 */

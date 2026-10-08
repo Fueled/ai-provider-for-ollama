@@ -44,7 +44,7 @@ class OllamaProvider extends AbstractApiProvider {
 	 *         array( 'spam' => DecisionQuestion::noul( 'Is this comment spam?' ) )
 	 *     );
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @param string                                                  $model_id     The model ID, such as "nimble".
 	 * @param \WordPress\AiClient\Providers\Models\DTO\ModelConfig|null $model_config Optional. Model configuration,
@@ -75,7 +75,7 @@ class OllamaProvider extends AbstractApiProvider {
 	/**
 	 * Lists the models on the Ollama host that support decisions.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @return list<string> The model IDs, sorted.
 	 * @throws \WordPress\AiClient\Providers\Http\Exception\ResponseException If the host is unreachable.

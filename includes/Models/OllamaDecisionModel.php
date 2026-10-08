@@ -3,7 +3,7 @@
  * Ollama decision model.
  *
  * @package Fueled\AiProviderForOllama\Models
- * @since   x.x.x
+ * @since   1.3.0
  */
 
 declare( strict_types=1 );
@@ -31,7 +31,7 @@ use WordPress\AiClient\Results\DTO\TokenUsage;
  * endpoint, returning a choice, a probability, or a score with its distribution
  * instead of generated text.
  *
- * @since x.x.x
+ * @since 1.3.0
  *
  * @phpstan-type ResponseData array{
  *     model?: string,
@@ -45,7 +45,7 @@ class OllamaDecisionModel extends AbstractApiBasedModel {
 	/**
 	 * The maximum number of questions in one request.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @var int
 	 */
@@ -54,7 +54,7 @@ class OllamaDecisionModel extends AbstractApiBasedModel {
 	/**
 	 * The maximum request body size Ollama accepts, in bytes.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @var int
 	 */
@@ -63,7 +63,7 @@ class OllamaDecisionModel extends AbstractApiBasedModel {
 	/**
 	 * Answers questions about the given state.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @param string|array<mixed>                                                     $state     The content to judge: a
 	 *                                                                                           non-empty string, or an
@@ -111,7 +111,7 @@ class OllamaDecisionModel extends AbstractApiBasedModel {
 	/**
 	 * Prepares the state, questions, and model configuration into API request parameters.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @param mixed        $state     The content to judge.
 	 * @param array<mixed> $questions The questions, keyed by name.
@@ -185,7 +185,7 @@ class OllamaDecisionModel extends AbstractApiBasedModel {
 	/**
 	 * Parses an Ollama /v1/systemone response to a decision result.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @param \WordPress\AiClient\Providers\Http\DTO\Response                        $response  The Ollama API response.
 	 * @param array<string, \Fueled\AiProviderForOllama\Decisions\DecisionQuestion> $questions The questions asked.

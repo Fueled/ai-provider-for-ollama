@@ -41,7 +41,7 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	/**
 	 * Default timeout for model discovery requests, in seconds.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @var float
 	 */
@@ -50,7 +50,7 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	/**
 	 * Default connection timeout for model discovery requests, in seconds.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @var float
 	 */
@@ -59,7 +59,7 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	/**
 	 * The model entries from /api/tags, once fetched.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @var list<TagsEntryData>|null
 	 */
@@ -68,7 +68,7 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	/**
 	 * Lists the models the Ollama host offers, as returned by /api/tags.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @return list<TagsEntryData> The raw model entries.
 	 * @throws \WordPress\AiClient\Providers\Http\Exception\ResponseException If the host is unreachable or the response
@@ -100,7 +100,7 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 */
 	public function invalidateCaches(): void {
 		$this->model_tags = null;
@@ -150,7 +150,7 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	/**
 	 * Lists the models that support decisions via the /v1/systemone endpoint.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @return list<string> The model IDs, sorted.
 	 * @throws \WordPress\AiClient\Providers\Http\Exception\ResponseException If the host is unreachable or the response
@@ -182,7 +182,7 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	 * In order of preference: the tag entry itself, the cache, and finally a
 	 * request to /api/show.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @param string                  $model_name     The model name.
 	 * @param TagsEntryData           $model_entry    The model's entry from /api/tags.
@@ -374,7 +374,7 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	 * Ollama omits these keys on some versions and sends null for others, so
 	 * anything that is not a list of strings is read as "none given".
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @param mixed $value The raw value.
 	 * @return list<string> The strings it contained, if any.
@@ -446,7 +446,7 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	/**
 	 * Builds the request options used for model discovery.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @return \WordPress\AiClient\Providers\Http\DTO\RequestOptions The prepared request options.
 	 */
@@ -461,7 +461,7 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 			 * Applies to the `/api/tags` and `/api/show` requests behind the connection
 			 * check and the model list, not to text, image, or embedding generation.
 			 *
-			 * @since x.x.x
+			 * @since 1.3.0
 			 *
 			 * @param float $request_timeout The request timeout in seconds.
 			 */
@@ -470,7 +470,7 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 			/**
 			 * Filters the connection timeout for Ollama model discovery requests.
 			 *
-			 * @since x.x.x
+			 * @since 1.3.0
 			 *
 			 * @param float $connect_timeout The connection timeout in seconds.
 			 */
