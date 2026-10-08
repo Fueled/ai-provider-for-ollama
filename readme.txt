@@ -69,7 +69,7 @@ Please report security bugs found in the source code of the AI Provider for Olla
 
 == Changelog ==
 
-= 1.3.0 - 2026-10-13 =
+= 1.3.0 - 2026-10-08 =
 
 **Added**
 
