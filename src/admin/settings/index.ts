@@ -212,23 +212,31 @@ function getErrorMessage( error: unknown, fallback: string ): string {
 /**
  * Loads and displays the available models in a list.
  *
- * @param {Config} config The configuration object.
+ * @param {Config}  config  The configuration object.
+ * @param {boolean} refresh Whether to bypass the cached model list.
  * @since 1.0.0
  */
-async function loadModels( config: Config ): Promise< void > {
+async function loadModels( config: Config, refresh = false ): Promise< void > {
 	const container = document.getElementById( 'ollama-models-container' );
-	const status = document.getElementById( 'ollama-model-status' );
 
-	if ( ! container || ! status ) {
+	if ( ! container ) {
 		return;
 	}
+
+	// Start from an empty container, as an earlier load may have replaced the status with a list.
+	container.innerHTML = '';
+	const status = document.createElement( 'span' );
+	status.id = 'ollama-model-status';
+	container.appendChild( status );
 
 	status.textContent = __( 'Loading models\u2026', 'ai-provider-for-ollama' );
 
 	let resp: AjaxResponse;
 
 	try {
-		resp = await apiFetch< AjaxResponse >( { url: config.ajaxUrl } );
+		resp = await apiFetch< AjaxResponse >( {
+			url: refresh ? `${ config.ajaxUrl }&refresh=1` : config.ajaxUrl,
+		} );
 	} catch ( error ) {
 		const fallback = __(
 			'Could not connect to load models.',
@@ -256,7 +264,7 @@ async function loadModels( config: Config ): Promise< void > {
 	if ( models.length === 0 ) {
 		const empty = document.createElement( 'p' );
 		empty.textContent = __(
-			'No models found. Pull a model with ollama pull <model> and reload this page.',
+			'No models found. Pull a model with ollama pull <model> and refresh the list.',
 			'ai-provider-for-ollama'
 		);
 		container.appendChild( empty );
@@ -310,7 +318,23 @@ async function loadModels( config: Config ): Promise< void > {
  */
 document.addEventListener( 'DOMContentLoaded', () => {
 	const config = window.aiProviderForOllamaSettings;
-	if ( config ) {
-		loadModels( config );
+	if ( ! config ) {
+		return;
+	}
+
+	loadModels( config );
+
+	const refreshButton = document.getElementById(
+		'ollama-refresh-models'
+	) as HTMLButtonElement | null;
+	if ( refreshButton ) {
+		refreshButton.addEventListener( 'click', async () => {
+			refreshButton.disabled = true;
+			try {
+				await loadModels( config, true );
+			} finally {
+				refreshButton.disabled = false;
+			}
+		} );
 	}
 } );

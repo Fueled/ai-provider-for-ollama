@@ -10,6 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use WP_Error;
 use WordPress\AiClient\AiClient;
+use WordPress\AiClient\Common\Contracts\CachesDataInterface;
 
 /**
  * Class for the Ollama settings in the WordPress admin.
@@ -29,6 +30,17 @@ class OllamaSettings {
 	private const NONCE_ACTION = 'ai_provider_for_ollama_nonce';
 
 	/**
+	 * Option WordPress stores the Ollama API key in, set on the Settings > Connectors screen.
+	 *
+	 * Core names it `connectors_ai_{provider_id}_api_key`.
+	 *
+	 * @since x.x.x
+	 *
+	 * @var string
+	 */
+	private const API_KEY_OPTION_NAME = 'connectors_ai_ollama_api_key';
+
+	/**
 	 * Initializes the settings.
 	 *
 	 * @since 1.0.0
@@ -40,6 +52,13 @@ class OllamaSettings {
 		add_action( 'wp_ajax_' . self::AJAX_ACTION, array( $this, 'ajax_list_models' ) );
 		add_filter( 'wpai_has_ai_credentials', array( $this, 'is_connected' ) );
 		add_filter( 'wpai_is_ollama_connector_configured', array( $this, 'is_connected' ) );
+
+		// The model list is cached per provider, so drop it whenever the host or the credentials change.
+		foreach ( array( self::OPTION_NAME, self::API_KEY_OPTION_NAME ) as $option_name ) {
+			add_action( 'add_option_' . $option_name, array( $this, 'invalidate_model_cache' ) );
+			add_action( 'update_option_' . $option_name, array( $this, 'invalidate_model_cache' ) );
+			add_action( 'delete_option_' . $option_name, array( $this, 'invalidate_model_cache' ) );
+		}
 	}
 
 	/**
@@ -212,9 +231,14 @@ class OllamaSettings {
 		<div id="ollama-models-container">
 			<span id="ollama-model-status"></span>
 		</div>
+		<p>
+			<button type="button" class="button" id="ollama-refresh-models">
+				<?php esc_html_e( 'Refresh models', 'ai-provider-for-ollama' ); ?>
+			</button>
+		</p>
 		<p class="description">
 			<?php
-			echo esc_html__( 'Available models are fetched from your Ollama instance. If a model is not listed that you want, ensure that model is installed within Ollama.', 'ai-provider-for-ollama' );
+			echo esc_html__( 'Available models are fetched from your Ollama instance. If a model is not listed that you want, ensure that model is installed within Ollama, then refresh the list.', 'ai-provider-for-ollama' );
 			?>
 		</p>
 
@@ -277,6 +301,10 @@ class OllamaSettings {
 			wp_send_json_error( __( 'Insufficient permissions.', 'ai-provider-for-ollama' ), 403 );
 		}
 
+		if ( ! empty( $_GET['refresh'] ) ) {
+			$this->invalidate_model_cache();
+		}
+
 		$models = $this->get_models();
 
 		if ( is_wp_error( $models ) ) {
@@ -285,6 +313,32 @@ class OllamaSettings {
 		}
 
 		wp_send_json_success( $models );
+	}
+
+	/**
+	 * Discards the cached model list, so the next listing is fetched from Ollama again.
+	 *
+	 * @since x.x.x
+	 */
+	public function invalidate_model_cache(): void {
+		$provider_id = 'ollama';
+		$registry    = AiClient::defaultRegistry();
+
+		if ( ! $registry->hasProvider( $provider_id ) ) {
+			return;
+		}
+
+		$provider_classname = $registry->getProviderClassName( $provider_id );
+
+		try {
+			$model_metadata_directory = $provider_classname::modelMetadataDirectory();
+			if ( $model_metadata_directory instanceof CachesDataInterface ) {
+				$model_metadata_directory->invalidateCaches();
+			}
+		} catch ( \Throwable $e ) {
+			// Nothing cached to drop if the directory cannot be built.
+			return;
+		}
 	}
 
 	/**
