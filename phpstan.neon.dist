@@ -37,6 +37,7 @@ parameters:
 			- includes/Models/OllamaEmbeddingGenerationModel.php
 			- includes/Models/OllamaImageGenerationModel.php
 			- includes/Models/OllamaTextGenerationModel.php
+			- includes/Models/OllamaTextToSpeechConversionModel.php
 			- includes/Models/Traits/OllamaRequestOptionsTrait.php
 			- includes/Provider/OllamaProvider.php
 			- includes/Provider/OllamaProviderAvailability.php
