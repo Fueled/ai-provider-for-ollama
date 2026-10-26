@@ -250,8 +250,9 @@ class DecisionQuestion {
 	 */
 	private static function readDescription( $description, string $label ): string {
 		if ( ! is_string( $description ) || '' === trim( $description ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+			// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped
 			throw new InvalidArgumentException( $label . ' must have a non-empty description.' );
+			// phpcs:enable WordPress.Security.EscapeOutput.ExceptionNotEscaped
 		}
 
 		return $description;

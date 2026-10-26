@@ -109,6 +109,7 @@ class DecisionAnswer {
 	 */
 	public static function fromResponseData( DecisionTypeEnum $type, $data, string $path ): self {
 		if ( ! is_array( $data ) ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 			throw ResponseException::fromInvalidData( 'Ollama', $path, 'The value must be an object.' );
 		}
 
@@ -121,6 +122,7 @@ class DecisionAnswer {
 
 		if ( $type->isChoice() ) {
 			if ( ! isset( $data['choice'] ) || ! is_string( $data['choice'] ) ) {
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 				throw ResponseException::fromInvalidData( 'Ollama', $path . '.choice', 'The value must be a string.' );
 			}
 
@@ -128,6 +130,7 @@ class DecisionAnswer {
 		}
 
 		if ( ! isset( $data['score'] ) || ! is_numeric( $data['score'] ) ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 			throw ResponseException::fromInvalidData( 'Ollama', $path . '.score', 'The value must be a number.' );
 		}
 
@@ -290,11 +293,13 @@ class DecisionAnswer {
 	 */
 	private static function readProbability( array $data, string $key, string $path ): float {
 		if ( ! isset( $data[ $key ] ) || ! is_numeric( $data[ $key ] ) ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 			throw ResponseException::fromInvalidData( 'Ollama', $path . '.' . $key, 'The value must be a number.' );
 		}
 
 		$value = (float) $data[ $key ];
 		if ( $value < 0.0 || $value > 1.0 ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 			throw ResponseException::fromInvalidData( 'Ollama', $path . '.' . $key, 'The value must be between 0 and 1.' );
 		}
 
@@ -313,17 +318,20 @@ class DecisionAnswer {
 	 */
 	private static function readProbabilities( array $data, string $path ): array {
 		if ( ! isset( $data['probabilities'] ) || ! is_array( $data['probabilities'] ) ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 			throw ResponseException::fromInvalidData( 'Ollama', $path . '.probabilities', 'The value must be an object.' );
 		}
 
 		$probabilities = array();
 		foreach ( $data['probabilities'] as $key => $probability ) {
 			if ( ! is_numeric( $probability ) ) {
+				// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped
 				throw ResponseException::fromInvalidData(
 					'Ollama',
 					$path . '.probabilities.' . $key,
 					'The value must be a number.'
 				);
+				// phpcs:enable WordPress.Security.EscapeOutput.ExceptionNotEscaped
 			}
 
 			$probabilities[ (string) $key ] = (float) $probability;
