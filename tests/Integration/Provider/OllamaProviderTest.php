@@ -9,6 +9,7 @@ use Fueled\AiProviderForOllama\Models\OllamaDecisionModel;
 use Fueled\AiProviderForOllama\Models\OllamaEmbeddingGenerationModel;
 use Fueled\AiProviderForOllama\Models\OllamaImageGenerationModel;
 use Fueled\AiProviderForOllama\Models\OllamaTextGenerationModel;
+use Fueled\AiProviderForOllama\Models\OllamaTextToSpeechConversionModel;
 use Fueled\AiProviderForOllama\Provider\OllamaProvider;
 use Fueled\AiProviderForOllama\Provider\OllamaProviderAvailability;
 use Fueled\AiProviderForOllama\Tests\Integration\Mocks\MockHttpTransporter;
@@ -227,6 +228,22 @@ class OllamaProviderTest extends TestCase {
 		$model = $this->invoke_create_model( $model_metadata );
 
 		$this->assertInstanceOf( OllamaEmbeddingGenerationModel::class, $model );
+	}
+
+	/**
+	 * Tests that createModel() returns an OllamaTextToSpeechConversionModel for a model with textToSpeechConversion capability.
+	 */
+	public function test_create_model_returns_text_to_speech_model_for_text_to_speech_capability(): void {
+		$model_metadata = new ModelMetadata(
+			'phonon',
+			'phonon',
+			array( CapabilityEnum::textToSpeechConversion() ),
+			array()
+		);
+
+		$model = $this->invoke_create_model( $model_metadata );
+
+		$this->assertInstanceOf( OllamaTextToSpeechConversionModel::class, $model );
 	}
 
 	/**
