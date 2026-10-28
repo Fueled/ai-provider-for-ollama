@@ -32,9 +32,10 @@ use WordPress\AiClient\Providers\Models\Enums\OptionEnum;
  * }
  * @phpstan-type ShowResponseData array{
  *     capabilities?: list<string>,
- *     details?: array{families?: list<string>|null}
+ *     details?: array{families?: list<string>|null},
+ *     voices?: list<string>|null
  * }
- * @phpstan-type ModelDetails array{capabilities: list<string>, families: list<string>}
+ * @phpstan-type ModelDetails array{capabilities: list<string>, families: list<string>, voices?: list<string>}
  */
 class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirectory {
 
@@ -199,8 +200,10 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 		$families = $this->readStringList( $model_entry['details']['families'] ?? null );
 
 		// Recent Ollama versions report capabilities in the tag listing, making the per-model request unnecessary.
-		$capabilities = $this->readStringList( $model_entry['capabilities'] ?? null );
-		if ( ! empty( $capabilities ) ) {
+		// Speech models are the exception, as their voices are only reported by /api/show.
+		$capabilities    = $this->readStringList( $model_entry['capabilities'] ?? null );
+		$is_speech_model = in_array( 'speech', $capabilities, true );
+		if ( ! empty( $capabilities ) && ! $is_speech_model ) {
 			return array(
 				'capabilities' => $capabilities,
 				'families'     => $families,
@@ -221,14 +224,26 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 
 		$show_data = $this->fetchModelDetails( $model_name );
 		if ( null === $show_data ) {
+			if ( $is_speech_model ) {
+				return array(
+					'capabilities' => $capabilities,
+					'families'     => $families,
+				);
+			}
+
 			return null;
 		}
 
-		$show_families = $this->readStringList( $show_data['details']['families'] ?? null );
-		$details       = array(
-			'capabilities' => $this->readStringList( $show_data['capabilities'] ?? null ),
+		$show_families     = $this->readStringList( $show_data['details']['families'] ?? null );
+		$show_capabilities = $this->readStringList( $show_data['capabilities'] ?? null );
+		$details           = array(
+			'capabilities' => empty( $show_capabilities ) ? $capabilities : $show_capabilities,
 			'families'     => empty( $show_families ) ? $families : $show_families,
 		);
+
+		if ( in_array( 'speech', $details['capabilities'], true ) ) {
+			$details['voices'] = $this->readStringList( $show_data['voices'] ?? null );
+		}
 
 		if ( '' !== $digest ) {
 			$details_cache->set( $digest, $details );
@@ -250,6 +265,12 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	private function buildModelMetadata( string $model_name, ?array $details ): ?ModelMetadata {
 		$model_capabilities = null !== $details ? $details['capabilities'] : array();
 		$model_families     = null !== $details ? $details['families'] : array();
+		$model_voices       = null !== $details ? $details['voices'] ?? array() : array();
+
+		// Speech models reject chat, completion, and embedding requests, so they only offer text to speech.
+		if ( in_array( 'speech', $model_capabilities, true ) ) {
+			return $this->buildTextToSpeechModelMetadata( $model_name, $model_voices );
+		}
 
 		$is_image_generation_model = in_array( 'image', $model_capabilities, true );
 
@@ -363,6 +384,37 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 			array(
 				new SupportedOption( OptionEnum::inputModalities(), array( array( ModalityEnum::text() ) ) ),
 				new SupportedOption( OptionEnum::dimensions() ),
+				new SupportedOption( OptionEnum::customOptions() ),
+			)
+		);
+	}
+
+	/**
+	 * Builds text-to-speech metadata for a model.
+	 *
+	 * Ollama's speech endpoint only produces WAV (or raw PCM, which has no
+	 * MIME type a browser can play), so WAV is the only output offered.
+	 *
+	 * @since x.x.x
+	 *
+	 * @param string       $model_name The model name.
+	 * @param list<string> $voices     The voices the model offers, or an empty list when they are unknown.
+	 * @return \WordPress\AiClient\Providers\Models\DTO\ModelMetadata The text-to-speech model metadata.
+	 */
+	private function buildTextToSpeechModelMetadata( string $model_name, array $voices ): ModelMetadata {
+		return new ModelMetadata(
+			$model_name,
+			$model_name,
+			array(
+				CapabilityEnum::textToSpeechConversion(),
+			),
+			array(
+				new SupportedOption( OptionEnum::inputModalities(), array( array( ModalityEnum::text() ) ) ),
+				new SupportedOption( OptionEnum::outputModalities(), array( array( ModalityEnum::audio() ) ) ),
+				new SupportedOption( OptionEnum::outputMimeType(), array( 'audio/wav' ) ),
+				new SupportedOption( OptionEnum::outputFileType(), array( FileTypeEnum::inline() ) ),
+				// When the voices are unknown, any voice is accepted and Ollama validates it.
+				new SupportedOption( OptionEnum::outputSpeechVoice(), empty( $voices ) ? null : $voices ),
 				new SupportedOption( OptionEnum::customOptions() ),
 			)
 		);

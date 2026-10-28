@@ -20,7 +20,7 @@ namespace Fueled\AiProviderForOllama\Metadata;
  *
  * @since 1.3.0
  *
- * @phpstan-type ModelDetails array{capabilities: list<string>, families: list<string>}
+ * @phpstan-type ModelDetails array{capabilities: list<string>, families: list<string>, voices?: list<string>}
  */
 final class OllamaModelDetailsCache {
 
@@ -202,10 +202,17 @@ final class OllamaModelDetailsCache {
 				continue;
 			}
 
-			$entries[ $digest ] = array(
+			$entry = array(
 				'capabilities' => self::normalize_string_list( $details['capabilities'] ?? null ),
 				'families'     => self::normalize_string_list( $details['families'] ?? null ),
 			);
+
+			// Voices are only recorded for speech models.
+			if ( isset( $details['voices'] ) ) {
+				$entry['voices'] = self::normalize_string_list( $details['voices'] );
+			}
+
+			$entries[ $digest ] = $entry;
 		}
 
 		return $entries;

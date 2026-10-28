@@ -80,6 +80,21 @@ $result = AiClient::prompt('Hello!')
     ->generateText();
 ```
 
+### Text to Speech (Ollama 0.40.9+)
+
+Speech models such as [`phonon`](https://ollama.com/blog/speech-models) turn text into spoken audio through Ollama's [speech endpoint](https://docs.ollama.com/capabilities/speech). Speech models currently run on Apple Silicon Macs only.
+
+```php
+$file = wp_ai_client_prompt( 'Hello from WordPress.' )
+    ->using_provider( 'ollama' )
+    ->as_output_speech_voice( 'Zoey' ) // Optional; the model's default voice is used otherwise.
+    ->convert_text_to_speech();
+
+$audio = base64_decode( $file->getBase64Data() );
+```
+
+Audio is returned as a 16-bit, mono, 24 kHz WAV file (`audio/wav`), the only format Ollama produces. Each request accepts up to 4,096 characters of text. The voices a model offers are listed in its `outputSpeechVoice` supported option, and in `ollama show <model>`. The language-specific `phonon` variants are licensed for non-commercial use only.
+
 ### Decisions (Ollama 0.35+)
 
 Decision models such as `nimble` and `tev1` answer typed questions about a piece of content and return a choice, a probability, or a score with its probability distribution, instead of generated text. They run through Ollama's [System One API](https://docs.ollama.com/api/systemone) on local models only.
