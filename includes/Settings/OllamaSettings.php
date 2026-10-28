@@ -30,9 +30,7 @@ class OllamaSettings {
 	private const NONCE_ACTION = 'ai_provider_for_ollama_nonce';
 
 	/**
-	 * Option WordPress stores the Ollama API key in, set on the Settings > Connectors screen.
-	 *
-	 * Core names it `connectors_ai_{provider_id}_api_key`.
+	 * Option WordPress stores the Ollama API key in.
 	 *
 	 * @since x.x.x
 	 *
@@ -53,7 +51,6 @@ class OllamaSettings {
 		add_filter( 'wpai_has_ai_credentials', array( $this, 'is_connected' ) );
 		add_filter( 'wpai_is_ollama_connector_configured', array( $this, 'is_connected' ) );
 
-		// The model list is cached per provider, so drop it whenever the host or the credentials change.
 		foreach ( array( self::OPTION_NAME, self::API_KEY_OPTION_NAME ) as $option_name ) {
 			add_action( 'add_option_' . $option_name, array( $this, 'invalidate_model_cache' ) );
 			add_action( 'update_option_' . $option_name, array( $this, 'invalidate_model_cache' ) );
@@ -316,7 +313,7 @@ class OllamaSettings {
 	}
 
 	/**
-	 * Discards the cached model list, so the next listing is fetched from Ollama again.
+	 * Discards the cached model list.
 	 *
 	 * @since x.x.x
 	 */
