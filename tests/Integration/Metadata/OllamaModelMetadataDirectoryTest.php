@@ -974,4 +974,240 @@ class OllamaModelMetadataDirectoryTest extends TestCase {
 		$this->assertSame( 2, $later_transporter->get_request_count() );
 		$this->assertContains( 'functionDeclarations', $this->option_names( $models[0] ) );
 	}
+
+	// -----------------------------------------------------------------------
+	// Decision model tests
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Tests that decision models stay listed for text generation but sort after the other models.
+	 */
+	public function test_decision_models_are_listed_after_other_models(): void {
+		$this->transporter->queue_response(
+			$this->make_tags_response(
+				array(
+					array(
+						'name'         => 'tev1:latest',
+						'capabilities' => array( 'decision', 'tools', 'thinking', 'completion' ),
+					),
+					array(
+						'name'         => 'qwen2.5:3b',
+						'capabilities' => array( 'completion', 'tools' ),
+					),
+					array(
+						'name'         => 'gemma3:latest',
+						'capabilities' => array( 'completion', 'vision' ),
+					),
+				)
+			)
+		);
+
+		$models = $this->directory->listModelMetadata();
+
+		$ids = array_map(
+			static function ( ModelMetadata $model ): string {
+				return $model->getId();
+			},
+			$models
+		);
+		$this->assertSame( array( 'gemma3:latest', 'qwen2.5:3b', 'tev1:latest' ), $ids );
+		$this->assertTrue( $models[2]->getSupportedCapabilities()[0]->isTextGeneration() );
+	}
+
+	/**
+	 * Tests that decision models without the completion capability are not offered for text generation.
+	 */
+	public function test_decision_only_models_are_not_listed(): void {
+		$this->transporter->queue_response(
+			$this->make_tags_response(
+				array(
+					array(
+						'name'         => 'nimble:latest',
+						'capabilities' => array( 'decision' ),
+					),
+				)
+			)
+		);
+
+		$this->assertSame( array(), $this->directory->listModelMetadata() );
+	}
+
+	/**
+	 * Tests that listDecisionModelIds() returns only models reporting the decision capability, sorted.
+	 */
+	public function test_list_decision_model_ids_returns_decision_models_sorted(): void {
+		$this->transporter->queue_response(
+			$this->make_tags_response(
+				array(
+					array(
+						'name'         => 'tev1:latest',
+						'capabilities' => array( 'decision', 'completion' ),
+					),
+					array(
+						'name'         => 'qwen2.5:3b',
+						'capabilities' => array( 'completion', 'tools' ),
+					),
+					array(
+						'name'         => 'nimble:latest',
+						'capabilities' => array( 'decision' ),
+					),
+					'legacy-model',
+				)
+			)
+		);
+
+		$this->assertSame( array( 'nimble:latest', 'tev1:latest' ), $this->directory->listDecisionModelIds() );
+		$this->assertSame( 1, $this->transporter->get_request_count(), 'Expected the tag listing to be the only request.' );
+	}
+
+	// -----------------------------------------------------------------------
+	// Speech model tests
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Builds a tag entry for a speech model, as Ollama reports it.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function make_speech_tag_entry(): array {
+		return array(
+			'name'         => 'phonon:latest',
+			'digest'       => 'sha256:phonon',
+			'capabilities' => array( 'speech' ),
+			'details'      => array( 'families' => null ),
+		);
+	}
+
+	/**
+	 * Builds a fake /api/show response for a speech model.
+	 *
+	 * @param list<string> $voices The voices to report.
+	 * @return Response
+	 */
+	private function make_speech_show_response( array $voices ): Response {
+		$body = (string) json_encode(
+			array(
+				'capabilities' => array( 'speech' ),
+				'details'      => array( 'families' => null ),
+				'voices'       => $voices,
+			)
+		);
+		return new Response( 200, array(), $body );
+	}
+
+	/**
+	 * Tests that speech models are listed as text-to-speech models with their voices.
+	 */
+	public function test_speech_model_is_listed_as_text_to_speech_model(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( $this->make_speech_tag_entry() ) ) );
+		$this->transporter->queue_response( $this->make_speech_show_response( array( 'default', 'Zoey' ) ) );
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertCount( 1, $models );
+		$this->assertSame( 'phonon:latest', $models[0]->getId() );
+
+		$capabilities = $models[0]->getSupportedCapabilities();
+		$this->assertCount( 1, $capabilities );
+		$this->assertTrue( $capabilities[0]->isTextToSpeechConversion() );
+
+		$voice_opt = $this->find_option( $models[0]->getSupportedOptions(), 'isOutputSpeechVoice' );
+		$this->assertNotNull( $voice_opt, 'Expected outputSpeechVoice supported option.' );
+		$this->assertSame( array( 'default', 'Zoey' ), $voice_opt->getSupportedValues() );
+
+		$mime_type_opt = $this->find_option( $models[0]->getSupportedOptions(), 'isOutputMimeType' );
+		$this->assertNotNull( $mime_type_opt, 'Expected outputMimeType supported option.' );
+		$this->assertSame( array( 'audio/wav' ), $mime_type_opt->getSupportedValues() );
+	}
+
+	/**
+	 * Tests that speech models are looked up even when the tag listing reports capabilities, to get the voices.
+	 */
+	public function test_speech_model_is_looked_up_for_voices(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( $this->make_speech_tag_entry() ) ) );
+		$this->transporter->queue_response( $this->make_speech_show_response( array( 'Zoey' ) ) );
+
+		$this->directory->listModelMetadata();
+
+		$this->assertSame( 2, $this->transporter->get_request_count(), 'Expected one tag listing plus one lookup.' );
+		$this->assertStringEndsWith( 'api/show', $this->transporter->get_requests()[1]->getUri() );
+	}
+
+	/**
+	 * Tests that the voices are cached by digest, so later listings skip the lookup.
+	 */
+	public function test_speech_model_voices_are_cached(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( $this->make_speech_tag_entry() ) ) );
+		$this->transporter->queue_response( $this->make_speech_show_response( array( 'Zoey' ) ) );
+		$this->directory->listModelMetadata();
+
+		$transporter = new MockHttpTransporter();
+		$transporter->queue_response( $this->make_tags_response( array( $this->make_speech_tag_entry() ) ) );
+		$directory = $this->make_directory( $transporter );
+
+		$models = $directory->listModelMetadata();
+
+		$this->assertSame( 1, $transporter->get_request_count(), 'Expected the tag listing to be the only request.' );
+		$voice_opt = $this->find_option( $models[0]->getSupportedOptions(), 'isOutputSpeechVoice' );
+		$this->assertNotNull( $voice_opt );
+		$this->assertSame( array( 'Zoey' ), $voice_opt->getSupportedValues() );
+	}
+
+	/**
+	 * Tests that a failed lookup still lists the speech model, accepting any voice.
+	 */
+	public function test_speech_model_without_voices_accepts_any_voice(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( $this->make_speech_tag_entry() ) ) );
+		$this->transporter->queue_response( $this->make_error_response() );
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertCount( 1, $models );
+		$this->assertTrue( $models[0]->getSupportedCapabilities()[0]->isTextToSpeechConversion() );
+		$voice_opt = $this->find_option( $models[0]->getSupportedOptions(), 'isOutputSpeechVoice' );
+		$this->assertNotNull( $voice_opt );
+		$this->assertNull( $voice_opt->getSupportedValues() );
+	}
+
+	/**
+	 * Tests that speech models are detected from the lookup when the tag listing omits capabilities.
+	 */
+	public function test_speech_model_is_detected_via_show(): void {
+		$this->transporter->queue_response( $this->make_tags_response( array( 'phonon' ) ) );
+		$this->transporter->queue_response( $this->make_speech_show_response( array( 'Zoey' ) ) );
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertCount( 1, $models );
+		$this->assertTrue( $models[0]->getSupportedCapabilities()[0]->isTextToSpeechConversion() );
+	}
+
+	/**
+	 * Tests that speech models are not offered for text generation, and text models not for speech.
+	 */
+	public function test_speech_and_text_models_are_selected_by_capability(): void {
+		$this->transporter->queue_response(
+			$this->make_tags_response(
+				array(
+					$this->make_speech_tag_entry(),
+					array(
+						'name'         => 'qwen2.5:3b',
+						'capabilities' => array( 'completion' ),
+					),
+				)
+			)
+		);
+		$this->transporter->queue_response( $this->make_speech_show_response( array( 'Zoey' ) ) );
+
+		$models = $this->directory->listModelMetadata();
+
+		$this->assertSame(
+			array( 'qwen2.5:3b' ),
+			$this->matching_model_ids( $models, new ModelRequirements( array( CapabilityEnum::textGeneration() ), array() ) )
+		);
+		$this->assertSame(
+			array( 'phonon:latest' ),
+			$this->matching_model_ids( $models, new ModelRequirements( array( CapabilityEnum::textToSpeechConversion() ), array() ) )
+		);
+	}
 }
