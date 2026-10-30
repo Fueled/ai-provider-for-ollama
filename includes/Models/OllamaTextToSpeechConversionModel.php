@@ -3,7 +3,7 @@
  * Ollama text-to-speech conversion model.
  *
  * @package Fueled\AiProviderForOllama\Models
- * @since   x.x.x
+ * @since   1.4.0
  */
 
 declare( strict_types=1 );
@@ -35,7 +35,7 @@ use WordPress\AiClient\Results\Enums\FinishReasonEnum;
  * Synthesizes speech via Ollama's OpenAI-compatible /v1/audio/speech endpoint,
  * with speech models such as `phonon`.
  *
- * @since x.x.x
+ * @since 1.4.0
  */
 class OllamaTextToSpeechConversionModel extends AbstractApiBasedModel implements TextToSpeechConversionModelInterface {
 	use OllamaRequestOptionsTrait;
@@ -43,7 +43,7 @@ class OllamaTextToSpeechConversionModel extends AbstractApiBasedModel implements
 	/**
 	 * The only output MIME type supported.
 	 *
-	 * @since x.x.x
+	 * @since 1.4.0
 	 *
 	 * @var string
 	 */
@@ -52,7 +52,7 @@ class OllamaTextToSpeechConversionModel extends AbstractApiBasedModel implements
 	/**
 	 * The most characters Ollama accepts in a single request.
 	 *
-	 * @since x.x.x
+	 * @since 1.4.0
 	 *
 	 * @var int
 	 */
@@ -61,7 +61,7 @@ class OllamaTextToSpeechConversionModel extends AbstractApiBasedModel implements
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @since x.x.x
+	 * @since 1.4.0
 	 */
 	public function convertTextToSpeechResult( array $prompt ): GenerativeAiResult {
 		$this->validateOutputMimeType();
@@ -84,7 +84,7 @@ class OllamaTextToSpeechConversionModel extends AbstractApiBasedModel implements
 	/**
 	 * Prepares the request parameters for the speech endpoint.
 	 *
-	 * @since x.x.x
+	 * @since 1.4.0
 	 *
 	 * @param list<\WordPress\AiClient\Messages\DTO\Message> $prompt The prompt messages containing the text.
 	 * @return array<string, mixed> The parameters for the API request.
@@ -131,7 +131,7 @@ class OllamaTextToSpeechConversionModel extends AbstractApiBasedModel implements
 	/**
 	 * Extracts the text to synthesize from the prompt.
 	 *
-	 * @since x.x.x
+	 * @since 1.4.0
 	 *
 	 * @param list<\WordPress\AiClient\Messages\DTO\Message> $prompt The prompt messages.
 	 * @return string The text to convert to speech.
@@ -172,7 +172,7 @@ class OllamaTextToSpeechConversionModel extends AbstractApiBasedModel implements
 	/**
 	 * Ensures the configured output MIME type, if any, is one Ollama can produce.
 	 *
-	 * @since x.x.x
+	 * @since 1.4.0
 	 *
 	 * @throws \WordPress\AiClient\Common\Exception\InvalidArgumentException If the configured MIME type is unsupported.
 	 */
@@ -196,7 +196,7 @@ class OllamaTextToSpeechConversionModel extends AbstractApiBasedModel implements
 	/**
 	 * Parses the binary audio response into a generative AI result.
 	 *
-	 * @since x.x.x
+	 * @since 1.4.0
 	 *
 	 * @param \WordPress\AiClient\Providers\Http\DTO\Response $response The HTTP response containing raw WAV bytes.
 	 * @return \WordPress\AiClient\Results\DTO\GenerativeAiResult The result containing the audio file.
@@ -226,7 +226,7 @@ class OllamaTextToSpeechConversionModel extends AbstractApiBasedModel implements
 	/**
 	 * Writes the real sizes into a WAV header.
 	 *
-	 * @since x.x.x
+	 * @since 1.4.0
 	 *
 	 * @param string $wav The WAV file contents.
 	 * @return string The WAV file with corrected sizes, or the input unchanged if it is not a WAV file.

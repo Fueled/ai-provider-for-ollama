@@ -168,7 +168,7 @@ class Plugin {
 	 * Allows requests to the Ollama host, even when it resolves to a local address.
 	 *
 	 * @since 1.0.0
-	 * @since x.x.x Only matches requests whose host and port are the Ollama host's.
+	 * @since 1.4.0 Only matches requests whose host and port are the Ollama host's.
 	 *
 	 * @param bool   $external Whether the request is external.
 	 * @param string $host     The host of the request.
@@ -187,7 +187,7 @@ class Plugin {
 	 * Allows the Ollama port for requests to the Ollama host.
 	 *
 	 * @since 1.0.0
-	 * @since x.x.x Only adds the port for requests to the Ollama host.
+	 * @since 1.4.0 Only adds the port for requests to the Ollama host.
 	 *
 	 * @param array<int> $ports The allowed ports.
 	 * @param string     $host  The host of the request.
@@ -211,7 +211,7 @@ class Plugin {
 	/**
 	 * Checks whether a URL points at the Ollama host.
 	 *
-	 * @since x.x.x
+	 * @since 1.4.0
 	 *
 	 * @param string $url The URL to check.
 	 * @return bool Whether the URL points at the Ollama host.
@@ -251,7 +251,7 @@ class Plugin {
 	/**
 	 * Checks whether a URL path contains a `.` or `..` segment, including encoded forms.
 	 *
-	 * @since x.x.x
+	 * @since 1.4.0
 	 *
 	 * @param string $path The URL path.
 	 * @return bool Whether the path contains a dot segment.
@@ -281,7 +281,7 @@ class Plugin {
 	/**
 	 * Gets the port of a parsed URL, falling back to the default port for its scheme.
 	 *
-	 * @since x.x.x
+	 * @since 1.4.0
 	 *
 	 * @param array<string, int|string> $parsed_url The URL, as returned by wp_parse_url().
 	 * @return int|null The port, or null if it cannot be determined.

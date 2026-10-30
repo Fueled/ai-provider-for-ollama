@@ -3,7 +3,7 @@ Contributors:      fueled, 10up, dkotter, jeffpaul
 Tags:              ai, ollama, llm, local-ai, connector
 Requires at least: 7.0
 Tested up to:      7.1
-Stable tag:        1.3.0
+Stable tag:        1.4.0
 Requires PHP:      8.2
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -70,6 +70,22 @@ Please report security bugs found in the source code of the AI Provider for Olla
 
 == Changelog ==
 
+= 1.4.0 - 2026-10-30 =
+
+**Added**
+
+- Support for text-to-speech with Ollama speech models such as `phonon`, including voice selection (requires Ollama 0.40.9+) ([#115](https://github.com/Fueled/ai-provider-for-ollama/pull/115)).
+- A refresh models button on the settings page ([#102](https://github.com/Fueled/ai-provider-for-ollama/pull/102)).
+
+**Changed**
+
+- Refresh the cached model list when the host or API key changes ([#102](https://github.com/Fueled/ai-provider-for-ollama/pull/102)).
+- Bump PHP minimum supported version to 8.2 and test against PHP 8.2 through 8.5 ([#105](https://github.com/Fueled/ai-provider-for-ollama/pull/105)).
+
+**Security**
+
+- Resolves GHSA-cvg2-2wh8-3p8v ([GHSA-cvg2-2wh8-3p8v](https://github.com/Fueled/ai-provider-for-ollama/security/advisories/GHSA-cvg2-2wh8-3p8v)).
+
 = 1.3.0 - 2026-10-08 =
 
 **Added**
@@ -95,25 +111,13 @@ Please report security bugs found in the source code of the AI Provider for Olla
 
 - Bumped WordPress tested-up-to version 7.1 (props [@jeffpaul](https://github.com/jeffpaul), [@dkotter](https://github.com/dkotter) via [#81](https://github.com/Fueled/ai-provider-for-ollama/pull/81)).
 
-= 1.1.1 - 2026-05-14 =
-
-**Added**
-- Ensure the AI plugin sees Ollama as a valid, connected provider within the status dashboard widget (props [@dkotter](https://github.com/dkotter), [@jeffpaul](https://github.com/jeffpaul) via [#55](https://github.com/Fueled/ai-provider-for-ollama/pull/55)).
-
-**Fixed**
-- More robust path inclusion for the logo (props [@dkotter](https://github.com/dkotter), [@abcdatos](https://profiles.wordpress.org/abcdatos/) via [#61](https://github.com/Fueled/ai-provider-for-ollama/pull/61)).
-
-= 1.1.0 - 2026-04-23 =
-
-* **Added:** Support for image generation when using compatible models (props [@milindmore22](https://github.com/milindmore22), [@dkotter](https://github.com/dkotter) via [#30](https://github.com/Fueled/ai-provider-for-ollama/pull/30)).
-* **Added:** Integrate with the `wpai_has_ai_credentials` filter to ensure the AI plugin sees Ollama as a valid, connected provider (props [@dkotter](https://github.com/dkotter), [@jeffpaul](https://github.com/jeffpaul) via [#43](https://github.com/Fueled/ai-provider-for-ollama/pull/43)).
-* **Added:** Show the capabilities of each model next to the model name on our settings page (props [@dkotter](https://github.com/dkotter), [@jeffpaul](https://github.com/jeffpaul) via [#51](https://github.com/Fueled/ai-provider-for-ollama/pull/51)).
-* **Changed:** Increase the standard timeout to be 60 seconds for text generation (props [@dkotter](https://github.com/dkotter), [@jeffpaul](https://github.com/jeffpaul) via [#49](https://github.com/Fueled/ai-provider-for-ollama/pull/49)).
-* **Fixed:** Properly parse structured outputs (props [@dkotter](https://github.com/dkotter), [@jeffpaul](https://github.com/jeffpaul) via [#49](https://github.com/Fueled/ai-provider-for-ollama/pull/49)).
-
 [View historical changelog details here](https://github.com/Fueled/ai-provider-for-ollama/blob/develop/CHANGELOG.md).
 
 == Upgrade Notice ==
+
+= 1.4.0 =
+
+This version raises the minimum required PHP version from 7.4 to 8.2.
 
 = 1.0.0 =
 

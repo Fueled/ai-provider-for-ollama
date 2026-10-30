@@ -5,7 +5,7 @@
  * Description:       Ollama provider for the WordPress AI Client.
  * Requires at least: 7.0
  * Requires PHP:      8.2
- * Version:           1.3.0
+ * Version:           1.4.0
  * Author:            Fueled
  * Author URI:        https://fueled.com
  * License:           GPL-2.0-or-later
