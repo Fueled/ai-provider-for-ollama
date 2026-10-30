@@ -395,7 +395,7 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	 * Ollama's speech endpoint only produces WAV (or raw PCM, which has no
 	 * MIME type a browser can play), so WAV is the only output offered.
 	 *
-	 * @since x.x.x
+	 * @since 1.4.0
 	 *
 	 * @param string       $model_name The model name.
 	 * @param list<string> $voices     The voices the model offers, or an empty list when they are unknown.

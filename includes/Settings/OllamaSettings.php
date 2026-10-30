@@ -32,7 +32,7 @@ class OllamaSettings {
 	/**
 	 * Option WordPress stores the Ollama API key in.
 	 *
-	 * @since x.x.x
+	 * @since 1.4.0
 	 *
 	 * @var string
 	 */
@@ -315,7 +315,7 @@ class OllamaSettings {
 	/**
 	 * Discards the cached model list.
 	 *
-	 * @since x.x.x
+	 * @since 1.4.0
 	 */
 	public function invalidate_model_cache(): void {
 		$provider_id = 'ollama';
