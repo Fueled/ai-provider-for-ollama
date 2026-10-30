@@ -11,6 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 use WP_Error;
 use WordPress\AiClient\AiClient;
 use WordPress\AiClient\Common\Contracts\CachesDataInterface;
+use WordPress\AiClient\Providers\Models\Enums\CapabilityEnum;
 
 /**
  * Class for the Ollama settings in the WordPress admin.
@@ -48,7 +49,8 @@ class OllamaSettings {
 		add_action( 'admin_menu', array( $this, 'register_settings_screen' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_settings_script' ) );
 		add_action( 'wp_ajax_' . self::AJAX_ACTION, array( $this, 'ajax_list_models' ) );
-		add_filter( 'wpai_has_ai_credentials', array( $this, 'is_connected' ) );
+		add_filter( 'wpai_has_ai_credentials', array( $this, 'filter_has_ai_credentials' ) );
+		add_filter( 'wpai_has_text_to_speech_support', array( $this, 'filter_has_text_to_speech_support' ) );
 		add_filter( 'wpai_is_ollama_connector_configured', array( $this, 'is_connected' ) );
 
 		foreach ( array( self::OPTION_NAME, self::API_KEY_OPTION_NAME ) as $option_name ) {
@@ -347,6 +349,55 @@ class OllamaSettings {
 	 */
 	public function is_connected(): bool {
 		return ! is_wp_error( $this->get_models() );
+	}
+
+	/**
+	 * Adds Ollama to the AI plugin's credentials check.
+	 *
+	 * @since 1.4.0
+	 *
+	 * @param mixed $has_credentials Whether AI credentials are already available.
+	 * @return bool True if AI credentials are available, false otherwise.
+	 */
+	public function filter_has_ai_credentials( $has_credentials ): bool {
+		return (bool) $has_credentials || $this->is_connected();
+	}
+
+	/**
+	 * Adds Ollama to the AI plugin's text to speech support check.
+	 *
+	 * @since 1.4.0
+	 *
+	 * @param mixed $has_support Whether text to speech conversion is already supported.
+	 * @return bool True if text to speech conversion is supported, false otherwise.
+	 */
+	public function filter_has_text_to_speech_support( $has_support ): bool {
+		return (bool) $has_support || $this->has_model_with_capability( CapabilityEnum::textToSpeechConversion() );
+	}
+
+	/**
+	 * Checks if any connected Ollama model supports the given capability.
+	 *
+	 * @since 1.4.0
+	 *
+	 * @param \WordPress\AiClient\Providers\Models\Enums\CapabilityEnum $capability The capability to look for.
+	 * @return bool True if a model supports the capability, false otherwise.
+	 */
+	private function has_model_with_capability( CapabilityEnum $capability ): bool {
+		$models = $this->get_models();
+		if ( is_wp_error( $models ) ) {
+			return false;
+		}
+
+		foreach ( $models as $model ) {
+			foreach ( $model->getSupportedCapabilities() as $supported_capability ) {
+				if ( $capability->equals( $supported_capability ) ) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	/**
