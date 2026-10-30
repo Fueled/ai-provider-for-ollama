@@ -15,6 +15,9 @@ All notable changes to this project will be documented in this file, per [the Ke
 - Refresh the cached model list when the host or API key changes ([#102](https://github.com/Fueled/ai-provider-for-ollama/pull/102)).
 - Bump PHP minimum supported version to 8.2 and test against PHP 8.2 through 8.5 ([#105](https://github.com/Fueled/ai-provider-for-ollama/pull/105)).
 
+### Security
+- Resolves GHSA-cvg2-2wh8-3p8v ([GHSA-cvg2-2wh8-3p8v](https://github.com/Fueled/ai-provider-for-ollama/security/advisories/GHSA-cvg2-2wh8-3p8v)).
+
 ### Developer
 - Restrict GitHub Action workflow job permissions to follow principle of least privilege ([#111](https://github.com/Fueled/ai-provider-for-ollama/pull/111)).
 - Ignore escaping checks for variables used in exception messages ([#116](https://github.com/Fueled/ai-provider-for-ollama/pull/116)).
@@ -28,7 +31,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 - Bump `simple-git` from 3.36.0 to 4.0.2 ([#114](https://github.com/Fueled/ai-provider-for-ollama/pull/114)).
 - Bump `source-map-js` from 1.2.1 to 1.2.2 ([#113](https://github.com/Fueled/ai-provider-for-ollama/pull/113)).
 - Bump `webpack-dev-server` from 5.2.3 to 6.1.0 ([#114](https://github.com/Fueled/ai-provider-for-ollama/pull/114)).
-- Remove `uuid` 
+- Remove `uuid`
 
 ## [1.3.0] - 2026-10-08
 ### Added

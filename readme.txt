@@ -82,6 +82,10 @@ Please report security bugs found in the source code of the AI Provider for Olla
 - Refresh the cached model list when the host or API key changes ([#102](https://github.com/Fueled/ai-provider-for-ollama/pull/102)).
 - Bump PHP minimum supported version to 8.2 and test against PHP 8.2 through 8.5 ([#105](https://github.com/Fueled/ai-provider-for-ollama/pull/105)).
 
+**Security**
+
+- Resolves GHSA-cvg2-2wh8-3p8v ([GHSA-cvg2-2wh8-3p8v](https://github.com/Fueled/ai-provider-for-ollama/security/advisories/GHSA-cvg2-2wh8-3p8v)).
+
 = 1.3.0 - 2026-10-08 =
 
 **Added**
