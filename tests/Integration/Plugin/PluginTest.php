@@ -63,14 +63,12 @@ class PluginTest extends \WP_UnitTestCase {
 		// Reset the singleton registry.
 		$ai_client_reflection = new \ReflectionClass( AiClient::class );
 		$registry_prop        = $ai_client_reflection->getProperty( 'defaultRegistry' );
-		$registry_prop->setAccessible( true );
 		$registry_prop->setValue( null, null );
 
 		// Clear AbstractProvider static caches so providers re-create fresh instances.
 		$provider_reflection = new \ReflectionClass( AbstractProvider::class );
 		foreach ( array( 'metadataCache', 'availabilityCache', 'modelMetadataDirectoryCache' ) as $prop_name ) {
 			$prop = $provider_reflection->getProperty( $prop_name );
-			$prop->setAccessible( true );
 			$prop->setValue( null, array() );
 		}
 	}
@@ -253,13 +251,100 @@ class PluginTest extends \WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that allow_ollama_ports appends the configured Ollama port.
+	 * Tests that allow_localhost_requests only allows URLs that point at the Ollama host.
+	 *
+	 * @dataProvider data_allow_localhost_requests
+	 *
+	 * @param string $ollama_host The configured Ollama host.
+	 * @param string $url         The requested URL.
+	 * @param bool   $expected    Whether the request should be allowed.
+	 */
+	public function test_allow_localhost_requests( string $ollama_host, string $url, bool $expected ): void {
+		putenv( 'OLLAMA_HOST=' . $ollama_host );
+		$host = (string) wp_parse_url( $url, PHP_URL_HOST );
+
+		$this->assertSame( $expected, $this->plugin->allow_localhost_requests( false, $host, $url ) );
+	}
+
+	/**
+	 * Data provider for test_allow_localhost_requests().
+	 *
+	 * @return array<string, array{string, string, bool}>
+	 */
+	public function data_allow_localhost_requests(): array {
+		return array(
+			'default host'                        => array( 'http://localhost:11434', 'http://localhost:11434/api/tags', true ),
+			'host is case-insensitive'            => array( 'http://localhost:11434', 'http://LOCALHOST:11434/api/tags', true ),
+			'LAN host with port'                  => array( 'http://10.0.0.9:11434', 'http://10.0.0.9:11434/api/show', true ),
+			'LAN host without port'               => array( 'http://10.0.0.9', 'http://10.0.0.9/api/tags', true ),
+			'host without scheme'                 => array( 'localhost:11434', 'http://localhost:11434/api/tags', true ),
+			'Ollama host in query string'         => array( 'http://localhost:11434', 'http://127.0.0.1/?x=http://localhost:11434', false ),
+			'Ollama host in path'                 => array( 'http://localhost:11434', 'http://192.168.1.1/http://localhost:11434', false ),
+			'Ollama host in fragment'             => array( 'http://localhost:11434', 'http://10.0.0.1/#http://localhost:11434', false ),
+			'Ollama Cloud host in query string'   => array( 'https://ollama.com', 'http://127.0.0.1/?u=https://ollama.com', false ),
+			'same host, different port'           => array( 'http://localhost:11434', 'http://localhost:8080/', false ),
+			'same host, default port'             => array( 'http://localhost:11434', 'http://localhost/', false ),
+			'Ollama host as subdomain prefix'     => array( 'http://localhost:11434', 'http://localhost.evil.test:11434/', false ),
+			'other local host'                    => array( 'http://localhost:11434', 'http://192.168.1.1/', false ),
+			'subdirectory host'                   => array( 'http://localhost/ollama-ai', 'http://localhost/ollama-ai/api/tags', true ),
+			'subdirectory host, trailing slash'   => array( 'http://localhost/ollama-ai/', 'http://localhost/ollama-ai/api/tags', true ),
+			'subdirectory host, exact path'       => array( 'http://localhost/ollama-ai', 'http://localhost/ollama-ai', true ),
+			'subdirectory host, nested path'      => array( 'http://localhost:8080/proxy/ollama', 'http://localhost:8080/proxy/ollama/v1/chat/completions', true ),
+			'subdirectory host, other path'       => array( 'http://localhost/ollama-ai', 'http://localhost/wp-admin/', false ),
+			'subdirectory host, root path'        => array( 'http://localhost/ollama-ai', 'http://localhost/', false ),
+			'subdirectory host, no path'          => array( 'http://localhost/ollama-ai', 'http://localhost', false ),
+			'subdirectory host, path prefix'      => array( 'http://localhost/ollama-ai', 'http://localhost/ollama-ai-evil/api/tags', false ),
+			'subdirectory host, parent path'      => array( 'http://localhost/proxy/ollama', 'http://localhost/proxy/api/tags', false ),
+			'subdirectory host, dot segment'      => array( 'http://localhost/ollama-ai', 'http://localhost/ollama-ai/../wp-admin/', false ),
+			'subdirectory host, single dot'       => array( 'http://localhost/ollama-ai', 'http://localhost/ollama-ai/./api/tags', false ),
+			'subdirectory host, encoded dots'     => array( 'http://localhost/ollama-ai', 'http://localhost/ollama-ai/%2e%2e/wp-admin/', false ),
+			'subdirectory host, double encoded'   => array( 'http://localhost/ollama-ai', 'http://localhost/ollama-ai/%252e%252e/wp-admin/', false ),
+			'subdirectory host, encoded slash'    => array( 'http://localhost/ollama-ai', 'http://localhost/ollama-ai/..%2fwp-admin/', false ),
+			'subdirectory host, backslash'        => array( 'http://localhost/ollama-ai', 'http://localhost/ollama-ai/..\\wp-admin/', false ),
+			'subdirectory host, path parameter'   => array( 'http://localhost/ollama-ai', 'http://localhost/ollama-ai/..;x/wp-admin/', false ),
+			'subdirectory host, path in query'    => array( 'http://localhost/ollama-ai', 'http://localhost/?x=/ollama-ai/', false ),
+			'subdirectory host, dots in name'     => array( 'http://localhost/ollama-ai', 'http://localhost/ollama-ai/api/show/llama3.2...', true ),
+		);
+	}
+
+	/**
+	 * Tests that allow_localhost_requests keeps an already-allowed request allowed.
+	 */
+	public function test_allow_localhost_requests_keeps_existing_true(): void {
+		putenv( 'OLLAMA_HOST=http://localhost:11434' );
+		$result = $this->plugin->allow_localhost_requests( true, '127.0.0.1', 'http://127.0.0.1/' );
+
+		$this->assertTrue( $result );
+	}
+
+	/**
+	 * Tests that allow_ollama_ports appends the configured Ollama port for Ollama requests.
 	 */
 	public function test_allow_ollama_ports_appends_configured_port(): void {
 		putenv( 'OLLAMA_HOST=http://localhost:11434' );
-		$ports = $this->plugin->allow_ollama_ports( array( 80, 443 ) );
+		$ports = $this->plugin->allow_ollama_ports( array( 80, 443 ), 'localhost', 'http://localhost:11434/api/tags' );
 
 		$this->assertContains( 11434, $ports );
+	}
+
+	/**
+	 * Tests that allow_ollama_ports does not add the Ollama port for other hosts.
+	 */
+	public function test_allow_ollama_ports_keeps_ports_for_other_hosts(): void {
+		putenv( 'OLLAMA_HOST=http://localhost:11434' );
+		$ports = $this->plugin->allow_ollama_ports( array( 80, 443 ), 'example.com', 'http://example.com:11434/?x=http://localhost:11434' );
+
+		$this->assertSame( array( 80, 443 ), $ports );
+	}
+
+	/**
+	 * Tests that allow_ollama_ports only adds the port for requests within the Ollama host's path.
+	 */
+	public function test_allow_ollama_ports_respects_host_path(): void {
+		putenv( 'OLLAMA_HOST=http://localhost:8080/ollama-ai' );
+
+		$this->assertContains( 8080, $this->plugin->allow_ollama_ports( array( 80, 443 ), 'localhost', 'http://localhost:8080/ollama-ai/api/tags' ) );
+		$this->assertSame( array( 80, 443 ), $this->plugin->allow_ollama_ports( array( 80, 443 ), 'localhost', 'http://localhost:8080/other/' ) );
 	}
 
 	/**
@@ -267,8 +352,21 @@ class PluginTest extends \WP_UnitTestCase {
 	 */
 	public function test_allow_ollama_ports_keeps_ports_when_no_host_port(): void {
 		putenv( 'OLLAMA_HOST=http://localhost' );
-		$ports = $this->plugin->allow_ollama_ports( array( 80, 443 ) );
+		$ports = $this->plugin->allow_ollama_ports( array( 80, 443 ), 'localhost', 'http://localhost/api/tags' );
 
 		$this->assertSame( array( 80, 443 ), $ports );
+	}
+
+	/**
+	 * Tests that wp_http_validate_url() accepts the Ollama host but rejects
+	 * local URLs that only mention it.
+	 */
+	public function test_wp_http_validate_url_with_filters(): void {
+		putenv( 'OLLAMA_HOST=http://localhost:11434' );
+		$this->plugin->init();
+
+		$this->assertSame( 'http://localhost:11434/api/tags', wp_http_validate_url( 'http://localhost:11434/api/tags' ) );
+		$this->assertFalse( wp_http_validate_url( 'http://127.0.0.1/?x=http://localhost:11434' ) );
+		$this->assertFalse( wp_http_validate_url( 'http://127.0.0.1:11434/' ) );
 	}
 }

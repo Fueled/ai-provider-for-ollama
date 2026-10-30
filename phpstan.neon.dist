@@ -15,8 +15,8 @@ parameters:
 	# Configuration
 	level: 8
 	phpVersion:
-		min: 70400
-		max: 80400
+		min: 80200
+		max: 80500
 	bootstrapFiles:
 		- plugin.php
 	paths:
@@ -37,6 +37,7 @@ parameters:
 			- includes/Models/OllamaEmbeddingGenerationModel.php
 			- includes/Models/OllamaImageGenerationModel.php
 			- includes/Models/OllamaTextGenerationModel.php
+			- includes/Models/OllamaTextToSpeechConversionModel.php
 			- includes/Models/Traits/OllamaRequestOptionsTrait.php
 			- includes/Provider/OllamaProvider.php
 			- includes/Provider/OllamaProviderAvailability.php

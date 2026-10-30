@@ -16,7 +16,7 @@ Ollama provider for the [PHP AI Client SDK](https://github.com/WordPress/php-ai-
 
 ## Requirements
 
-- PHP 7.4+
+- PHP 8.2+
 - [php-ai-client](https://github.com/WordPress/php-ai-client) `^1.3` or WordPress 7.0+
 - Ollama running locally or remotely (like Ollama Cloud)
 
@@ -79,6 +79,21 @@ $result = AiClient::prompt('Hello!')
     ->usingProvider('ollama')
     ->generateText();
 ```
+
+### Text to Speech (Ollama 0.40.9+)
+
+Speech models such as [`phonon`](https://ollama.com/blog/speech-models) turn text into spoken audio through Ollama's [speech endpoint](https://docs.ollama.com/capabilities/speech). Speech models currently run on Apple Silicon Macs only.
+
+```php
+$file = wp_ai_client_prompt( 'Hello from WordPress.' )
+    ->using_provider( 'ollama' )
+    ->as_output_speech_voice( 'Zoey' ) // Optional; the model's default voice is used otherwise.
+    ->convert_text_to_speech();
+
+$audio = base64_decode( $file->getBase64Data() );
+```
+
+Audio is returned as a 16-bit, mono, 24 kHz WAV file (`audio/wav`), the only format Ollama produces. Each request accepts up to 4,096 characters of text. The voices a model offers are listed in its `outputSpeechVoice` supported option, and in `ollama show <model>`. The language-specific `phonon` variants are licensed for non-commercial use only.
 
 ### Decisions (Ollama 0.35+)
 
