@@ -50,7 +50,6 @@ class OllamaSettings {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_settings_script' ) );
 		add_action( 'wp_ajax_' . self::AJAX_ACTION, array( $this, 'ajax_list_models' ) );
 		add_filter( 'wpai_has_ai_credentials', array( $this, 'filter_has_ai_credentials' ) );
-		add_filter( 'wpai_has_image_generation_support', array( $this, 'filter_has_image_generation_support' ) );
 		add_filter( 'wpai_has_text_to_speech_support', array( $this, 'filter_has_text_to_speech_support' ) );
 		add_filter( 'wpai_is_ollama_connector_configured', array( $this, 'is_connected' ) );
 
@@ -362,18 +361,6 @@ class OllamaSettings {
 	 */
 	public function filter_has_ai_credentials( $has_credentials ): bool {
 		return (bool) $has_credentials || $this->is_connected();
-	}
-
-	/**
-	 * Adds Ollama to the AI plugin's image generation support check.
-	 *
-	 * @since 1.4.0
-	 *
-	 * @param mixed $has_support Whether image generation is already supported.
-	 * @return bool True if image generation is supported, false otherwise.
-	 */
-	public function filter_has_image_generation_support( $has_support ): bool {
-		return (bool) $has_support || $this->has_model_with_capability( CapabilityEnum::imageGeneration() );
 	}
 
 	/**

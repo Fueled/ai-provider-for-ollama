@@ -187,9 +187,6 @@ class OllamaSettingsTest extends \WP_UnitTestCase {
 			has_filter( 'wpai_has_ai_credentials', array( $this->settings, 'filter_has_ai_credentials' ) )
 		);
 		$this->assertNotFalse(
-			has_filter( 'wpai_has_image_generation_support', array( $this->settings, 'filter_has_image_generation_support' ) )
-		);
-		$this->assertNotFalse(
 			has_filter( 'wpai_has_text_to_speech_support', array( $this->settings, 'filter_has_text_to_speech_support' ) )
 		);
 	}
@@ -309,8 +306,7 @@ class OllamaSettingsTest extends \WP_UnitTestCase {
 	 */
 	public function data_capability_support_filters(): array {
 		return array(
-			'image generation' => array( 'wpai_has_image_generation_support', CapabilityEnum::imageGeneration() ),
-			'text to speech'   => array( 'wpai_has_text_to_speech_support', CapabilityEnum::textToSpeechConversion() ),
+			'text to speech' => array( 'wpai_has_text_to_speech_support', CapabilityEnum::textToSpeechConversion() ),
 		);
 	}
 
