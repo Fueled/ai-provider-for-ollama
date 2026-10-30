@@ -5,12 +5,15 @@ All notable changes to this project will be documented in this file, per [the Ke
 ## [Unreleased] - TBD
 
 ## [1.4.0] - 2026-10-30
+**Note: This version raises the minimum required PHP version from 7.4 to 8.2.**
+
 ### Added
 - Support for text-to-speech with Ollama speech models such as `phonon`, including voice selection (requires Ollama 0.40.9+) ([#115](https://github.com/Fueled/ai-provider-for-ollama/pull/115)).
 - A refresh models button on the settings page ([#102](https://github.com/Fueled/ai-provider-for-ollama/pull/102)).
 
 ### Changed
 - Refresh the cached model list when the host or API key changes ([#102](https://github.com/Fueled/ai-provider-for-ollama/pull/102)).
+- Bump PHP minimum supported version to 8.2 and test against PHP 8.2 through 8.5 ([#105](https://github.com/Fueled/ai-provider-for-ollama/pull/105)).
 
 ### Developer
 - Restrict GitHub Action workflow job permissions to follow principle of least privilege ([#111](https://github.com/Fueled/ai-provider-for-ollama/pull/111)).

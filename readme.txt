@@ -80,6 +80,7 @@ Please report security bugs found in the source code of the AI Provider for Olla
 **Changed**
 
 - Refresh the cached model list when the host or API key changes ([#102](https://github.com/Fueled/ai-provider-for-ollama/pull/102)).
+- Bump PHP minimum supported version to 8.2 and test against PHP 8.2 through 8.5 ([#105](https://github.com/Fueled/ai-provider-for-ollama/pull/105)).
 
 = 1.3.0 - 2026-10-08 =
 
@@ -109,6 +110,10 @@ Please report security bugs found in the source code of the AI Provider for Olla
 [View historical changelog details here](https://github.com/Fueled/ai-provider-for-ollama/blob/develop/CHANGELOG.md).
 
 == Upgrade Notice ==
+
+= 1.4.0 =
+
+This version raises the minimum required PHP version from 7.4 to 8.2.
 
 = 1.0.0 =
 
