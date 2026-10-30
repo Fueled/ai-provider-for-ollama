@@ -16,7 +16,7 @@ Ollama provider for the [PHP AI Client SDK](https://github.com/WordPress/php-ai-
 
 ## Requirements
 
-- PHP 7.4+
+- PHP 8.2+
 - [php-ai-client](https://github.com/WordPress/php-ai-client) `^1.3` or WordPress 7.0+
 - Ollama running locally or remotely (like Ollama Cloud)
 
