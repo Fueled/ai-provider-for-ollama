@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased] - TBD
 
+## [1.4.0] - 2026-10-30
+### Added
+- Support for text-to-speech with Ollama speech models such as `phonon`, including voice selection (requires Ollama 0.40.9+) ([#115](https://github.com/Fueled/ai-provider-for-ollama/pull/115)).
+- A refresh models button on the settings page ([#102](https://github.com/Fueled/ai-provider-for-ollama/pull/102)).
+
+### Changed
+- Refresh the cached model list when the host or API key changes ([#102](https://github.com/Fueled/ai-provider-for-ollama/pull/102)).
+
+### Developer
+- Restrict GitHub Action workflow job permissions to follow principle of least privilege ([#111](https://github.com/Fueled/ai-provider-for-ollama/pull/111)).
+- Ignore escaping checks for variables used in exception messages ([#116](https://github.com/Fueled/ai-provider-for-ollama/pull/116)).
+- Bump `compression` from 1.8.1 to 1.8.2 ([#113](https://github.com/Fueled/ai-provider-for-ollama/pull/113)).
+- Bump `fast-uri` from 3.1.7 to 3.1.9 ([#118](https://github.com/Fueled/ai-provider-for-ollama/pull/118)).
+- Bump `follow-redirects` from 1.16.0 to 1.16.1 ([#114](https://github.com/Fueled/ai-provider-for-ollama/pull/114)).
+- Bump `markdown-it` from 14.3.2 to 14.3.3 ([#117](https://github.com/Fueled/ai-provider-for-ollama/pull/117)).
+- Bump `postcss-selector-parser` from 7.1.5 to 7.1.7 and from 6.1.4 to 6.1.5 ([#118](https://github.com/Fueled/ai-provider-for-ollama/pull/118)).
+- Bump `proxy-addr` from 2.0.7 to 2.0.8 ([#113](https://github.com/Fueled/ai-provider-for-ollama/pull/113)).
+- Bump `shell-quote` from 1.10.0 to 1.12.0 ([#113](https://github.com/Fueled/ai-provider-for-ollama/pull/113)).
+- Bump `simple-git` from 3.36.0 to 4.0.2 ([#114](https://github.com/Fueled/ai-provider-for-ollama/pull/114)).
+- Bump `source-map-js` from 1.2.1 to 1.2.2 ([#113](https://github.com/Fueled/ai-provider-for-ollama/pull/113)).
+- Bump `webpack-dev-server` from 5.2.3 to 6.1.0 ([#114](https://github.com/Fueled/ai-provider-for-ollama/pull/114)).
+- Remove `uuid` 
+
 ## [1.3.0] - 2026-10-08
 ### Added
 - Support for Jev-style decision models ([#103](https://github.com/Fueled/ai-provider-for-ollama/pull/103)).
@@ -136,6 +159,7 @@ First public release of the AI Provider for Ollama plugin. 🎉
 - Function calling and structured output support
 
 [Unreleased]: https://github.com/Fueled/ai-provider-for-ollama/compare/main...develop
+[1.4.0]: https://github.com/Fueled/ai-provider-for-ollama/compare/1.3.0...1.4.0
 [1.3.0]: https://github.com/Fueled/ai-provider-for-ollama/compare/1.2.0...1.3.0
 [1.2.0]: https://github.com/Fueled/ai-provider-for-ollama/compare/1.1.1...1.2.0
 [1.1.1]: https://github.com/Fueled/ai-provider-for-ollama/compare/1.1.0...1.1.1
