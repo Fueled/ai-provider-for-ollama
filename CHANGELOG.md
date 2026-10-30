@@ -15,6 +15,9 @@ All notable changes to this project will be documented in this file, per [the Ke
 - Refresh the cached model list when the host or API key changes ([#102](https://github.com/Fueled/ai-provider-for-ollama/pull/102)).
 - Bump PHP minimum supported version to 8.2 and test against PHP 8.2 through 8.5 ([#105](https://github.com/Fueled/ai-provider-for-ollama/pull/105)).
 
+### Fixed
+- Ensure we properly declare text to speech generation support when used alongside the AI plugin ([#121](https://github.com/Fueled/ai-provider-for-ollama/pull/121)).
+
 ### Security
 - Resolves GHSA-cvg2-2wh8-3p8v ([GHSA-cvg2-2wh8-3p8v](https://github.com/Fueled/ai-provider-for-ollama/security/advisories/GHSA-cvg2-2wh8-3p8v)).
 

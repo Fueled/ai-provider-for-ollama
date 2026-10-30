@@ -179,12 +179,15 @@ class OllamaSettingsTest extends \WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that init() registers is_connected on wpai_has_ai_credentials.
+	 * Tests that init() registers the AI plugin support filters.
 	 */
-	public function test_init_registers_wpai_has_ai_credentials_filter(): void {
+	public function test_init_registers_wpai_support_filters(): void {
 		$this->settings->init();
 		$this->assertNotFalse(
-			has_filter( 'wpai_has_ai_credentials', array( $this->settings, 'is_connected' ) )
+			has_filter( 'wpai_has_ai_credentials', array( $this->settings, 'filter_has_ai_credentials' ) )
+		);
+		$this->assertNotFalse(
+			has_filter( 'wpai_has_text_to_speech_support', array( $this->settings, 'filter_has_text_to_speech_support' ) )
 		);
 	}
 
@@ -267,9 +270,20 @@ class OllamaSettingsTest extends \WP_UnitTestCase {
 	public function test_wpai_has_ai_credentials_filter_returns_false_when_disconnected(): void {
 		$this->settings->init();
 
-		$result = apply_filters( 'wpai_has_ai_credentials', true );
+		$result = apply_filters( 'wpai_has_ai_credentials', false );
 
 		$this->assertFalse( $result );
+	}
+
+	/**
+	 * Tests that wpai_has_ai_credentials filter keeps credentials from other providers when disconnected.
+	 */
+	public function test_wpai_has_ai_credentials_filter_keeps_existing_credentials_when_disconnected(): void {
+		$this->settings->init();
+
+		$result = apply_filters( 'wpai_has_ai_credentials', true );
+
+		$this->assertTrue( $result );
 	}
 
 	/**
@@ -283,6 +297,77 @@ class OllamaSettingsTest extends \WP_UnitTestCase {
 		$result = apply_filters( 'wpai_has_ai_credentials', false );
 
 		$this->assertTrue( $result );
+	}
+
+	/**
+	 * Data provider for the AI plugin capability support filters.
+	 *
+	 * @return array<string, array{string, \WordPress\AiClient\Providers\Models\Enums\CapabilityEnum}>
+	 */
+	public function data_capability_support_filters(): array {
+		return array(
+			'text to speech' => array( 'wpai_has_text_to_speech_support', CapabilityEnum::textToSpeechConversion() ),
+		);
+	}
+
+	/**
+	 * Tests that a capability support filter resolves to false when disconnected.
+	 *
+	 * @dataProvider data_capability_support_filters
+	 *
+	 * @param string $filter The filter name.
+	 */
+	public function test_capability_support_filter_returns_false_when_disconnected( string $filter ): void {
+		$this->settings->init();
+
+		$this->assertFalse( apply_filters( $filter, false ) );
+	}
+
+	/**
+	 * Tests that a capability support filter keeps support from other providers.
+	 *
+	 * @dataProvider data_capability_support_filters
+	 *
+	 * @param string $filter The filter name.
+	 */
+	public function test_capability_support_filter_keeps_existing_support( string $filter ): void {
+		$this->settings->init();
+
+		$this->assertTrue( apply_filters( $filter, true ) );
+	}
+
+	/**
+	 * Tests that a capability support filter resolves to false when no model has the capability.
+	 *
+	 * @dataProvider data_capability_support_filters
+	 *
+	 * @param string $filter The filter name.
+	 */
+	public function test_capability_support_filter_returns_false_without_capable_model( string $filter ): void {
+		$this->settings->init();
+		$this->register_mock_provider();
+		MockOllamaModelMetadataDirectory::$models = array( $this->create_mock_model_metadata() );
+
+		$this->assertFalse( apply_filters( $filter, false ) );
+	}
+
+	/**
+	 * Tests that a capability support filter resolves to true when a model has the capability.
+	 *
+	 * @dataProvider data_capability_support_filters
+	 *
+	 * @param string                                                  $filter     The filter name.
+	 * @param \WordPress\AiClient\Providers\Models\Enums\CapabilityEnum $capability The capability the filter checks for.
+	 */
+	public function test_capability_support_filter_returns_true_with_capable_model( string $filter, CapabilityEnum $capability ): void {
+		$this->settings->init();
+		$this->register_mock_provider();
+		MockOllamaModelMetadataDirectory::$models = array(
+			$this->create_mock_model_metadata(),
+			new ModelMetadata( 'capable-model', 'Capable Model', array( $capability ), array() ),
+		);
+
+		$this->assertTrue( apply_filters( $filter, false ) );
 	}
 }
 
