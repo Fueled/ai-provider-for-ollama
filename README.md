@@ -80,6 +80,61 @@ $result = AiClient::prompt('Hello!')
     ->generateText();
 ```
 
+### Text to Speech (Ollama 0.40.9+)
+
+Speech models such as [`phonon`](https://ollama.com/blog/speech-models) turn text into spoken audio through Ollama's [speech endpoint](https://docs.ollama.com/capabilities/speech). Speech models currently run on Apple Silicon Macs only.
+
+```php
+$file = wp_ai_client_prompt( 'Hello from WordPress.' )
+    ->using_provider( 'ollama' )
+    ->as_output_speech_voice( 'Zoey' ) // Optional; the model's default voice is used otherwise.
+    ->convert_text_to_speech();
+
+$audio = base64_decode( $file->getBase64Data() );
+```
+
+Audio is returned as a 16-bit, mono, 24 kHz WAV file (`audio/wav`), the only format Ollama produces. Each request accepts up to 4,096 characters of text. The voices a model offers are listed in its `outputSpeechVoice` supported option, and in `ollama show <model>`. The language-specific `phonon` variants are licensed for non-commercial use only.
+
+### Decisions (Ollama 0.35+)
+
+Decision models such as `nimble` and `tev1` answer typed questions about a piece of content and return a choice, a probability, or a score with its probability distribution, instead of generated text. They run through Ollama's [System One API](https://docs.ollama.com/api/systemone) on local models only.
+
+The AI Client has no decision capability yet, so these models are used through the provider directly rather than `wp_ai_client_prompt()`:
+
+```php
+use Fueled\AiProviderForOllama\Decisions\DecisionQuestion;
+use Fueled\AiProviderForOllama\Provider\OllamaProvider;
+
+$result = OllamaProvider::decisionModel( 'tev1' )->decide(
+    array( 'comment' => $comment->comment_content ),
+    array(
+        'spam'  => DecisionQuestion::noul( 'Is this comment spam?' ),
+        'route' => DecisionQuestion::choice(
+            'How should a moderator handle it?',
+            array(
+                'approve' => 'Relevant and civil',
+                'hold'    => 'Needs a human look',
+                'trash'   => 'Abusive or off-topic',
+            )
+        ),
+        'tone'  => DecisionQuestion::score( 'How civil is it?', array( 'Hostile', 'Neutral', 'Friendly' ) ),
+    )
+);
+
+$result->getAnswer( 'spam' )->getProbability();      // 0.03
+$result->getAnswer( 'route' )->getChoice();          // 'approve'
+$result->getAnswer( 'route' )->isConfident( 0.9 );   // Gate automatic actions on confidence.
+$result->getAnswer( 'tone' )->getScore();            // 1.7, from 0 (first level) to 2 (last level).
+```
+
+`OllamaProvider::decisionModelIds()` lists the models on your Ollama host that support decisions. A request takes up to 64 questions; choice and score questions take 2 to 26 options or levels. Invalid requests throw an `InvalidArgumentException` before anything is sent.
+
+## Frequently Asked Questions
+
+### Where do I report security bugs found in this plugin?
+
+Please report security bugs found in the source code of the AI Provider for Ollama plugin through the [Patchstack Vulnerability Disclosure  Program](https://patchstack.com/database/vdp/b715f2ba-e67f-437c-9398-cb523702a7ad). The Patchstack team will assist you with verification, CVE assignment, and notify the developers of this plugin.
+
 ## Support Level
 
 **Active:** Fueled is actively working on this, and we expect to continue work for the foreseeable future including keeping tested up to the most recent version of WordPress.  Bug reports, feature requests, questions, and pull requests are welcome.

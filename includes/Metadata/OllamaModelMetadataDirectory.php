@@ -32,16 +32,17 @@ use WordPress\AiClient\Providers\Models\Enums\OptionEnum;
  * }
  * @phpstan-type ShowResponseData array{
  *     capabilities?: list<string>,
- *     details?: array{families?: list<string>|null}
+ *     details?: array{families?: list<string>|null},
+ *     voices?: list<string>|null
  * }
- * @phpstan-type ModelDetails array{capabilities: list<string>, families: list<string>}
+ * @phpstan-type ModelDetails array{capabilities: list<string>, families: list<string>, voices?: list<string>}
  */
 class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirectory {
 
 	/**
 	 * Default timeout for model discovery requests, in seconds.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @var float
 	 */
@@ -50,7 +51,7 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	/**
 	 * Default connection timeout for model discovery requests, in seconds.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @var float
 	 */
@@ -59,7 +60,7 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	/**
 	 * The model entries from /api/tags, once fetched.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @var list<TagsEntryData>|null
 	 */
@@ -68,7 +69,7 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	/**
 	 * Lists the models the Ollama host offers, as returned by /api/tags.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @return list<TagsEntryData> The raw model entries.
 	 * @throws \WordPress\AiClient\Providers\Http\Exception\ResponseException If the host is unreachable or the response
@@ -100,7 +101,7 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 */
 	public function invalidateCaches(): void {
 		$this->model_tags = null;
@@ -113,9 +114,10 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	 * @since 1.0.0
 	 */
 	protected function sendListModelsRequest(): array {
-		$details_cache  = OllamaModelDetailsCache::load( OllamaProvider::url( '' ) );
-		$digests_in_use = array();
-		$models_map     = array();
+		$details_cache   = OllamaModelDetailsCache::load( OllamaProvider::url( '' ) );
+		$digests_in_use  = array();
+		$models_map      = array();
+		$decision_models = array();
 
 		foreach ( $this->listModelTags() as $model_entry ) {
 			if ( ! isset( $model_entry['name'] ) || ! is_string( $model_entry['name'] ) || '' === $model_entry['name'] ) {
@@ -129,14 +131,50 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 				continue;
 			}
 
+			if ( null !== $details && in_array( 'decision', $details['capabilities'], true ) ) {
+				$decision_models[ $model_name ] = $metadata;
+				continue;
+			}
+
 			$models_map[ $model_name ] = $metadata;
 		}
 
 		$details_cache->save( $digests_in_use );
 
 		ksort( $models_map );
+		ksort( $decision_models );
 
-		return $models_map;
+		// Put Decision models last so they are not picked by default.
+		return $models_map + $decision_models;
+	}
+
+	/**
+	 * Lists the models that support decisions via the /v1/systemone endpoint.
+	 *
+	 * @since 1.3.0
+	 *
+	 * @return list<string> The model IDs, sorted.
+	 * @throws \WordPress\AiClient\Providers\Http\Exception\ResponseException If the host is unreachable or the response
+	 *                                                                       is not a model listing.
+	 */
+	public function listDecisionModelIds(): array {
+		$model_ids = array();
+
+		foreach ( $this->listModelTags() as $model_entry ) {
+			if ( ! isset( $model_entry['name'] ) || ! is_string( $model_entry['name'] ) || '' === $model_entry['name'] ) {
+				continue;
+			}
+
+			if ( ! in_array( 'decision', $this->readStringList( $model_entry['capabilities'] ?? null ), true ) ) {
+				continue;
+			}
+
+			$model_ids[] = $model_entry['name'];
+		}
+
+		sort( $model_ids );
+
+		return $model_ids;
 	}
 
 	/**
@@ -145,7 +183,7 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	 * In order of preference: the tag entry itself, the cache, and finally a
 	 * request to /api/show.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @param string                  $model_name     The model name.
 	 * @param TagsEntryData           $model_entry    The model's entry from /api/tags.
@@ -162,8 +200,10 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 		$families = $this->readStringList( $model_entry['details']['families'] ?? null );
 
 		// Recent Ollama versions report capabilities in the tag listing, making the per-model request unnecessary.
-		$capabilities = $this->readStringList( $model_entry['capabilities'] ?? null );
-		if ( ! empty( $capabilities ) ) {
+		// Speech models are the exception, as their voices are only reported by /api/show.
+		$capabilities    = $this->readStringList( $model_entry['capabilities'] ?? null );
+		$is_speech_model = in_array( 'speech', $capabilities, true );
+		if ( ! empty( $capabilities ) && ! $is_speech_model ) {
 			return array(
 				'capabilities' => $capabilities,
 				'families'     => $families,
@@ -184,14 +224,26 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 
 		$show_data = $this->fetchModelDetails( $model_name );
 		if ( null === $show_data ) {
+			if ( $is_speech_model ) {
+				return array(
+					'capabilities' => $capabilities,
+					'families'     => $families,
+				);
+			}
+
 			return null;
 		}
 
-		$show_families = $this->readStringList( $show_data['details']['families'] ?? null );
-		$details       = array(
-			'capabilities' => $this->readStringList( $show_data['capabilities'] ?? null ),
+		$show_families     = $this->readStringList( $show_data['details']['families'] ?? null );
+		$show_capabilities = $this->readStringList( $show_data['capabilities'] ?? null );
+		$details           = array(
+			'capabilities' => empty( $show_capabilities ) ? $capabilities : $show_capabilities,
 			'families'     => empty( $show_families ) ? $families : $show_families,
 		);
+
+		if ( in_array( 'speech', $details['capabilities'], true ) ) {
+			$details['voices'] = $this->readStringList( $show_data['voices'] ?? null );
+		}
 
 		if ( '' !== $digest ) {
 			$details_cache->set( $digest, $details );
@@ -213,6 +265,12 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	private function buildModelMetadata( string $model_name, ?array $details ): ?ModelMetadata {
 		$model_capabilities = null !== $details ? $details['capabilities'] : array();
 		$model_families     = null !== $details ? $details['families'] : array();
+		$model_voices       = null !== $details ? $details['voices'] ?? array() : array();
+
+		// Speech models reject chat, completion, and embedding requests, so they only offer text to speech.
+		if ( in_array( 'speech', $model_capabilities, true ) ) {
+			return $this->buildTextToSpeechModelMetadata( $model_name, $model_voices );
+		}
 
 		$is_image_generation_model = in_array( 'image', $model_capabilities, true );
 
@@ -332,12 +390,43 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	}
 
 	/**
+	 * Builds text-to-speech metadata for a model.
+	 *
+	 * Ollama's speech endpoint only produces WAV (or raw PCM, which has no
+	 * MIME type a browser can play), so WAV is the only output offered.
+	 *
+	 * @since x.x.x
+	 *
+	 * @param string       $model_name The model name.
+	 * @param list<string> $voices     The voices the model offers, or an empty list when they are unknown.
+	 * @return \WordPress\AiClient\Providers\Models\DTO\ModelMetadata The text-to-speech model metadata.
+	 */
+	private function buildTextToSpeechModelMetadata( string $model_name, array $voices ): ModelMetadata {
+		return new ModelMetadata(
+			$model_name,
+			$model_name,
+			array(
+				CapabilityEnum::textToSpeechConversion(),
+			),
+			array(
+				new SupportedOption( OptionEnum::inputModalities(), array( array( ModalityEnum::text() ) ) ),
+				new SupportedOption( OptionEnum::outputModalities(), array( array( ModalityEnum::audio() ) ) ),
+				new SupportedOption( OptionEnum::outputMimeType(), array( 'audio/wav' ) ),
+				new SupportedOption( OptionEnum::outputFileType(), array( FileTypeEnum::inline() ) ),
+				// When the voices are unknown, any voice is accepted and Ollama validates it.
+				new SupportedOption( OptionEnum::outputSpeechVoice(), empty( $voices ) ? null : $voices ),
+				new SupportedOption( OptionEnum::customOptions() ),
+			)
+		);
+	}
+
+	/**
 	 * Reads a list of strings out of an API payload.
 	 *
 	 * Ollama omits these keys on some versions and sends null for others, so
 	 * anything that is not a list of strings is read as "none given".
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @param mixed $value The raw value.
 	 * @return list<string> The strings it contained, if any.
@@ -409,7 +498,7 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 	/**
 	 * Builds the request options used for model discovery.
 	 *
-	 * @since x.x.x
+	 * @since 1.3.0
 	 *
 	 * @return \WordPress\AiClient\Providers\Http\DTO\RequestOptions The prepared request options.
 	 */
@@ -424,7 +513,7 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 			 * Applies to the `/api/tags` and `/api/show` requests behind the connection
 			 * check and the model list, not to text, image, or embedding generation.
 			 *
-			 * @since x.x.x
+			 * @since 1.3.0
 			 *
 			 * @param float $request_timeout The request timeout in seconds.
 			 */
@@ -433,7 +522,7 @@ class OllamaModelMetadataDirectory extends AbstractApiBasedModelMetadataDirector
 			/**
 			 * Filters the connection timeout for Ollama model discovery requests.
 			 *
-			 * @since x.x.x
+			 * @since 1.3.0
 			 *
 			 * @param float $connect_timeout The connection timeout in seconds.
 			 */

@@ -5,9 +5,11 @@ declare( strict_types=1 );
 namespace Fueled\AiProviderForOllama\Provider;
 
 use Fueled\AiProviderForOllama\Metadata\OllamaModelMetadataDirectory;
+use Fueled\AiProviderForOllama\Models\OllamaDecisionModel;
 use Fueled\AiProviderForOllama\Models\OllamaEmbeddingGenerationModel;
 use Fueled\AiProviderForOllama\Models\OllamaImageGenerationModel;
 use Fueled\AiProviderForOllama\Models\OllamaTextGenerationModel;
+use Fueled\AiProviderForOllama\Models\OllamaTextToSpeechConversionModel;
 use WordPress\AiClient\AiClient;
 use WordPress\AiClient\Common\Exception\RuntimeException;
 use WordPress\AiClient\Providers\ApiBasedImplementation\AbstractApiProvider;
@@ -17,8 +19,11 @@ use WordPress\AiClient\Providers\DTO\ProviderMetadata;
 use WordPress\AiClient\Providers\Enums\ProviderTypeEnum;
 use WordPress\AiClient\Providers\Http\Enums\RequestAuthenticationMethod;
 use WordPress\AiClient\Providers\Models\Contracts\ModelInterface;
+use WordPress\AiClient\Providers\Models\DTO\ModelConfig;
 use WordPress\AiClient\Providers\Models\DTO\ModelMetadata;
+use WordPress\AiClient\Providers\Models\DTO\SupportedOption;
 use WordPress\AiClient\Providers\Models\EmbeddingGeneration\Contracts\EmbeddingGenerationModelInterface;
+use WordPress\AiClient\Providers\Models\Enums\OptionEnum;
 
 /**
  * Class for the Ollama provider.
@@ -26,6 +31,62 @@ use WordPress\AiClient\Providers\Models\EmbeddingGeneration\Contracts\EmbeddingG
  * @since 1.0.0
  */
 class OllamaProvider extends AbstractApiProvider {
+
+	/**
+	 * Returns a decision model, ready to answer questions.
+	 *
+	 * The AI Client has no decision capability, so decision models cannot be
+	 * resolved through the registry the way other models are.
+	 *
+	 * Example:
+	 *
+	 *     $result = OllamaProvider::decisionModel( 'tev1' )->decide(
+	 *         $comment_text,
+	 *         array( 'spam' => DecisionQuestion::noul( 'Is this comment spam?' ) )
+	 *     );
+	 *
+	 * @since 1.3.0
+	 *
+	 * @param string                                                  $model_id     The model ID, such as "nimble".
+	 * @param \WordPress\AiClient\Providers\Models\DTO\ModelConfig|null $model_config Optional. Model configuration,
+	 *                                                                              for custom options. Default null.
+	 * @return \Fueled\AiProviderForOllama\Models\OllamaDecisionModel The decision model.
+	 */
+	public static function decisionModel( string $model_id, ?ModelConfig $model_config = null ): OllamaDecisionModel {
+		$model_metadata = new ModelMetadata(
+			$model_id,
+			$model_id,
+			array(),
+			array( new SupportedOption( OptionEnum::customOptions() ) )
+		);
+
+		$model = new OllamaDecisionModel( $model_metadata, static::metadata() );
+		if ( null !== $model_config ) {
+			$model->setConfig( $model_config );
+		}
+
+		$registry = AiClient::defaultRegistry();
+		if ( $registry->hasProvider( static::class ) ) {
+			$registry->bindModelDependencies( $model );
+		}
+
+		return $model;
+	}
+
+	/**
+	 * Lists the models on the Ollama host that support decisions.
+	 *
+	 * @since 1.3.0
+	 *
+	 * @return list<string> The model IDs, sorted.
+	 * @throws \WordPress\AiClient\Providers\Http\Exception\ResponseException If the host is unreachable.
+	 */
+	public static function decisionModelIds(): array {
+		/** @var \Fueled\AiProviderForOllama\Metadata\OllamaModelMetadataDirectory $model_metadata_directory */
+		$model_metadata_directory = static::modelMetadataDirectory();
+
+		return $model_metadata_directory->listDecisionModelIds();
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -67,6 +128,10 @@ class OllamaProvider extends AbstractApiProvider {
 			if ( $capability->isEmbeddingGeneration() && interface_exists( EmbeddingGenerationModelInterface::class ) ) {
 				return new OllamaEmbeddingGenerationModel( $model_metadata, $provider_metadata );
 			}
+
+			if ( $capability->isTextToSpeechConversion() ) {
+				return new OllamaTextToSpeechConversionModel( $model_metadata, $provider_metadata );
+			}
 		}
 
 		throw new RuntimeException(
@@ -92,9 +157,9 @@ class OllamaProvider extends AbstractApiProvider {
 		// Provider description support was added in 1.2.0.
 		if ( version_compare( AiClient::VERSION, '1.2.0', '>=' ) ) {
 			if ( function_exists( '__' ) ) {
-				$provider_meta[] = __( 'Text, image, and embedding generation with Ollama, either running locally or on Ollama Cloud.', 'ai-provider-for-ollama' );
+				$provider_meta[] = __( 'Text, image, embedding, and speech generation with Ollama, either running locally or on Ollama Cloud.', 'ai-provider-for-ollama' );
 			} else {
-				$provider_meta[] = 'Text, image, and embedding generation with Ollama, either running locally or on Ollama Cloud.';
+				$provider_meta[] = 'Text, image, embedding, and speech generation with Ollama, either running locally or on Ollama Cloud.';
 			}
 		}
 
